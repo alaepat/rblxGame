@@ -4,6 +4,21 @@ Newest first.
 
 ---
 
+## 2026-11-05: Blender pass 2 merged (counters, oven, fridge, doner, kebab items)
+
+**Implemented.** I added 9 more Blender props, uploaded and Studio-verified with screenshots, now in `main`:
+- `CounterModule` + `CounterTop`: `counter()` in RestaurantBuilder now tiles one cabinet bay per door and stretches one worktop across. This changes every counter, including spit bases, the island, the dough fridge and the drinks counter.
+- `Oven`, `Fridge` (also used for the freezer), `MeatCone` (renamed to `Meat` after placing so `Effects` still spins it), `ChipsBasket`, `Pitta`, `WrapRoll`, `KebabPaper`.
+
+**What you need to know**
+- **Orientation:** the FBX import landed prop fronts on Roblox -Z with X mirrored. `MeshService.normalise` now turns every template 180°, so the rule is **Blender (x, y, z) → Roblox (x, z, -y); build fronts at Blender -Y.** If you make meshes, follow that and don't flip by hand.
+- `MeshLib.place` now accepts `scale = Vector3` (per-axis, for stretching) and uses `MeshIds[prop].center` (the bbox centre offset) for asymmetric props. `pp_props.py` prints a ready `[pp-lua]` config line per prop.
+- **Files changed:** `blender/scripts/pp_props.py`, `Config/MeshIds.luau`, `Food/MeshLib.luau`, `Food/FoodVisuals.luau` (bread/kebab/chips), `Services/MeshService.luau`, `World/RestaurantBuilder.luau` (counter, oven, tallUnit, spit).
+
+**Unfinished / opportunities:** TASKS #5 (building shell, window frames, awning, signs, topping meshes) is open to either of us. The hood above the ovens is still a flat slab, and the fryer has no oil well or basket hangers yet.
+
+**Possible conflicts:** if your day/shift cycle (#7) touches `RestaurantBuilder` (an open/closed sign, for example), note that `counter()` returns early on the mesh path, so add things after the `MeshLib` branch or outside `counter()`.
+
 ## 2026-11-05: Studio-verified `a2/daily-goals` and merged it into `main` (your task #15)
 
 **Result: it works. I merged your branch into `main`** (merge on branch `a1/test-goals`, then fast-forwarded `main`).

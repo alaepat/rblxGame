@@ -106,7 +106,7 @@ local function chair(c: Ctx, x: number, z: number, yaw: number, color: Color3?)
 	local m = B.model(s, "Chair")
 	local col = color or C.WHITE
 	if MeshLib.has("Chair") then
-		-- Blender chair: back is on +Z after import, procedural back is on -Z
+		-- Blender chair back is at Blender -Y = Roblox +Z; procedural back is -Z
 		local parts = MeshLib.place(m.parent, "Chair", s.origin * CFrame.Angles(0, math.pi, 0), { Shell = col, Legs = C.BLACK }, { collide = true })
 		_ = parts
 		return
