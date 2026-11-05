@@ -85,6 +85,16 @@ local function run(cmd: string, arg: any): any
 			profile.daily = nil
 			S.GoalService.ensure(player)
 			return "goals rerolled"
+		elseif arg == "info" then
+			local d = profile.daily
+			if not d then
+				return "no daily"
+			end
+			local t = {}
+			for _, g in d.goals do
+				table.insert(t, g.id .. " " .. g.progress .. "/" .. g.target .. (g.claimed and " claimed" or ""))
+			end
+			return ("day %d streak %d bonus %s | %s"):format(d.day, d.streak, tostring(d.bonusClaimed), table.concat(t, ", "))
 		end
 		S.GoalService.ensure(player)
 		for _, g in profile.daily.goals do

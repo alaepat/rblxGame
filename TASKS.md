@@ -18,7 +18,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 12 | Mobile/tablet UI pass (scale HUD, bigger touch targets) | UI | — | Test with the Studio device emulator |
 | 13 | Interior themes / decorations shop (restyle floors, tables, wall colours) | Expansion | — | |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
-| 15 | Studio-verify `a2/daily-goals`: goals panel (PC + mobile emulator), Claim/bonus, toasts, `profile.daily` saving, other players' prompts hidden (2-player test) | QA | — | `DevCommand:Invoke("goals")` finishes all goals. Merge into `main` once it looks right |
+| 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
 | 16 | Menu mastery: per-recipe serve counts → bronze/silver/gold stars with small cash/XP bonuses (reference "Progress" tab) | Progression | — | Can reuse the `serve_recipe` event from GoalService |
 | 17 | Daily goals extras: one free reroll per day, a weekly challenge, a "GoalDone" sound | Progression | — | Config in `Challenges.luau` |
 

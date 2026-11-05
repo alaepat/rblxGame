@@ -340,7 +340,7 @@ local function build()
 		Position = UDim2.new(1, -8, 0.5, 0),
 		Size = UDim2.fromOffset(30, 30),
 		BackgroundColor3 = Color3.fromRGB(110, 60, 180),
-		Text = "✕",
+		Text = "X", -- GothamBlack has no ✕ glyph (rendered as a blank box)
 		TextSize = 16,
 	}, function()
 		setOpen(false)
