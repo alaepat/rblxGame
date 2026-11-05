@@ -11,7 +11,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 5 | Blender pass 3: building details (window frames, awning, door), signs, food toppings as meshes (pepperoni, mushroom slices) | Art | — | Open to either account. Coordinate with #1 via AI_MESSAGES so we don't build the same prop |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
-| 7 | Day/shift cycle (lunch/dinner rush, closing time, end-of-day summary + wages) | Gameplay | — | Inspired-by feature; design first in AI_MESSAGES |
+| 7 | Day/shift cycle (lunch/dinner rush, closing time, end-of-day summary + wages) | Gameplay | **Account 2** | Branch `a2/day-cycle`. Design in AI_MESSAGES/ACCOUNT2.md |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
 | 10 | More content past level 12: desserts, garlic bread, calzone, sides | Content | — | Config-driven |
 | 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | — | |
