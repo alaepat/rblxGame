@@ -1,6 +1,6 @@
 # Development Status
 
-_Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account 1's)_
+_Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the rest is Account 1's)_
 
 ## Verified in a Studio playtest (2026-11-05, synced via Rojo)
 - The server and client boot with no script errors. The town and restaurant generate (about 1,070 parts, 32 active stations at level 1).
@@ -27,7 +27,16 @@ _Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account
 - **Own-plot prompts only** (task #4): the Interaction controller skips prompts inside another player's `Restaurant_*` model.
 - **Offline tests**: `lune run tests/run.luau` gives 24 passing tests: every src file compiles, DailyGoals rules, GoalService against fake services (claim validation, payouts, rollover), and the goals panel built with real Lune Instances. `rojo build` succeeds.
 - Studio hooks: `DevCommand:Invoke("goals")` finishes every goal, `DevCommand:Invoke("goals", "reset")` rerolls.
-- **Needs a Studio check**: the panel layout on PC and mobile, the badge and pulsing Claim buttons, the toasts, saving `profile.daily`, and the countdown.
+- **Still to check** (TASKS #15): the mobile/tablet layout, the 2-player prompt-hiding test, and `profile.daily` saving with DataStore on.
+
+## Day / shift cycle (Account 2, 2026-11-06): branch `a2/day-cycle`, PR #2, offline-tested, NOT Studio-verified
+- Each restaurant runs its own day. Opening the sign starts **Day N at 10:00**; 1 game hour = 40 s, so 10:00–22:00 is an 8-minute day.
+- Phases from `Config/DayCycle.luau`: morning, 🔥 lunch rush 12–14 (×1.8 customers), afternoon lull, 🔥 dinner rush 17:30–20 (×2), evening, 🌙 late-night rush 21–22 (×1.4). Toast + bell when a rush starts.
+- At 22:00 the sign closes itself. When the last customers leave (or after 90 s), the **end-of-day summary card** shows orders, food counts, sales, tips, happy %, walk-outs, rush orders, rating change and a grade (S–D), pays a **shift bonus** (×1.5 for a full day) and charges **staff wages** (0 until staff exist, #11). Days played and best day are saved in `profile.shift`.
+- **Day clock pill** top-left above the order list, with a timeline bar showing the rushes and a "now" marker.
+- Closing early ends the day too; reopening before 22:00 continues it. A day only counts once an order was served.
+- Studio hooks: `DevCommand:Invoke("day", 12)` jumps the clock, `("day", "close")` goes to closing time, `("day", "end")` ends the day now.
+- Offline: 56 Lune tests pass (pure rules, ShiftService against fakes, the clock/summary UI with real Lune Instances); `rojo build` OK. Studio checklist is in PR #2 (TASKS #18).
 
 ### Blender meshes (2026-11-05)
 - `blender/scripts/pp_props.py` builds 9 smooth props headless in Blender 3.4 (Tray, PizzaBox, Cup, Pizza, Pan, Chair, Table, FoodBox, Bottle) → FBX → uploaded as Roblox Model assets (ids in `Config/MeshIds.luau`, all moderation-approved).
@@ -47,10 +56,10 @@ _Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account
 - Stainless steel (Metal material) looks quite dark in enclosed rooms. Consider a lighter colour or SmoothPlastic for counter bodies.
 - `Lighting.Technology` must be set to **Future** by hand (scripts can't set it).
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
-- ~~Other players can see prompts in your restaurant~~: fixed on `a2/daily-goals` (not yet Studio-verified).
+- ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - Blender meshes are in for 9 props; counters, ovens, fridges, spits, the fryer and the building are still procedural (TASKS #1, #5).
-- No day/shift cycle, staff, menu mastery or delivery orders yet (see TASKS.md). Daily goals are on `a2/daily-goals`.
+- No staff, menu mastery or delivery orders yet (see TASKS.md). The day/shift cycle is on `a2/day-cycle` (PR #2), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)
 | Phase | State |
@@ -59,7 +68,7 @@ _Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account
 | 2 Interactions | Done (needs playtest) |
 | 3 Food | Pizza + kebab + drinks + chips done (needs playtest) |
 | 4 Customers | Done (needs playtest) |
-| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks on `a2/daily-goals` (offline-tested) |
+| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks merged (PC Studio-verified); day/shift cycle on `a2/day-cycle` (PR #2, offline-tested) |
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
 | 8 Multiplayer & saving | Per-player plots + DataStore done; needs a published-place test |
