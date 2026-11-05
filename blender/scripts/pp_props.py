@@ -206,11 +206,12 @@ def build_PizzaBox():
     cut = rounded_box("cut", S - 0.05, S - 0.05, 0.2, 0.03, 2, (0, 0, H * 0.55))
     boolean_diff(band, cut)
     cylinder("PizzaBox_Logo", 0.52, 0.02, (0, 0, H + 0.005), 48)
-    ring = torus("PizzaBox_Ring", 0.78, 0.045, (0, 0, H + 0.02))
-    ring.scale = (1, 0.32, 0.25)
+    # flat orbit ring printed around the planet logo (an elliptical band)
+    ring = torus("PizzaBox_Ring", 0.78, 0.03, (0, 0, H + 0.012))
+    ring.scale = (1, 0.42, 0.25)
     ring.rotation_euler = (0, 0, math.radians(-18))
     select_only([ring])
-    bpy.ops.object.transform_apply(scale=True, rotation=True)
+    bpy.ops.object.transform_apply(location=False, scale=True, rotation=True)
     # vent tab on the front edge
     rounded_box("PizzaBox_Tab", 0.5, 0.04, 0.12, 0.02, 2, (0, -S / 2 - 0.01, H * 0.7))
 

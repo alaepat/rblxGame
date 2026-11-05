@@ -21,8 +21,17 @@ _Last updated: 2026-11-05 by Account 1_
 - Fixed: newer emoji (🫓🫑🫒🪴🪧) rendered as blank boxes in Roblox, so they're replaced.
 - Added interior plaster cladding (back rooms, above the kitchen tiles, dining walls) so no brick shows inside. Not visually re-checked yet.
 
+### Blender meshes (2026-11-05)
+- `blender/scripts/pp_props.py` builds 9 smooth props headless in Blender 3.4 (Tray, PizzaBox, Cup, Pizza, Pan, Chair, Table, FoodBox, Bottle) → FBX → uploaded as Roblox Model assets (ids in `Config/MeshIds.luau`, all moderation-approved).
+- In a playtest, MeshService loaded all 9 at the exact config size with the pivot at bottom centre. Verified visually: pizza (rolled crust, organic sauce/cheese), steel topping pans, dining chairs + tables, pick-up trays, boxed pizza, cup with lid and straw. No errors.
+- PizzaBox v2 uploaded (the logo ring was standing upright; now flat). The re-upload isn't re-checked in game yet.
+- Still procedural: counters, ovens, fridges, doner spits, fryer, kebab/wrap items, the building itself.
+
+### Also verified (2026-11-05, third pass)
+- An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
+
 ## Not yet verified end-to-end
-- Angry walk-outs, messy-counter wiping, emergency delivery, the extension annex (level 10)
+- The extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
 
 ## Known issues / gaps
