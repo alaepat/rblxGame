@@ -15,6 +15,16 @@ The world is built entirely by scripts (`src/server/World`), so there is **no bi
 
 > Studio note: Lighting → Technology can't be set from scripts. Set it to **Future** by hand in the place for the intended look.
 
+## Offline tests
+
+With [Lune](https://lune-org.github.io/docs) 0.10 installed, run this from the repo root:
+
+```
+lune run tests/run.luau
+```
+
+It compiles every source file and unit-tests the pure modules (daily goals, the goal service against fake services, and the goals panel UI). It's a quick check before a Studio playtest, not a replacement for one.
+
 ## Layout
 
 ```

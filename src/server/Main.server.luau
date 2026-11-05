@@ -8,6 +8,7 @@ local ORDER = {
 	"DataService",
 	"ProgressService",
 	"UpgradeService",
+	"GoalService", -- daily goals + streaks
 	"HeldService",
 	"StationService",
 	"CleaningService",

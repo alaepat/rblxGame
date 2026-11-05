@@ -508,6 +508,9 @@ local function cookAction(accepts: string)
 			updateCookGui(st)
 			S.HeldService.set(player, item)
 			S.ProgressService.sound(player, "OvenOpen")
+			if accepts == "pizza" and FoodLogic.cookState(item.cook or 0) == "cooked" then
+				S.GoalService.record(player, "bake_perfect", 1)
+			end
 			return
 		end
 		if held and held.kind == accepts and not held.boxed then
