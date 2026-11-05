@@ -8,6 +8,7 @@
 --   OpenPOS(payload)           { customerName, says, menu = {recipeId} }
 --   OpenManager(tab)           open the office computer UI on a tab
 --   Sound(name)                play a UI sound locally
+--   DaySummary(summary)        end-of-day summary (DayCycle.finish result)
 -- Client -> Server (RemoteFunction):
 --   SubmitOrder(recipeIds)     -> ok, message
 --   CancelPOS()                -> nil
@@ -20,7 +21,7 @@
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local EVENTS = { "State", "Notify", "LevelUp", "OpenPOS", "OpenManager", "Sound" }
+local EVENTS = { "State", "Notify", "LevelUp", "OpenPOS", "OpenManager", "Sound", "DaySummary" }
 local FUNCTIONS = { "SubmitOrder", "CancelPOS", "BuyUpgrade", "OrderSupplies", "EmergencyDelivery", "ToggleOpen", "ClaimGoal" }
 
 local Net = {}

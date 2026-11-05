@@ -69,10 +69,23 @@ function GoalService.ensure(player: Player)
 	S.ProgressService.push(player)
 end
 
--- Count an event toward the player's goals.
+-- Other systems that want every recorded event (ShiftService day stats).
+local listeners: { (Player, string, number?, string?) -> () } = {}
+function GoalService.onEvent(fn: (Player, string, number?, string?) -> ())
+	table.insert(listeners, fn)
+end
+
+-- Count an event toward the player's goals. This is the game's event feed:
+-- listeners registered with onEvent get every event too, even ones no goal uses.
 function GoalService.record(player: Player?, event: string, amount: number?, param: string?)
 	if not player then
 		return
+	end
+	for _, fn in listeners do
+		local ok, err = pcall(fn, player, event, amount, param)
+		if not ok then
+			warn("[GoalService] event listener failed: " .. tostring(err))
+		end
 	end
 	GoalService.ensure(player)
 	local daily = dailyOf(player)

@@ -8,6 +8,7 @@ local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
 local GameConfig = require(Shared.Config.GameConfig)
+local DayCycleConfig = require(Shared.Config.DayCycle)
 local FoodLogic = require(Shared.Food.FoodLogic)
 local Net = require(Shared.Net)
 
@@ -560,7 +561,10 @@ local function spawnInterval(plot): number
 	local traffic = 1 + S.UpgradeService.effect(owner, "traffic")
 	local ratingFactor = ((profile.rating or 3) / 3) ^ 0.7
 	local levelFactor = 1 + math.min(profile.level, 20) * 0.03
-	return math.max(GameConfig.MinSpawnInterval, GameConfig.BaseSpawnInterval / (traffic * ratingFactor * levelFactor))
+	local base = math.max(GameConfig.MinSpawnInterval, GameConfig.BaseSpawnInterval / (traffic * ratingFactor * levelFactor))
+	-- lunch / dinner rush (ShiftService) can go below MinSpawnInterval, down to RushMinSpawnInterval
+	local rush = S.ShiftService.traffic(plot)
+	return if rush == 1 then base else math.max(DayCycleConfig.RushMinSpawnInterval, base / rush)
 end
 
 ------------------------------------------------------------------ public
@@ -772,6 +776,7 @@ function CustomerService.setOpen(plot, open: boolean)
 		S.ProgressService.sound(plot.owner, "Bell")
 		S.ProgressService.push(plot.owner)
 	end
+	S.ShiftService.onOpenChanged(plot, open) -- starts / closes the day
 	S.StationService.refreshPlot(plot)
 end
 
@@ -825,6 +830,7 @@ function CustomerService.setupPlot(plot)
 							local profile = S.DataService.get(owner)
 							profile.stats.angry = (profile.stats.angry or 0) + 1
 							S.ProgressService.addReview(owner, GameConfig.AngryRatingStars)
+							S.GoalService.record(owner, "angry", 1)
 							S.ProgressService.notify(owner, c.name .. " got fed up and left! ⭐ rating dropped.", "bad")
 							S.ProgressService.sound(owner, "Angry")
 						end

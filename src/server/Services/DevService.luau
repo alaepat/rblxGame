@@ -9,6 +9,9 @@
 --   ServerStorage.DevCommand:Invoke("info")
 --   ServerStorage.DevCommand:Invoke("goals")            -- finish every daily goal
 --   ServerStorage.DevCommand:Invoke("goals", "reset")   -- roll a fresh set of goals
+--   ServerStorage.DevCommand:Invoke("day", 12)          -- jump the shift clock to 12:00 (lunch rush)
+--   ServerStorage.DevCommand:Invoke("day", "close")     -- jump to closing time
+--   ServerStorage.DevCommand:Invoke("day", "end")       -- end the day now (summary)
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -92,6 +95,22 @@ local function run(cmd: string, arg: any): any
 		end
 		S.ProgressService.push(player)
 		return "goals finished: " .. #profile.daily.goals
+	elseif cmd == "day" then
+		if arg == "end" then
+			if not plot.shift then
+				return "no shift running"
+			end
+			if plot.open then
+				S.CustomerService.setOpen(plot, false)
+			end
+			S.ShiftService.finish(plot)
+			return "day ended"
+		end
+		local hour = if arg == "close" then S.ShiftService.Config.CloseHour else tonumber(arg)
+		if not hour then
+			return "usage: day <hour> | close | end"
+		end
+		return S.ShiftService.devJump(plot, hour)
 	elseif cmd == "info" then
 		local up = {}
 		for id in profile.upgrades do
