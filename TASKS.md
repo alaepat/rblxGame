@@ -6,7 +6,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
-| 1 | Blender pass 2: counters (bevelled cabinets), pizza oven dome, fridge/freezer, doner spit + meat cone, fryer, kebab/wrap items, chips basket | Art | Account 1 | Pipeline exists: add `build_<Prop>()` in blender/scripts/pp_props.py, upload, add the id to MeshIds |
 | 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 5 | Blender pass 3: building details (window frames, awning, door), signs, food toppings as meshes (pepperoni, mushroom slices) | Art | — | Open to either account. Coordinate with #1 via AI_MESSAGES so we don't build the same prop |
@@ -33,5 +32,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Client: HUD, aim-to-interact, POS, Pizza Planet OS manager, toasts, level-up popup | Account 1 | 2026-11-05 |
 | #8 Daily goals / challenges with XP + cash rewards, streak bonus, goals panel (PC Studio-verified and merged into `main` by Account 1; remaining checks are #15) | Account 2 | 2026-11-05 |
 | #4 Hide other players' prompts on the client (merged into `main`; 2-player check in #15) | Account 2 | 2026-11-05 |
+| Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #7 Day/shift cycle: rushes, closing time, end-of-day summary, shift bonus, wages hook (branch `a2/day-cycle`, PR #2, offline-tested with 56 tests; Studio check is #18) | Account 2 | 2026-11-06 |

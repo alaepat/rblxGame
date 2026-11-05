@@ -176,8 +176,12 @@ def export(prop):
             lo = Vector((min(lo.x, w.x), min(lo.y, w.y), min(lo.z, w.z)))
             hi = Vector((max(hi.x, w.x), max(hi.y, w.y), max(hi.z, w.z)))
     d = hi - lo
-    # Roblox size: X, Y(up) = Blender Z, Z = Blender Y
-    print(f"[pp] exported {prop}: {len(objs)} parts, {tris} tris, size=Vector3.new({d.x:.3f}, {d.z:.3f}, {d.y:.3f}) -> {path}")
+    c = (hi + lo) / 2
+    # Blender (x, y, z) -> Roblox (x, z, -y). size = bbox size; center = bbox
+    # centre (x, z) relative to the prop origin, used by MeshLib to place it.
+    print(f"[pp] exported {prop}: {len(objs)} parts, {tris} tris -> {path}")
+    print(f"[pp-lua]\t{prop} = {{ assetId = 0, size = Vector3.new({d.x:.3f}, {d.z:.3f}, {d.y:.3f}), "
+          f"center = Vector3.new({c.x:.3f}, 0, {-c.y:.3f}) }},")
 
 
 # --------------------------------------------------------------- props
@@ -317,7 +321,226 @@ def build_Bottle():
     cylinder("Bottle_Nozzle", 0.06, 0.22, (0, 0, 1.2), 16, r2=0.02)
 
 
-PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle"]
+# ---- batch 2 helpers
+
+def slab_x(n, sx, sy, sz, radius, seg=4, loc=(0, 0, 0)):
+    """Box whose edges parallel to X are rounded and whose X ends stay square,
+    so it can be stretched along X (counter tops) or tiled without seams."""
+    bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
+    o = active()
+    o.scale = (sx, sy, sz)
+    bpy.ops.object.transform_apply(scale=True)
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    edges = [e for e in bm.edges if abs(e.verts[0].co.x - e.verts[1].co.x) > 1e-5]
+    bmesh.ops.bevel(bm, geom=edges, offset=radius, segments=seg, profile=0.5, affect="EDGES")
+    bm.to_mesh(o.data)
+    bm.free()
+    smooth(o)
+    return name(o, n)
+
+
+def lathe(n, profile, segs=32, loc=(0, 0, 0), jitter=0.0, seed=0, ridges=0.0):
+    """Revolve a list of (radius, z) points around Z. Optional organic jitter
+    and horizontal ridges (doner meat layers)."""
+    rnd = random.Random(seed)
+    bm = bmesh.new()
+    rings = []
+    for i, (r, z) in enumerate(profile):
+        ring = []
+        for s in range(segs):
+            a = s / segs * math.tau
+            rr = r
+            if r > 0:
+                rr *= 1 + ridges * math.sin(i * 1.9) + jitter * (rnd.random() - 0.5)
+            ring.append(bm.verts.new((loc[0] + math.cos(a) * rr, loc[1] + math.sin(a) * rr, loc[2] + z)))
+        rings.append(ring)
+    for i in range(len(rings) - 1):
+        for s in range(segs):
+            a, b = rings[i][s], rings[i][(s + 1) % segs]
+            c, d = rings[i + 1][(s + 1) % segs], rings[i + 1][s]
+            try:
+                bm.faces.new((a, b, c, d))
+            except ValueError:
+                pass
+    for ring, flip in ((rings[0], True), (rings[-1], False)):
+        try:
+            f = bm.faces.new(list(reversed(ring)) if flip else ring)
+        except ValueError:
+            pass
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(n)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(n, me)
+    bpy.context.scene.collection.objects.link(o)
+    smooth(o, 60)
+    return name(o, n)
+
+
+def arch_cutter(half_w, z0, z_spring, y0, y1):
+    """Arch-shaped prism (box + half cylinder) between y0 and y1 for booleans."""
+    depth = abs(y1 - y0)
+    yc = (y0 + y1) / 2
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, yc, (z0 + z_spring) / 2))
+    box = active()
+    box.scale = (half_w * 2, depth, z_spring - z0)
+    bpy.ops.object.transform_apply(scale=True)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=half_w, depth=depth, location=(0, yc, z_spring))
+    cyl = active()
+    cyl.rotation_euler = (math.radians(90), 0, 0)
+    bpy.ops.object.transform_apply(rotation=True)
+    # union into one manifold solid (a plain join of overlapping pieces breaks EXACT booleans)
+    u = box.modifiers.new("u", "BOOLEAN")
+    u.operation = "UNION"
+    u.solver = "EXACT"
+    u.object = cyl
+    apply_mods(box)
+    bpy.data.objects.remove(cyl, do_unlink=True)
+    return name(box, "cut")
+
+
+# ---- batch 2 props.  Front of every prop faces Blender -Y (= Roblox +Z).
+
+def build_CounterModule():
+    # One cabinet bay (one door). Tiled along X by the game, stretched to fit.
+    W, D, H = 2.2, 2.6, 3.05
+    rounded_box("CounterModule_Kick", W - 0.3, D - 0.3, 0.35, 0.04, 2, (0, 0, 0.175))
+    rounded_box("CounterModule_Body", W - 0.02, D - 0.1, H - 0.35, 0.035, 3, (0, 0, 0.35 + (H - 0.35) / 2))
+    door = rounded_box("CounterModule_Door", W - 0.22, 0.07, 2.4, 0.05, 4, (0, -(D - 0.1) / 2 - 0.02, 1.72))
+    inset = rounded_box("cut", W - 0.5, 0.04, 2.1, 0.04, 3, (0, -(D - 0.1) / 2 - 0.06, 1.72))
+    boolean_diff(door, inset)
+    rounded_box("CounterModule_Handle", 0.8, 0.09, 0.11, 0.04, 3, (0, -(D - 0.1) / 2 - 0.13, 2.65))
+    for x in (-0.33, 0.33):
+        rounded_box("CounterModule_Handle", 0.06, 0.08, 0.06, 0.02, 2, (x, -(D - 0.1) / 2 - 0.07, 2.65))
+    handles = [o for o in bpy.data.objects if o.name.startswith("CounterModule_Handle")]
+    join(handles, "CounterModule_Handle")
+
+
+def build_CounterTop():
+    # Worktop for a 2.2-wide bay; the game stretches it along X to the full counter.
+    slab_x("CounterTop_Top", 2.2, 2.72, 0.15, 0.05, 4, (0, -0.06, 0.075))
+    slab_x("CounterTop_Edge", 2.2, 0.1, 0.12, 0.04, 3, (0, -1.38, 0.06))
+
+
+def build_Oven():
+    # Stone dome pizza oven on a brick plinth. Mouth faces -Y (Roblox +Z).
+    rounded_box("Oven_Plinth", 5.8, 5.2, 3.2, 0.14, 5, (0, 0, 1.6))
+    rounded_box("Oven_Slab", 6.1, 5.5, 0.3, 0.1, 4, (0, 0, 3.35))
+    dome = sphere("Oven_Dome", 1.0, (0, 0.2, 3.5), (2.8, 2.6, 2.3), 48, 24)
+    floor_cut = rounded_box("cut", 8, 8, 4, 0.01, 1, (0, 0, 1.5))
+    boolean_diff(dome, floor_cut)
+    boolean_diff(dome, arch_cutter(1.45, 3.5, 4.3, -4.0, 1.6))
+    band = torus("Oven_Band", 2.72, 0.13, (0, 0.2, 3.7), 64, 12)
+    band.scale = (1, 2.55 / 2.72, 1)
+    select_only([band])
+    bpy.ops.object.transform_apply(scale=True)
+    arch = rounded_box("Oven_Arch", 4.4, 0.75, 2.75, 0.12, 4, (0, -2.25, 4.87))
+    boolean_diff(arch, arch_cutter(1.45, 3.4, 4.3, -3.0, -1.5))
+    rounded_box("Oven_Key", 0.8, 0.85, 0.55, 0.08, 3, (0, -2.3, 5.95))
+    rounded_box("Oven_Soot", 3.0, 0.1, 1.6, 0.04, 2, (0, 1.65, 4.25))
+    chim = cylinder("Oven_Chimney", 0.55, 4.0, (0, 0.6, 7.4), 32, bevel=0.03)
+    torus("Oven_ChimneyCap", 0.6, 0.08, (0, 0.6, 9.4))
+    join([chim, bpy.data.objects["Oven_ChimneyCap"]], "Oven_Chimney")
+    rounded_box("Oven_Shelf", 4.8, 0.85, 0.16, 0.06, 3, (0, -3.0, 3.42))
+
+
+def build_Fridge():
+    # Tall two-door glass-front fridge/freezer. Front faces -Y.
+    body = rounded_box("Fridge_Body", 4.0, 2.6, 8.0, 0.1, 4, (0, 0, 4))
+    cavity = rounded_box("cut", 3.7, 1.2, 7.0, 0.06, 3, (0, -1.05, 4.1))
+    boolean_diff(body, cavity)
+    rounded_box("Fridge_Inside", 3.66, 0.05, 6.9, 0.02, 2, (0, -0.47, 4.1))
+    for z in (1.6, 3.3, 5.0, 6.6):
+        rounded_box("Fridge_Shelf", 3.62, 1.0, 0.06, 0.02, 2, (0, -0.95, z))
+    join([o for o in bpy.data.objects if o.name.startswith("Fridge_Shelf")], "Fridge_Shelf")
+    doors = []
+    for x in (-0.96, 0.96):
+        fr = rounded_box("door", 1.86, 0.12, 7.0, 0.06, 4, (x, -1.38, 4.1))
+        win = rounded_box("cut", 1.5, 0.4, 6.6, 0.05, 3, (x, -1.38, 4.1))
+        boolean_diff(fr, win)
+        doors.append(fr)
+        rounded_box("Fridge_Glass", 1.52, 0.02, 6.62, 0.01, 1, (x, -1.37, 4.1))
+    join(doors, "Fridge_Door")
+    join([o for o in bpy.data.objects if o.name.startswith("Fridge_Glass")], "Fridge_Glass")
+    hs = []
+    for x in (-0.22, 0.22):
+        hs.append(rounded_box("h", 0.09, 0.1, 2.6, 0.04, 3, (x, -1.53, 4.3)))
+    join(hs, "Fridge_Handle")
+
+
+def build_MeatCone():
+    # Doner meat on the vertical spit: layered, slightly lumpy, tapering up.
+    prof = []
+    n = 16
+    for i in range(n + 1):
+        t = i / n
+        prof.append((0.8 + (0.46 - 0.8) * t, 0.1 + 3.4 * t))
+    prof = [(0.0, 0.1)] + prof + [(0.0, 3.5)]
+    lathe("MeatCone_Meat", prof, 36, jitter=0.05, seed=5, ridges=0.025)
+    cylinder("MeatCone_Plate", 0.9, 0.08, (0, 0, 0.04), 36, bevel=0.02)
+    cylinder("MeatCone_Cap", 0.3, 0.12, (0, 0, 3.56), 24, bevel=0.03)
+
+
+def build_ChipsBasket():
+    shell = rounded_box("ChipsBasket_Basket", 1.3, 0.9, 0.55, 0.08, 4, (0, 0, 0.275))
+    inner = rounded_box("cut", 1.2, 0.8, 0.6, 0.06, 4, (0, 0, 0.35))
+    boolean_diff(shell, inner)
+    rim = rounded_box("ChipsBasket_Rim", 1.36, 0.96, 0.06, 0.03, 2, (0, 0, 0.55))
+    hole = rounded_box("cut", 1.22, 0.82, 0.2, 0.05, 2, (0, 0, 0.55))
+    boolean_diff(rim, hole)
+    h = cylinder("ChipsBasket_Handle", 0.04, 1.0, (1.15, 0, 0.55), 12)
+    h.rotation_euler = (0, math.radians(90), 0)
+    select_only([h])
+    bpy.ops.object.transform_apply(rotation=True)
+    g = cylinder("ChipsBasket_Grip", 0.085, 0.55, (1.85, 0, 0.55), 20, bevel=0.03)
+    g.rotation_euler = (0, math.radians(90), 0)
+    select_only([g])
+    bpy.ops.object.transform_apply(rotation=True)
+
+
+def build_Pitta():
+    bread = sphere("Pitta_Bread", 1.0, (0, 0, 0.16), (0.85, 0.53, 0.17), 40, 16)
+    cut = rounded_box("cut", 4, 4, 1, 0.01, 1, (0, 0, -0.49))
+    boolean_diff(bread, cut)
+    wobble_edge(bread, 0.03, 9)
+    toast = sphere("Pitta_Toast", 1.0, (0.05, 0.02, 0.2), (0.55, 0.32, 0.15), 32, 12)
+    wobble_edge(toast, 0.08, 4)
+
+
+def build_WrapRoll():
+    # Wrapped wrap: bread roll along X, foil sleeve on one end, brand band.
+    prof = [(0.0, 0.0), (0.18, 0.02), (0.27, 0.1), (0.3, 0.25)] + [(0.3, 0.25 + 1.2 * t / 6) for t in range(1, 7)] + \
+           [(0.27, 1.6), (0.18, 1.68), (0.0, 1.7)]
+    roll = lathe("WrapRoll_Bread", prof, 32)
+    foil = lathe("WrapRoll_Foil", [(0.0, -0.02), (0.2, 0.0), (0.32, 0.12)] + [(0.33, 0.12 + 0.88 * t / 8) for t in range(1, 9)] + [(0.32, 1.02)],
+                 32, jitter=0.06, seed=2)
+    band = cylinder("WrapRoll_Band", 0.345, 0.12, (0, 0, 0.86), 32)
+    for o in (roll, foil, band):
+        o.rotation_euler = (0, math.radians(90), 0)
+        o.location = (-0.85, 0, 0.3)
+        select_only([o])
+        bpy.ops.object.transform_apply(location=True, rotation=True)
+
+
+def build_KebabPaper():
+    # Pitta kebab in an open paper pocket, top left open for the fillings.
+    paper = sphere("KebabPaper_Paper", 1.0, (0, 0, 0.31), (0.9, 0.55, 0.31), 40, 20)
+    top = rounded_box("cut", 4, 4, 1, 0.01, 1, (0, 0, 0.5 + 0.5))
+    boolean_diff(paper, top)
+    inner = sphere("cut", 1.0, (0, 0, 0.36), (0.86, 0.51, 0.29), 40, 20)
+    boolean_diff(paper, inner)
+    band = sphere("KebabPaper_Band", 1.0, (0, 0, 0.31), (0.915, 0.565, 0.315), 40, 20)
+    for z0, z1 in ((-1, 0.24), (0.36, 2)):
+        c = rounded_box("cut", 4, 4, abs(z1 - z0), 0.01, 1, (0, 0, (z0 + z1) / 2))
+        boolean_diff(band, c)
+    bread = sphere("KebabPaper_Bread", 1.0, (0, 0, 0.45), (0.84, 0.48, 0.16), 36, 14)
+    wobble_edge(bread, 0.03, 3)
+
+
+PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
+         "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper"]
 
 
 PREVIEW_COLORS = {
@@ -332,7 +555,21 @@ PREVIEW_COLORS = {
 }
 OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82), "Pan_Lip": (0.85, 0.87, 0.89),
              "Cup_Body": (0.98, 0.97, 0.95), "FoodBox_Body": (0.98, 0.97, 0.95), "FoodBox_Lid": (0.98, 0.97, 0.95),
-             "Bottle_Body": (0.8, 0.12, 0.1)}
+             "Bottle_Body": (0.8, 0.12, 0.1),
+             "CounterModule_Body": (0.78, 0.8, 0.82), "CounterModule_Door": (0.85, 0.87, 0.89),
+             "CounterModule_Handle": (0.5, 0.52, 0.55), "CounterModule_Kick": (0.12, 0.12, 0.13),
+             "CounterTop_Top": (0.8, 0.82, 0.84), "CounterTop_Edge": (0.5, 0.52, 0.55),
+             "Oven_Plinth": (0.66, 0.3, 0.21), "Oven_Slab": (0.59, 0.55, 0.51), "Oven_Dome": (0.82, 0.47, 0.32),
+             "Oven_Band": (0.59, 0.12, 0.12), "Oven_Arch": (0.66, 0.3, 0.21), "Oven_Key": (0.59, 0.55, 0.51), "Oven_Soot": (0.1, 0.06, 0.05),
+             "Oven_Chimney": (0.5, 0.52, 0.55), "Oven_Shelf": (0.59, 0.55, 0.51),
+             "Fridge_Body": (0.78, 0.8, 0.82), "Fridge_Door": (0.7, 0.72, 0.75), "Fridge_Glass": (0.7, 0.85, 1.0),
+             "Fridge_Inside": (0.85, 0.93, 1.0), "Fridge_Shelf": (0.9, 0.9, 0.92), "Fridge_Handle": (0.5, 0.52, 0.55),
+             "MeatCone_Meat": (0.84, 0.6, 0.35), "MeatCone_Plate": (0.78, 0.8, 0.82), "MeatCone_Cap": (0.78, 0.8, 0.82),
+             "ChipsBasket_Basket": (0.78, 0.8, 0.82), "ChipsBasket_Rim": (0.85, 0.87, 0.89),
+             "ChipsBasket_Handle": (0.78, 0.8, 0.82), "ChipsBasket_Grip": (0.85, 0.15, 0.15),
+             "Pitta_Bread": (0.91, 0.77, 0.55), "Pitta_Toast": (0.82, 0.6, 0.35),
+             "WrapRoll_Bread": (0.93, 0.81, 0.6), "WrapRoll_Foil": (0.84, 0.85, 0.89), "WrapRoll_Band": (0.85, 0.15, 0.15),
+             "KebabPaper_Paper": (0.98, 0.96, 0.92), "KebabPaper_Band": (0.85, 0.15, 0.15), "KebabPaper_Bread": (0.91, 0.77, 0.55)}
 
 
 def render_preview(prop):

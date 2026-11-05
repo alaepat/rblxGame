@@ -42,7 +42,9 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 - `blender/scripts/pp_props.py` builds 9 smooth props headless in Blender 3.4 (Tray, PizzaBox, Cup, Pizza, Pan, Chair, Table, FoodBox, Bottle) → FBX → uploaded as Roblox Model assets (ids in `Config/MeshIds.luau`, all moderation-approved).
 - In a playtest, MeshService loaded all 9 at the exact config size with the pivot at bottom centre. Verified visually: pizza (rolled crust, organic sauce/cheese), steel topping pans, dining chairs + tables, pick-up trays, boxed pizza, cup with lid and straw. No errors.
 - PizzaBox v2 uploaded (the logo ring was standing upright; now flat). The re-upload isn't re-checked in game yet.
-- Still procedural: counters, ovens, fridges, doner spits, fryer, kebab/wrap items, the building itself.
+- **Pass 2 (Studio-verified 2026-11-05):** CounterModule + CounterTop (every kitchen counter is now tiled bevelled cabinet bays + a stretched worktop), dome Oven with arched brick mouth, glass-door Fridge/Freezer, layered MeatCone (still spins), ChipsBasket, Pitta, WrapRoll, KebabPaper. Screenshots checked for the ovens, kebab station, fridges, heat-shelf food and dining.
+- **Orientation fix:** the FBX import put prop fronts on -Z (X mirrored). MeshService now turns every template 180°, so Blender (x, y, z) -> Roblox (x, z, -y) and fronts face +Z. This also fixed dining chairs, which had been facing away from their tables.
+- Still procedural: fryer body, hood, the building shell, window frames, signs, toppings.
 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
@@ -58,7 +60,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
-- Blender meshes are in for 9 props; counters, ovens, fridges, spits, the fryer and the building are still procedural (TASKS #1, #5).
+- 18 Blender props are in. The building shell, signs, hood and toppings are still procedural (TASKS #5).
 - No staff, menu mastery or delivery orders yet (see TASKS.md). The day/shift cycle is on `a2/day-cycle` (PR #2), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)

@@ -6,6 +6,7 @@
 --   if MeshLib.has("Tray") then MeshLib.place(model, "Tray", cf, { Body = red }) end
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MeshIds = require(script.Parent.Parent.Config.MeshIds)
 
 local MeshLib = {}
 
@@ -35,19 +36,22 @@ function MeshLib.place(parent: Instance, prop: string, cf: CFrame, colors: { [st
 		return out
 	end
 	local o = opts or {}
-	local scale: number = o.scale or 1
+	-- scale: number (uniform) or Vector3 (per axis, for stretching counters).
+	-- Per-axis scaling assumes the template parts are axis-aligned (they are).
+	local scale: Vector3 = if typeof(o.scale) == "Vector3" then o.scale else Vector3.one * (o.scale or 1)
+	-- template origin is the bbox bottom-centre; shift so the prop's own
+	-- Blender origin lands on `cf` (matters for asymmetric props)
+	local info = MeshIds[prop]
+	local center: Vector3 = (info and info.center) or Vector3.zero
+	local base = cf * CFrame.new(center * scale)
 	for _, src in template:GetChildren() do
 		if src:IsA("BasePart") then
 			local role = MeshLib.role(src)
 			if not (o.hide and o.hide[role]) then
 				local p = src:Clone()
-				if scale ~= 1 then
-					p.Size *= scale
-					local rel = src.CFrame
-					p.CFrame = cf * (rel - rel.Position + rel.Position * scale)
-				else
-					p.CFrame = cf * src.CFrame
-				end
+				local rel = src.CFrame
+				p.Size *= scale
+				p.CFrame = base * (rel - rel.Position + rel.Position * scale)
 				p.Anchored = true
 				p.CanCollide = o.collide == true
 				p.CanQuery = o.query == true

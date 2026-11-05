@@ -51,6 +51,11 @@ local function normalise(prop: string, info: MeshIds.MeshInfo, container: Instan
 	-- 3) pivot at bottom centre, then move the pivot to the origin
 	m.WorldPivot = CFrame.new(cf.Position - Vector3.new(0, s2.Y / 2, 0))
 	m:PivotTo(CFrame.new())
+	-- 4) the FBX import lands Blender -Y (prop front) on Roblox -Z and mirrors
+	--    X; a half turn makes it Roblox +Z / +X, the builders' convention
+	--    (Blender (x, y, z) -> Roblox (x, z, -y)).
+	m:PivotTo(CFrame.Angles(0, math.pi, 0))
+	m.WorldPivot = CFrame.new()
 	return m
 end
 
