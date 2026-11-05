@@ -298,7 +298,10 @@ end
 local function buildBread(base: string): Model
 	local m = newModel("Bread")
 	local ing = Ingredients.get(base)
-	if base == "pitta" then
+	if base == "pitta" and MeshLib.has("Pitta") then
+		local c = ing and ing.color or DOUGH_COOKED
+		MeshLib.place(m, "Pitta", CFrame.new(), { Bread = c, Toast = c:Lerp(Color3.fromRGB(190, 130, 70), 0.3) })
+	elseif base == "pitta" then
 		newPart(m, "Pitta", Vector3.new(1.7, 0.32, 1.05), CFrame.new(0, 0.16, 0), ing and ing.color or DOUGH_COOKED, nil, Enum.PartType.Ball)
 		newPart(m, "Toast", Vector3.new(1.2, 0.34, 0.7), CFrame.new(0, 0.17, 0), (ing and ing.color or DOUGH_COOKED):Lerp(Color3.fromRGB(190, 130, 70), 0.3), nil, Enum.PartType.Ball)
 	elseif base == "wrap_bread" then
@@ -327,7 +330,21 @@ local function buildKebab(item: Item): Model
 		return m
 	end
 	if item.wrapped then
-		if base == "wrap_bread" then
+		if base == "wrap_bread" and MeshLib.has("WrapRoll") then
+			MeshLib.place(m, "WrapRoll", CFrame.new(), { Bread = Color3.fromRGB(236, 206, 152), Foil = Color3.fromRGB(215, 218, 226), Band = BRAND_RED }, {
+				materials = { Foil = Enum.Material.Foil },
+			})
+		elseif base ~= "wrap_bread" and MeshLib.has("KebabPaper") then
+			local pitta = Ingredients.get("pitta")
+			MeshLib.place(m, "KebabPaper", CFrame.new(), { Paper = PAPER, Band = BRAND_RED, Bread = pitta and pitta.color or DOUGH_COOKED })
+			-- fillings poking out of the open top
+			for i, f in fillings do
+				local fi = Ingredients.get(f)
+				if fi then
+					newPart(m, f, Vector3.new(0.3, 0.14, 0.22), CFrame.new(-0.6 + (i - 1) * (1.2 / math.max(#fillings - 1, 1)), 0.58, 0) * CFrame.Angles(0, i, 0), fi.color)
+				end
+			end
+		elseif base == "wrap_bread" then
 			newPart(m, "Roll", Vector3.new(1.7, 0.6, 0.6), CFrame.new(0, 0.3, 0), Color3.fromRGB(236, 206, 152), nil, Enum.PartType.Cylinder)
 			newPart(m, "Foil", Vector3.new(1.0, 0.64, 0.64), CFrame.new(-0.36, 0.3, 0), Color3.fromRGB(215, 218, 226), Enum.Material.Foil, Enum.PartType.Cylinder)
 			newPart(m, "Stripe", Vector3.new(0.12, 0.66, 0.66), CFrame.new(-0.2, 0.3, 0), BRAND_RED, nil, Enum.PartType.Cylinder)
@@ -375,8 +392,21 @@ local function buildChips(item: Item): Model
 	elseif state == "burnt" then
 		color = Color3.fromRGB(110, 70, 30)
 	end
-	-- wire basket
 	local steel = Color3.fromRGB(200, 204, 210)
+	if MeshLib.has("ChipsBasket") then
+		local parts = MeshLib.place(m, "ChipsBasket", CFrame.new(), { Basket = steel, Rim = steel:Lerp(Color3.new(1, 1, 1), 0.2), Handle = steel, Grip = BRAND_RED }, {
+			materials = { Basket = Enum.Material.Metal, Rim = Enum.Material.Metal, Handle = Enum.Material.Metal },
+		})
+		if parts.Basket then
+			parts.Basket.Transparency = 0.25
+		end
+		local rng = Random.new(3)
+		for _ = 1, 22 do
+			newPart(m, "Chip", Vector3.new(0.09, 0.09, 0.55), CFrame.new(rng:NextNumber(-0.5, 0.5), rng:NextNumber(0.1, 0.42), rng:NextNumber(-0.3, 0.3)) * CFrame.Angles(rng:NextNumber(-0.4, 0.4), rng:NextNumber(0, 3), 0), color)
+		end
+		return m
+	end
+	-- wire basket
 	newPart(m, "BasketBottom", Vector3.new(1.3, 0.05, 0.9), CFrame.new(0, 0.025, 0), steel, Enum.Material.Metal)
 	newPart(m, "BasketF", Vector3.new(1.3, 0.55, 0.04), CFrame.new(0, 0.3, 0.45), steel, Enum.Material.Metal).Transparency = 0.35
 	newPart(m, "BasketB", Vector3.new(1.3, 0.55, 0.04), CFrame.new(0, 0.3, -0.45), steel, Enum.Material.Metal).Transparency = 0.35

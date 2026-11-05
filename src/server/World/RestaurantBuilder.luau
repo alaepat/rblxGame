@@ -38,6 +38,22 @@ local function counter(c: Ctx, name: string, w: number, d: number, opts: { [stri
 	local m = B.model(c, name)
 	local h = o.height or COUNTER_H
 	local body = o.body or C.STEEL
+	if MeshLib.has("CounterModule") and MeshLib.has("CounterTop") then
+		-- Blender cabinet bays tiled across the width + one stretched worktop
+		local doors = math.max(1, math.floor(w / 2.2))
+		local dw = (w - 0.2) / doors
+		local mats = { Body = o.bodyMat or M.Metal, Door = o.bodyMat or M.Metal, Handle = M.Metal, Kick = M.SmoothPlastic, Top = o.topMat or M.Metal, Edge = M.Metal }
+		for i = 0, doors - 1 do
+			local cx = -w / 2 + 0.1 + i * dw + dw / 2
+			MeshLib.place(m.parent, "CounterModule", m.origin * CFrame.new(cx, 0, 0), {
+				Body = body, Door = o.door or body:Lerp(C.WHITE, 0.12), Handle = C.STEEL_DARK, Kick = C.BLACK,
+			}, { scale = Vector3.new(dw / 2.2, (h - 0.15) / 3.05, d / 2.6), collide = true, materials = mats })
+		end
+		MeshLib.place(m.parent, "CounterTop", m.origin * CFrame.new(0, h - 0.15, 0), {
+			Top = o.top or C.STEEL, Edge = C.STEEL_DARK,
+		}, { scale = Vector3.new(w / 2.2, 1, d / 2.6), collide = true, materials = mats })
+		return m
+	end
 	B.box(m, "Kick", -w / 2 + 0.15, 0, -d / 2 + 0.15, w / 2 - 0.15, 0.35, d / 2 - 0.15, C.BLACK)
 	B.box(m, "Body", -w / 2 + 0.05, 0.35, -d / 2 + 0.05, w / 2 - 0.05, h - 0.15, d / 2 - 0.05, body, o.bodyMat or M.Metal)
 	B.box(m, "Top", -w / 2, h - 0.15, -d / 2, w / 2, h, d / 2 + 0.1, o.top or C.STEEL, o.topMat or M.Metal)
@@ -399,21 +415,35 @@ local function buildOven(c: Ctx, name: string, z: number, slotLabel: string): Ct
 	-- Stone dome pizza oven against the west wall, mouth facing +X.
 	local s = B.sub(c, -26.8, z, 90)
 	local m = B.model(s, name)
-	-- plinth (brick) with wood store
-	B.box(m, "Plinth", -2.9, 0, -2.6, 2.9, 3.2, 2.6, C.BRICK, M.Brick)
-	B.box(m, "PlinthTop", -3.05, 3.2, -2.75, 3.05, 3.5, 2.75, C.STONE, M.Slate)
-	B.box(m, "WoodStore", -2, 0.4, 2.55, 2, 2.6, 2.65, C.BLACK)
-	for i = 0, 3 do
-		B.cyl(m, "Log", 0.55, 0.01, -1.4 + i * 0.9, 0.7, 2.66, C.WOOD_DARK, M.Wood)
+	local meshOven = MeshLib.has("Oven")
+	if meshOven then
+		MeshLib.place(m.parent, "Oven", m.origin, {
+			Plinth = C.BRICK, Slab = C.STONE, Dome = Color3.fromRGB(208, 120, 82), Band = C.RED_DARK,
+			Arch = C.BRICK, Key = C.STONE, Soot = Color3.fromRGB(28, 14, 10), Chimney = C.STEEL_DARK, Shelf = C.STONE,
+		}, {
+			collide = true,
+			materials = { Plinth = M.Brick, Slab = M.Slate, Dome = M.Plaster, Arch = M.Brick, Key = M.Slate, Chimney = M.Metal, Shelf = M.Slate },
+		})
+	else
+		-- plinth (brick)
+		B.box(m, "Plinth", -2.9, 0, -2.6, 2.9, 3.2, 2.6, C.BRICK, M.Brick)
+		B.box(m, "PlinthTop", -3.05, 3.2, -2.75, 3.05, 3.5, 2.75, C.STONE, M.Slate)
 	end
-	-- dome
-	B.ball(m, "Dome", Vector3.new(5.6, 4.6, 5.2), 0, 3.6, -0.2, Color3.fromRGB(208, 120, 82), M.Plaster)
-	B.ball(m, "DomeBand", Vector3.new(5.7, 1.0, 5.3), 0, 3.9, -0.2, C.RED_DARK, M.SmoothPlastic)
-	-- mouth arch
-	B.box(m, "MouthFace", -2.2, 3.5, 1.9, 2.2, 5.6, 2.6, C.BRICK, M.Brick)
-	B.box(m, "MouthKey", -0.4, 5.4, 2.55, 0.4, 5.9, 2.75, C.STONE, M.Slate)
-	local mouth = B.box(m, "Mouth", -1.5, 3.5, 1.85, 1.5, 4.9, 2.65, Color3.fromRGB(28, 14, 10))
-	mouth.CanQuery = false
+	-- wood store
+	B.box(m, "WoodStore", -2, 0.4, 2.55, 2, 2.6, 2.65 + (meshOven and 0.03 or 0), C.BLACK)
+	for i = 0, 3 do
+		B.cyl(m, "Log", 0.55, 0.01, -1.4 + i * 0.9, 0.7, 2.67 + (meshOven and 0.03 or 0), C.WOOD_DARK, M.Wood)
+	end
+	if not meshOven then
+		-- dome
+		B.ball(m, "Dome", Vector3.new(5.6, 4.6, 5.2), 0, 3.6, -0.2, Color3.fromRGB(208, 120, 82), M.Plaster)
+		B.ball(m, "DomeBand", Vector3.new(5.7, 1.0, 5.3), 0, 3.9, -0.2, C.RED_DARK, M.SmoothPlastic)
+		-- mouth arch
+		B.box(m, "MouthFace", -2.2, 3.5, 1.9, 2.2, 5.6, 2.6, C.BRICK, M.Brick)
+		B.box(m, "MouthKey", -0.4, 5.4, 2.55, 0.4, 5.9, 2.75, C.STONE, M.Slate)
+		local mouth = B.box(m, "Mouth", -1.5, 3.5, 1.85, 1.5, 4.9, 2.65, Color3.fromRGB(28, 14, 10))
+		mouth.CanQuery = false
+	end
 	-- glowing embers at the back
 	local embers = B.box(m, "Embers", -1.2, 3.5, -1.6, 1.2, 3.8, -0.8, Color3.fromRGB(255, 110, 30), M.Neon)
 	B.pointLight(embers, Color3.fromRGB(255, 140, 60), 10, 2.5)
@@ -423,15 +453,18 @@ local function buildOven(c: Ctx, name: string, z: number, slotLabel: string): Ct
 	fire.Color = Color3.fromRGB(255, 140, 50)
 	fire.SecondaryColor = Color3.fromRGB(255, 60, 20)
 	fire.Parent = embers
-	B.box(m, "Chimney", -0.6, 5.6, -1.2, 0.6, 9.5, 0, C.STEEL_DARK, M.Metal)
-	-- peel shelf
-	B.box(m, "Shelf", -2.4, 3.35, 2.6, 2.4, 3.5, 3.4, C.STONE, M.Slate)
+	if not meshOven then
+		B.box(m, "Chimney", -0.6, 5.6, -1.2, 0.6, 9.5, 0, C.STEEL_DARK, M.Metal)
+		-- peel shelf
+		B.box(m, "Shelf", -2.4, 3.35, 2.6, 2.4, 3.5, 3.4, C.STONE, M.Slate)
+	end
 	-- station hit area (in the mouth)
 	local slot = B.hitbox(m, "OvenSlot", Vector3.new(3.4, 1.6, 2.4), CFrame.new(0, 4.2, 1.6))
 	B.station(slot, "Oven", slotLabel)
 	B.itemAt(slot, CFrame.new(0, -0.7, -0.4))
 	-- temperature dial plate
-	local plate = B.box(m, "Badge", -0.9, 2.2, 2.6, 0.9, 2.9, 2.7, C.YELLOW)
+	local bz = if meshOven then 0.03 else 0
+	local plate = B.box(m, "Badge", -0.9, 2.2, 2.6 + bz, 0.9, 2.9, 2.7 + bz, C.YELLOW)
 	B.label(plate, Enum.NormalId.Back, "400°C", { color = C.RED_DARK, font = Enum.Font.GothamBlack, pad = 4 })
 	return m
 end
@@ -621,7 +654,7 @@ local function buildKitchen(c: Ctx)
 	local function spit(x: number, z: number, meat: string, label: string)
 		local sp = B.sub(kebabFolder, x, z, -90)
 		local m = B.model(sp, "Spit_" .. meat)
-		B.box(m, "Base", -1.2, 0, -1, 1.2, COUNTER_H, 1, C.STEEL, M.Metal)
+		counter(m, "Base", 2.4, 2)
 		B.box(m, "Back", -1.2, COUNTER_H, -1.05, 1.2, COUNTER_H + 4.2, -0.75, C.STEEL, M.Metal)
 		local heater = B.box(m, "Heater", -0.8, COUNTER_H + 0.5, -0.76, 0.8, COUNTER_H + 3.8, -0.7, Color3.fromRGB(255, 80, 30), M.Neon)
 		B.pointLight(heater, Color3.fromRGB(255, 120, 60), 8, 1.2)
@@ -630,9 +663,19 @@ local function buildKitchen(c: Ctx)
 		local cone = B.model(m, "MeatCone")
 		cone.parent:SetAttribute("Spin", 0.6)
 		B.cyl(cone, "Skewer", 0.12, 4.2, 0, COUNTER_H + 0.2, 0.15, C.STEEL, M.Metal)
-		for i = 0, 6 do
-			local d = 1.6 - i * 0.12
-			B.cyl(cone, "Meat", d, 0.5, 0, COUNTER_H + 0.4 + i * 0.5, 0.15, ing.color:Lerp(C.BLACK, (i % 2) * 0.08), M.SmoothPlastic, { CanQuery = false })
+		if MeshLib.has("MeatCone") then
+			local parts = MeshLib.place(cone.parent, "MeatCone", cone.origin * CFrame.new(0, COUNTER_H + 0.25, 0.15), {
+				Meat = ing.color, Plate = C.STEEL, Cap = C.STEEL,
+			}, { materials = { Plate = M.Metal, Cap = M.Metal } })
+			-- client Effects spins parts named "Meat" around the skewer
+			for _, p in parts do
+				p.Name = "Meat"
+			end
+		else
+			for i = 0, 6 do
+				local d = 1.6 - i * 0.12
+				B.cyl(cone, "Meat", d, 0.5, 0, COUNTER_H + 0.4 + i * 0.5, 0.15, ing.color:Lerp(C.BLACK, (i % 2) * 0.08), M.SmoothPlastic, { CanQuery = false })
+			end
 		end
 		local hit = B.hitbox(m, "Spit_" .. meat, Vector3.new(2, 4, 2), CFrame.new(0, COUNTER_H + 2, 0.2))
 		B.station(hit, "Topping", label, { Ingredient = meat, Board = "kebab1" })
@@ -935,14 +978,30 @@ local function buildBack(c: Ctx)
 	local function tallUnit(x: number, z: number, name: string, label: string, cat: string, temp: string, tint: Color3)
 		local s = B.sub(b, x, z, 0)
 		local m = B.model(s, name)
-		B.box(m, "Body", -2, 0, -1.3, 2, 8, 1.3, C.STEEL, M.Metal)
-		B.box(m, "DoorL", -1.9, 0.6, 1.3, -0.05, 7.6, 1.4, tint, M.Glass, { Transparency = 0.3 })
-		B.box(m, "DoorR", 0.05, 0.6, 1.3, 1.9, 7.6, 1.4, tint, M.Glass, { Transparency = 0.3 })
-		for _, hx in { -0.3, 0.3 } do
-			B.box(m, "Handle", hx - 0.06, 3, 1.4, hx + 0.06, 5.5, 1.55, C.STEEL_DARK, M.Metal)
+		if MeshLib.has("Fridge") then
+			local parts = MeshLib.place(m.parent, "Fridge", m.origin, {
+				Body = C.STEEL, Door = C.STEEL:Lerp(C.WHITE, 0.15), Glass = tint, Inside = tint:Lerp(C.WHITE, 0.6),
+				Shelf = C.WHITE, Handle = C.STEEL_DARK,
+			}, {
+				collide = true,
+				materials = { Body = M.Metal, Door = M.Metal, Glass = M.Glass, Inside = M.Neon, Shelf = M.SmoothPlastic, Handle = M.Metal },
+			})
+			if parts.Glass then
+				parts.Glass.Transparency = 0.55
+			end
+			if parts.Inside then
+				parts.Inside.Transparency = 0.35
+			end
+		else
+			B.box(m, "Body", -2, 0, -1.3, 2, 8, 1.3, C.STEEL, M.Metal)
+			B.box(m, "DoorL", -1.9, 0.6, 1.3, -0.05, 7.6, 1.4, tint, M.Glass, { Transparency = 0.3 })
+			B.box(m, "DoorR", 0.05, 0.6, 1.3, 1.9, 7.6, 1.4, tint, M.Glass, { Transparency = 0.3 })
+			for _, hx in { -0.3, 0.3 } do
+				B.box(m, "Handle", hx - 0.06, 3, 1.4, hx + 0.06, 5.5, 1.55, C.STEEL_DARK, M.Metal)
+			end
+			local inside = B.box(m, "Inside", -1.85, 0.7, 1.0, 1.85, 7.5, 1.25, tint:Lerp(C.WHITE, 0.5), M.Neon)
+			inside.Transparency = 0.6
 		end
-		local inside = B.box(m, "Inside", -1.85, 0.7, 1.0, 1.85, 7.5, 1.25, tint:Lerp(C.WHITE, 0.5), M.Neon)
-		inside.Transparency = 0.6
 		local disp = B.box(m, "TempDisplay", -0.7, 7.65, 1.38, 0.7, 7.95, 1.42, C.BLACK)
 		B.label(disp, Enum.NormalId.Back, temp, { color = Color3.fromRGB(90, 220, 255), font = Enum.Font.Code })
 		local hit = B.hitbox(m, name .. "Hit", Vector3.new(4, 8, 3), CFrame.new(0, 4, 0.4))
