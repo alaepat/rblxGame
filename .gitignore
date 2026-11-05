@@ -1,0 +1,16 @@
+# Roblox place files (the game is generated from source; don't commit binaries)
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+sourcemap.json
+
+# Blender
+*.blend1
+blender/export/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
