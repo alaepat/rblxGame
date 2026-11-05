@@ -179,7 +179,8 @@ function FoodLogic.describe(item: Item?): string
 		if item.wrapped then
 			local id = FoodLogic.identify(item)
 			local r = id and Recipes.get(id)
-			return "Wrapped " .. (r and r.name or "kebab (doesn't match the menu)")
+			local verb = if item.base == "food_box" then "Boxed " else "Wrapped "
+			return verb .. (r and r.name or "kebab (doesn't match the menu)")
 		end
 		return ingName(item.base) .. " (" .. #item.fillings .. " fillings)"
 	elseif k == "chips" then

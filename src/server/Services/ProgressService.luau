@@ -144,8 +144,9 @@ function ProgressService.addReview(player: Player, stars: number)
 		return
 	end
 	stars = math.clamp(stars, 1, 5)
-	-- rolling average weighted toward the last ~40 reviews
-	local n = math.min(profile.reviews, 40)
+	-- rolling average weighted toward the last ~40 reviews; the starting
+	-- rating counts as at least 5 reviews so one bad visit can't crater it
+	local n = math.clamp(profile.reviews, 5, 40)
 	profile.rating = math.floor(((profile.rating * n + stars) / (n + 1)) * 100 + 0.5) / 100
 	profile.reviews += 1
 	ProgressService.push(player)

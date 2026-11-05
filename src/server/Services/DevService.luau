@@ -58,6 +58,26 @@ local function run(cmd: string, arg: any): any
 	elseif cmd == "trash" then
 		S.CleaningService.spawnTrash(plot)
 		return "trash " .. #plot.trash
+	elseif cmd == "open" then
+		S.CustomerService.setOpen(plot, true)
+		return "open"
+	elseif cmd == "impatient" then
+		-- every waiting customer runs out of patience on the next tick
+		for _, c in plot.customers or {} do
+			c.patience = 0.1
+		end
+		return "customers " .. #(plot.customers or {})
+	elseif cmd == "dirty" then
+		for _, st in plot.stations do
+			if st.kind == "PizzaBoard" and not st.dirty then
+				S.CleaningService.makeDirty(st)
+				return "dirtied " .. st.part:GetFullName()
+			end
+		end
+		return "nothing to dirty"
+	elseif cmd == "broke" then
+		S.ProgressService.addMoney(player, -profile.money + 5)
+		return "money " .. profile.money
 	elseif cmd == "info" then
 		local up = {}
 		for id in profile.upgrades do

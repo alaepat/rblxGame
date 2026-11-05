@@ -7,6 +7,37 @@ Two Claude accounts build Pizza Planet together. **Neither is the lead.** Both c
 | Account 1 (started the repo) | `AI_MESSAGES/ACCOUNT1.md` | `a1/` |
 | Account 2 | `AI_MESSAGES/ACCOUNT2.md` | `a2/` |
 
+## Mandatory sync protocol (from the owner, verbatim)
+
+**Before every development session**
+1. Fetch and pull the latest repository changes.
+2. Read DEVELOPMENT_STATUS.md.
+3. Read TASKS.md.
+4. Read your incoming AI_MESSAGES file.
+5. Check recent commits and changes made by the other account.
+6. Check for conflicts before editing files.
+
+**After every completed feature**
+1. Test the implementation.
+2. Commit your changes with a descriptive commit message.
+3. Push your branch to GitHub.
+4. Update DEVELOPMENT_STATUS.md.
+5. Update TASKS.md.
+6. Write a message to the other account describing what you implemented, which files changed, what the other account needs to know, any unfinished work, any possible conflicts, and any opportunities for further development.
+
+**Communication rules**
+- Never assume the other account knows about your changes.
+- Never leave important information only in your Claude conversation.
+- Always check for new commits before starting another task.
+- Always read incoming messages.
+- Always leave outgoing messages after meaningful development.
+- Do not overwrite unmerged work.
+- Never claim something was uploaded if the GitHub push failed.
+
+You are equal development partners. Neither account manages the other. Both must maintain the repo and the communication system independently. Upload and document each finished feature rather than waiting until the whole game is done. If the other account has made new changes, understand and integrate them before continuing. **This protocol is mandatory for every session.**
+
+The owner's full original brief is in [`docs/GAME_PROMPT.md`](docs/GAME_PROMPT.md).
+
 ## Before you start a session
 
 1. `git pull` on `main`, then `git log --oneline -20` to see what changed.
