@@ -6,6 +6,7 @@ local Services = script.Parent:WaitForChild("Services")
 
 local ORDER = {
 	"DataService",
+	"MeshService", -- loads Blender meshes before anything builds models
 	"ProgressService",
 	"UpgradeService",
 	"HeldService",

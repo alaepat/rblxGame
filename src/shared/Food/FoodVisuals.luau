@@ -8,6 +8,7 @@
 local Config = script.Parent.Parent.Config
 local Ingredients = require(Config.Ingredients)
 local FoodLogic = require(script.Parent.FoodLogic)
+local MeshLib = require(script.Parent.MeshLib)
 
 type Item = { [string]: any }
 
@@ -173,6 +174,10 @@ end
 
 local function buildPizzaBox(m: Model, closed: boolean)
 	local W, H = 2.7, 0.42
+	if closed and MeshLib.has("PizzaBox") then
+		MeshLib.place(m, "PizzaBox", CFrame.new(), { Body = PAPER, Trim = BRAND_RED, Logo = BRAND_RED, Ring = BRAND_YELLOW, Tab = PAPER })
+		return
+	end
 	if closed then
 		newPart(m, "Box", Vector3.new(W, H, W), CFrame.new(0, H / 2, 0), PAPER)
 		newPart(m, "StripeF", Vector3.new(W + 0.02, 0.08, 0.02), CFrame.new(0, H * 0.55, W / 2), BRAND_RED)
@@ -199,23 +204,43 @@ local function buildPizza(item: Item): Model
 	elseif state == "burnt" then
 		base = DOUGH_BURNT
 	end
-	disc(m, "Crust", 2.4, 0.24, 0, base)
-	disc(m, "CrustTop", 2.25, 0.02, 0.24, base:Lerp(Color3.new(1, 1, 1), 0.08))
+	local toppings: { string } = item.toppings or {}
+	local hasCheese = table.find(toppings, "mozzarella") ~= nil
+	local cheeseColor = Color3.fromRGB(255, 240, 190)
+	if cooked then
+		cheeseColor = CHEESE_COOKED
+	end
+	if state == "burnt" then
+		cheeseColor = Color3.fromRGB(90, 60, 30)
+	end
+	local sauceIng = item.sauce and Ingredients.get(item.sauce)
 	local y = 0.25
-	if item.sauce then
-		local sauce = Ingredients.get(item.sauce)
-		disc(m, "Sauce", 2.02, 0.04, y, sauce and sauce.color or BRAND_RED)
+	if MeshLib.has("Pizza") then
+		-- Blender mesh: rolled crust + organic sauce/cheese layers
+		MeshLib.place(m, "Pizza", CFrame.new(), {
+			Crust = base,
+			Sauce = sauceIng and sauceIng.color or BRAND_RED,
+			Cheese = cheeseColor,
+		}, { hide = { Sauce = item.sauce == nil, Cheese = not hasCheese } })
+		y = 0.2
+		if hasCheese and cooked and state ~= "burnt" then
+			local rng = Random.new(7)
+			for _ = 1, 6 do
+				local a = rng:NextNumber(0, math.pi * 2)
+				local r = rng:NextNumber(0.2, 0.7)
+				disc(m, "Brown", rng:NextNumber(0.18, 0.3), 0.02, 0.185, Color3.fromRGB(230, 160, 70), math.cos(a) * r, math.sin(a) * r)
+			end
+		end
+	else
+		disc(m, "Crust", 2.4, 0.24, 0, base)
+		disc(m, "CrustTop", 2.25, 0.02, 0.24, base:Lerp(Color3.new(1, 1, 1), 0.08))
+	end
+	if item.sauce and not MeshLib.has("Pizza") then
+		disc(m, "Sauce", 2.02, 0.04, y, sauceIng and sauceIng.color or BRAND_RED)
 		y += 0.04
 	end
-	local toppings: { string } = item.toppings or {}
-	if table.find(toppings, "mozzarella") then
-		local c = Color3.fromRGB(255, 240, 190)
-		if cooked then
-			c = CHEESE_COOKED
-		end
-		if state == "burnt" then
-			c = Color3.fromRGB(90, 60, 30)
-		end
+	if hasCheese and not MeshLib.has("Pizza") then
+		local c = cheeseColor
 		disc(m, "Mozzarella", 1.88, 0.05, y, c)
 		if cooked and state ~= "burnt" then
 			-- golden browned spots
@@ -251,6 +276,13 @@ end
 local function buildFoodBox(m: Model, closed: boolean)
 	local W, H, D = 1.7, 0.65, 1.25
 	local T = 0.06
+	if MeshLib.has("FoodBox") then
+		MeshLib.place(m, "FoodBox", CFrame.new(), { Body = PAPER, Band = BRAND_RED, Lid = PAPER }, { hide = { Lid = not closed } })
+		if closed then
+			FoodVisuals.logo(m, CFrame.new(0, H + 0.075, 0), 0.6)
+		end
+		return
+	end
 	newPart(m, "Bottom", Vector3.new(W, T, D), CFrame.new(0, T / 2, 0), PAPER)
 	newPart(m, "Front", Vector3.new(W, H, T), CFrame.new(0, H / 2, D / 2), PAPER)
 	newPart(m, "Back", Vector3.new(W, H, T), CFrame.new(0, H / 2, -D / 2), PAPER)
@@ -362,6 +394,15 @@ end
 local function buildCup(item: Item): Model
 	local m = newModel("Cup")
 	local filled = item.syrup ~= nil
+	if MeshLib.has("Cup") then
+		local hidden = { Lid = not filled, Dome = not filled, Straw = not filled }
+		MeshLib.place(m, "Cup", CFrame.new(), { Body = PAPER, Band = BRAND_RED, Rim = PAPER, Lid = Color3.fromRGB(245, 245, 245), Dome = Color3.fromRGB(245, 245, 245), Straw = BRAND_RED }, { hide = hidden })
+		if filled then
+			local ing = Ingredients.get(item.syrup)
+			disc(m, "Flavor", 0.22, 0.02, 1.1, ing and ing.color or BRAND_RED, 0.15, 0.15)
+		end
+		return m
+	end
 	local up = CFrame.Angles(0, 0, math.rad(90))
 	newPart(m, "Cup", Vector3.new(1.1, 0.62, 0.62), CFrame.new(0, 0.55, 0) * up, PAPER, nil, Enum.PartType.Cylinder)
 	newPart(m, "Band", Vector3.new(0.26, 0.64, 0.64), CFrame.new(0, 0.42, 0) * up, BRAND_RED, nil, Enum.PartType.Cylinder)
@@ -422,6 +463,19 @@ function FoodVisuals.ingredientPan(ingredientId: string, size: Vector3): Model
 	local steel = Color3.fromRGB(196, 200, 206)
 	local W, H, D = size.X, size.Y, size.Z
 	local T = 0.06
+	local ingM = Ingredients.get(ingredientId)
+	if MeshLib.has("Pan") then
+		local s = W / 0.95
+		local fill = ingM and ingM.color:Lerp(Color3.new(0, 0, 0), 0.08) or steel
+		MeshLib.place(m, "Pan", CFrame.new(), { Body = steel, Lip = steel:Lerp(Color3.new(1, 1, 1), 0.25), Fill = fill }, {
+			scale = s,
+			materials = { Body = Enum.Material.Metal, Lip = Enum.Material.Metal, Fill = Enum.Material.SmoothPlastic },
+		})
+		if ingM and ingM.shape ~= "sauce" and ingM.shape ~= "drizzle" then
+			scatter(m, ingredientId, 0.343 * s * 0.6, W * 0.34, D * 0.32, 9, false)
+		end
+		return m
+	end
 	newPart(m, "Bottom", Vector3.new(W, T, D), CFrame.new(0, T / 2, 0), steel, Enum.Material.Metal)
 	newPart(m, "F", Vector3.new(W, H, T), CFrame.new(0, H / 2, D / 2), steel, Enum.Material.Metal)
 	newPart(m, "B", Vector3.new(W, H, T), CFrame.new(0, H / 2, -D / 2), steel, Enum.Material.Metal)
