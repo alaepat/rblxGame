@@ -6,8 +6,8 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
-| 1 | Full playtest of the pizza flow + customer loop; fix every bug found | QA | Account 1 | Highest priority. Start a server, flip the OPEN sign, serve 5 orders |
-| 2 | Re-test lighting after the exposure fix; tune interior light balance | Visual | — | Set Lighting.Technology = Future first |
+| 1 | Playtest kebab station, fryer, drinks, heat shelf, cleaning, upgrades (level 5+), office PC UI | QA | Account 1 | Pizza + customer loop already verified |
+| 2 | Interior wall panels for the storage room, office and staff room (no raw brick inside); tune light balance | Visual | — | See DEVELOPMENT_STATUS known issues |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 4 | Hide other players' prompts on the client (only show prompts in your own plot) | Interaction | **Account 2 (suggested)** | Check `Restaurant_*` OwnerUserId in Interaction.findPrompts |
 | 5 | Blender pass: pizza box (open lid), kebab wrap, chair, pizza oven dome as MeshParts + `MeshIds.luau` with procedural fallback | Art | **Account 2 (suggested)** | See docs/ART_STYLE.md |

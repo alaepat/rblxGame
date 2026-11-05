@@ -99,6 +99,11 @@ local function retry<T>(label: string, fn: () -> T): (boolean, T | string)
 		end
 		lastErr = result
 		warn(("[DataService] %s failed (attempt %d): %s"):format(label, attempt, tostring(result)))
+		local msg = tostring(result)
+		if string.find(msg, "403", 1, true) or string.find(msg, "StudioAccessToApisNotAllowed", 1, true) then
+			-- Studio without "Enable Studio Access to API Services": retrying won't help.
+			break
+		end
 		task.wait(math.min(2 ^ attempt, 10))
 	end
 	return false, tostring(lastErr)
