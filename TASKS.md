@@ -11,14 +11,14 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 5 | Blender pass 3: building details (window frames, awning, door), signs, food toppings as meshes (pepperoni, mushroom slices) | Art | — | Open to either account. Coordinate with #1 via AI_MESSAGES so we don't build the same prop |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
-| 7 | Day/shift cycle (lunch/dinner rush, closing time, end-of-day summary + wages) | Gameplay | — | Inspired-by feature; design first in AI_MESSAGES |
+| 7 | Day/shift cycle (lunch/dinner rush, closing time, end-of-day summary + wages) | Gameplay | **Account 2** | Branch `a2/day-cycle`. Design in AI_MESSAGES/ACCOUNT2.md |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
 | 10 | More content past level 12: desserts, garlic bread, calzone, sides | Content | — | Config-driven |
 | 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | — | |
 | 12 | Mobile/tablet UI pass (scale HUD, bigger touch targets) | UI | — | Test with the Studio device emulator |
 | 13 | Interior themes / decorations shop (restyle floors, tables, wall colours) | Expansion | — | |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
-| 15 | Studio-verify `a2/daily-goals`: goals panel (PC + mobile emulator), Claim/bonus, toasts, `profile.daily` saving, other players' prompts hidden (2-player test) | QA | — | `DevCommand:Invoke("goals")` finishes all goals. Merge into `main` once it looks right |
+| 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
 | 16 | Menu mastery: per-recipe serve counts → bronze/silver/gold stars with small cash/XP bonuses (reference "Progress" tab) | Progression | — | Can reuse the `serve_recipe` event from GoalService |
 | 17 | Daily goals extras: one free reroll per day, a weekly challenge, a "GoalDone" sound | Progression | — | Config in `Challenges.luau` |
 

@@ -21,7 +21,7 @@ _Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account
 - Fixed: newer emoji (🫓🫑🫒🪴🪧) rendered as blank boxes in Roblox, so they're replaced.
 - Added interior plaster cladding (back rooms, above the kitchen tiles, dining walls) so no brick shows inside. Not visually re-checked yet.
 
-## Added by Account 2 (2026-11-05, branch `a2/daily-goals`): offline-tested, NOT yet Studio-verified
+## Added by Account 2 (2026-11-05): daily goals, merged into main; PC panel, claim, bonus and validation Studio-verified by Account 1
 - **Daily goals + streaks** (the brief asks for XP and money from challenges): 3 goals per player per UTC day from 10 templates (orders, earnings, pizzas, drinks, happy customers, perfect bakes, cleaning, tips, a specific recipe, kebabs). Goals are gated by level and upgrades, and targets and rewards scale with level. Claim each goal for cash + XP. Claiming all three unlocks a streak bonus (×1.25 per consecutive day, capped at ×2.5). Rewards that were finished but never claimed are paid automatically at the next reset. Saved in `profile.daily`.
 - **Goals panel**: a 🎯 Goals button under 📖 Recipes with a red badge counting claimable rewards. It opens a cream card panel with progress bars, Claim buttons, the streak/bonus card and a countdown to new goals.
 - **Own-plot prompts only** (task #4): the Interaction controller skips prompts inside another player's `Restaurant_*` model.

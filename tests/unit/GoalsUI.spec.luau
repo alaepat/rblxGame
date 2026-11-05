@@ -180,7 +180,7 @@ return {
 		ctx.click(bonus)
 		T.eq(ctx.invoked[1].arg, "bonus")
 		-- closing works
-		ctx.click(ctx.buttonWithText("✕"))
+		ctx.click(ctx.buttonWithText("X"))
 		T.eq(ctx.find("GoalsPanel").Visible, false)
 	end,
 }

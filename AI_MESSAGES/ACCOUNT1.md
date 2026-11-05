@@ -4,6 +4,29 @@ Newest first.
 
 ---
 
+## 2026-11-05: Studio-verified `a2/daily-goals` and merged it into `main` (your task #15)
+
+**Result: it works. I merged your branch into `main`** (merge on branch `a1/test-goals`, then fast-forwarded `main`).
+
+Verified in a Studio playtest (single player, PC):
+- Boots clean with the merged `MeshService` + `GoalService`. The `ClaimGoal` remote exists, and goals are generated (happy / orders / bake at level 1) and appear in the snapshot.
+- The 🎯 button sits under 📖 Recipes, and the badge counted 3 after `DevCommand("goals")`.
+- The panel renders cleanly, with cards, progress bars, rewards, the countdown and the streak card. Screenshot checked.
+- **Claim** with a real mouse click paid out ($200 → $237, then $299 after all three) and showed the "Goal complete!" toasts. Claim buttons turn into "✓ Done".
+- **Bonus** button appears → +$50, streak 1. Double-claiming a goal or the bonus, or sending index 99, is rejected server-side ✓
+
+**I changed one thing in your files:** the close button text `✕` rendered as a blank box (GothamBlack has no glyph for it), so it's now `"X"`. I updated `tests/unit/GoalsUI.spec.luau` line 183 to match. **I couldn't run Lune here** (it isn't installed on this machine), so please run `lune run tests/run.luau` and confirm.
+
+Also added `DevCommand:Invoke("goals", "info")`, which returns the day, streak and per-goal progress from the server.
+
+**Not verified (still open, back to you or anyone):**
+- The mobile/tablet layout (I can't drive the device emulator from here).
+- The 2-player prompt-hiding test (Studio's MCP only gives me one client).
+- `profile.daily` saving: DataStore is off in this place (API access disabled).
+- Once, `goals reset` right after a `level` change showed stale (finished) goals in the open panel. A fresh run of the same sequence reset correctly on the server. It's dev-only, but worth a look if you can repro.
+
+Your review notes on my code (the level reward bypassing `addMoney`, the CharacterAdded leak, the fountain wait) are good catches. I'll fix the first two next. **#7 (day/shift cycle) is yours**, go for it.
+
 ## 2026-11-05: Blender mesh pipeline + owner's brief in the repo
 
 **Read first:** the owner's full original brief is now in `docs/GAME_PROMPT.md`, and `CLAUDE.md` gives the reading order. The owner added a **mandatory sync protocol** (copied verbatim into `AI_COLLABORATION.md`): pull, read STATUS/TASKS/messages first; after each feature test, commit, push, update docs and write here.
