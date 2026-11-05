@@ -1,6 +1,6 @@
 # Development Status
 
-_Last updated: 2026-11-05 by Account 1_
+_Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account 1's)_
 
 ## Verified in a Studio playtest (2026-11-05, synced via Rojo)
 - The server and client boot with no script errors. The town and restaurant generate (about 1,070 parts, 32 active stations at level 1).
@@ -21,6 +21,14 @@ _Last updated: 2026-11-05 by Account 1_
 - Fixed: newer emoji (🫓🫑🫒🪴🪧) rendered as blank boxes in Roblox, so they're replaced.
 - Added interior plaster cladding (back rooms, above the kitchen tiles, dining walls) so no brick shows inside. Not visually re-checked yet.
 
+## Added by Account 2 (2026-11-05, branch `a2/daily-goals`): offline-tested, NOT yet Studio-verified
+- **Daily goals + streaks** (the brief asks for XP and money from challenges): 3 goals per player per UTC day from 10 templates (orders, earnings, pizzas, drinks, happy customers, perfect bakes, cleaning, tips, a specific recipe, kebabs). Goals are gated by level and upgrades, and targets and rewards scale with level. Claim each goal for cash + XP. Claiming all three unlocks a streak bonus (×1.25 per consecutive day, capped at ×2.5). Rewards that were finished but never claimed are paid automatically at the next reset. Saved in `profile.daily`.
+- **Goals panel**: a 🎯 Goals button under 📖 Recipes with a red badge counting claimable rewards. It opens a cream card panel with progress bars, Claim buttons, the streak/bonus card and a countdown to new goals.
+- **Own-plot prompts only** (task #4): the Interaction controller skips prompts inside another player's `Restaurant_*` model.
+- **Offline tests**: `lune run tests/run.luau` gives 24 passing tests: every src file compiles, DailyGoals rules, GoalService against fake services (claim validation, payouts, rollover), and the goals panel built with real Lune Instances. `rojo build` succeeds.
+- Studio hooks: `DevCommand:Invoke("goals")` finishes every goal, `DevCommand:Invoke("goals", "reset")` rerolls.
+- **Needs a Studio check**: the panel layout on PC and mobile, the badge and pulsing Claim buttons, the toasts, saving `profile.daily`, and the countdown.
+
 ## Not yet verified end-to-end
 - Angry walk-outs, messy-counter wiping, emergency delivery, the extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
@@ -31,10 +39,10 @@ _Last updated: 2026-11-05 by Account 1_
 - Box items say "Wrapped Loaded Fries"; they should say "Closed".
 - `Lighting.Technology` must be set to **Future** by hand (scripts can't set it).
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
-- Other players can see (but not use) prompts in your restaurant. The server rejects their use, but the client still draws the panel.
+- ~~Other players can see prompts in your restaurant~~: fixed on `a2/daily-goals` (not yet Studio-verified).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - No custom Blender meshes yet. All visuals are procedural parts.
-- No day/shift cycle, challenges/daily goals, staff, or delivery orders yet (see TASKS.md).
+- No day/shift cycle, staff, menu mastery or delivery orders yet (see TASKS.md). Daily goals are on `a2/daily-goals`.
 
 ## Phase progress (from the master prompt)
 | Phase | State |
@@ -43,7 +51,7 @@ _Last updated: 2026-11-05 by Account 1_
 | 2 Interactions | Done (needs playtest) |
 | 3 Food | Pizza + kebab + drinks + chips done (needs playtest) |
 | 4 Customers | Done (needs playtest) |
-| 5 Progression | XP / levels / unlocks / money done |
+| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks on `a2/daily-goals` (offline-tested) |
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
 | 8 Multiplayer & saving | Per-player plots + DataStore done; needs a published-place test |
