@@ -29,7 +29,9 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 - Studio hooks: `DevCommand:Invoke("goals")` finishes every goal, `DevCommand:Invoke("goals", "reset")` rerolls.
 - **Still to check** (TASKS #15): the mobile/tablet layout, the 2-player prompt-hiding test, and `profile.daily` saving with DataStore on.
 
-## Day / shift cycle (Account 2, 2026-11-06): branch `a2/day-cycle`, PR #2, offline-tested, NOT Studio-verified
+## Day / shift cycle (Account 2, 2026-11-06): merged into `main`, PC Studio-verified by Account 1
+- Verified: clock pill (DAY N / CLOSED, no overlap), OPEN starts 10:00 AM at 40 s per game hour, lunch-rush toast + orange phase, the order + earnings counter, closing time flips the sign and shows a "Last customers" countdown, the summary card (stats, grade, rating change, shift bonus; the money adds up), the card dismisses and the clock rolls to Day 2.
+- Fixed in the merge: customers still inside when the day ended stayed and walked out angry after the summary, costing rating. `CustomerService.sendHomeAll` now sends them home with no review (called from `ShiftService.finish`). The pill also says "1 order" instead of "1 orders".
 - Each restaurant runs its own day. Opening the sign starts **Day N at 10:00**; 1 game hour = 40 s, so 10:00–22:00 is an 8-minute day.
 - Phases from `Config/DayCycle.luau`: morning, 🔥 lunch rush 12–14 (×1.8 customers), afternoon lull, 🔥 dinner rush 17:30–20 (×2), evening, 🌙 late-night rush 21–22 (×1.4). Toast + bell when a rush starts.
 - At 22:00 the sign closes itself. When the last customers leave (or after 90 s), the **end-of-day summary card** shows orders, food counts, sales, tips, happy %, walk-outs, rush orders, rating change and a grade (S–D), pays a **shift bonus** (×1.5 for a full day) and charges **staff wages** (0 until staff exist, #11). Days played and best day are saved in `profile.shift`.
@@ -61,7 +63,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - 18 Blender props are in. The building shell, signs, hood and toppings are still procedural (TASKS #5).
-- No staff, menu mastery or delivery orders yet (see TASKS.md). The day/shift cycle is on `a2/day-cycle` (PR #2), waiting for a Studio check.
+- No staff, menu mastery or delivery orders yet (see TASKS.md). The day/shift cycle is merged.
 
 ## Phase progress (from the master prompt)
 | Phase | State |
@@ -70,7 +72,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 | 2 Interactions | Done (needs playtest) |
 | 3 Food | Pizza + kebab + drinks + chips done (needs playtest) |
 | 4 Customers | Done (needs playtest) |
-| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks merged (PC Studio-verified); day/shift cycle on `a2/day-cycle` (PR #2, offline-tested) |
+| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks merged (PC Studio-verified); day/shift cycle merged (PC Studio-verified) |
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
 | 8 Multiplayer & saving | Per-player plots + DataStore done; needs a published-place test |

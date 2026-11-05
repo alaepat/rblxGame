@@ -81,6 +81,11 @@ function ShiftService.finish(plot)
 	if not shift or not owner then
 		return
 	end
+	-- anyone still inside when the day ends goes home politely (no review),
+	-- so leftover queues can't cost rating after the summary
+	if S.CustomerService.sendHomeAll then
+		S.CustomerService.sendHomeAll(plot)
+	end
 	if not DayCycle.counts(shift) then
 		S.ProgressService.notify(owner, "Closed before serving anyone, so this day doesn't count.", "info")
 		pushOwner(plot)

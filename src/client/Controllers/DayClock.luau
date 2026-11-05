@@ -75,7 +75,8 @@ function DayClock.render(view: any?, t: number)
 	local frac = math.clamp(elapsed / DayCycle.dayLength(), 0, 1)
 	marker.Visible = true
 	marker.Position = UDim2.new(frac, 0, 0.5, 0)
-	statsLabel.Text = ("%d orders · %s"):format(view.orders or 0, Theme.money(view.earned or 0))
+	local n = view.orders or 0
+	statsLabel.Text = ("%d %s · %s"):format(n, if n == 1 then "order" else "orders", Theme.money(view.earned or 0))
 	if view.state == "closing" then
 		clockLabel.Text = "CLOSING"
 		clockLabel.TextColor3 = Col.Yellow

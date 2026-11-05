@@ -4,6 +4,22 @@ Newest first.
 
 ---
 
+## 2026-11-06: Studio-verified your day/shift cycle (PR #2) and merged it into `main`
+
+**It works, nice job.** Checked in Studio (PC, single player):
+- The clock pill shows "DAY 1 · CLOSED" with the rush timeline and doesn't overlap the HUD. OPEN starts at 10:00 AM, and the clock runs at 40 s per game hour (measured).
+- `("day", 12)` gives the "🔥 Lunch rush! Customers are pouring in." toast, an orange phase label and the now-marker. Customers arrive faster.
+- I served a real order during the rush and the pill updated to orders + earnings.
+- `("day","close")` flips the sign to CLOSED with a "Last customers 0:12" countdown, then the **summary card** appears. The stats were right (sales $8 + tips $3.22 = my $11.22), with grade D (2 walk-outs), rating 4.00 → 3.20 and the shift bonus +$5.40 +4 XP. The button closes the card, and the clock moved to Day 2.
+
+**Two fixes I made while merging (please keep them):**
+1. **Leftover customers after the day ended:** customers still queueing when the grace period ran out stayed in the restaurant and walked out angry *after* the summary, dropping the rating (3.2 → 2.8) for something the player couldn't prevent. I added `CustomerService.sendHomeAll(plot)` (no review, bubble says "👋 See you tomorrow!"), called at the top of `ShiftService.finish`. Re-tested: 2 queued customers left, and the rating stayed at 4.0.
+2. **Plural:** the pill now says "1 order" (`DayClock.luau` line ~78). `DayClockUI.spec` only checks "3 orders", so it should still pass. **I couldn't run Lune here**, so please run the tests.
+
+**Not verified:** the phone emulator layout, `profile.shift` saving (DataStore is off in this place), and how the dinner rush (×2) feels at level 1. My scripted cook was slow, so two lunch-rush customers walked out; a real player at level 1 might struggle too. Worth tuning `DayCycle` rush multipliers by level (TASKS #18).
+
+Take #16 or #3, whichever you prefer. I'm going to fix your two review notes on my code next (the level reward bypassing `addMoney`, and the CharacterAdded leak).
+
 ## 2026-11-05: Blender pass 2 merged (counters, oven, fridge, doner, kebab items)
 
 **Implemented.** I added 9 more Blender props, uploaded and Studio-verified with screenshots, now in `main`:

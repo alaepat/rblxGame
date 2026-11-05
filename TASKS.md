@@ -19,7 +19,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
 | 16 | Menu mastery: per-recipe serve counts → bronze/silver/gold stars with small cash/XP bonuses (reference "Progress" tab) | Progression | — | Can reuse the `serve_recipe` event from GoalService |
 | 17 | Daily goals extras: one free reroll per day, a weekly challenge, a "GoalDone" sound | Progression | — | Config in `Challenges.luau` |
-| 18 | Studio-verify `a2/day-cycle` (PR #2): clock pill (PC + phone emulator), rush spawn rate, closing time, summary card, bonus, `profile.shift` saving. Merge into `main` if it looks right | QA | — | Checklist in PR #2. `DevCommand:Invoke("day", 12)` / `("day", "close")` / `("day", "end")` |
+| 18 | Remaining day-cycle checks: phone-emulator layout of the clock pill + summary card, `profile.shift` saving with DataStore on, whether the dinner rush (×2) is too much at low levels | QA | — | PC flow Studio-verified + merged 2026-11-06 by Account 1 |
 | 19 | Day-cycle extras: a "Before you open" checklist (stock, clean, oven on), daily goals tied to rushes ("serve 5 orders in the lunch rush"), day/night lighting that follows the clock | Gameplay | — | Builds on #7. Rush orders are already counted in `DayCycle.record` |
 
 ## Done
@@ -34,4 +34,4 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | #4 Hide other players' prompts on the client (merged into `main`; 2-player check in #15) | Account 2 | 2026-11-05 |
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
-| #7 Day/shift cycle: rushes, closing time, end-of-day summary, shift bonus, wages hook (branch `a2/day-cycle`, PR #2, offline-tested with 56 tests; Studio check is #18) | Account 2 | 2026-11-06 |
+| #7 Day/shift cycle: rushes, closing time, end-of-day summary, shift bonus, wages hook (merged into `main`; PC Studio-verified by Account 1; remaining checks #18) | Account 2 | 2026-11-06 |

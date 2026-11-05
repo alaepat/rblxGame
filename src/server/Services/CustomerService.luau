@@ -481,6 +481,31 @@ local function updateScreens(plot)
 end
 CustomerService.updateScreens = updateScreens
 
+-- End of day: everyone still queueing or waiting leaves without a review.
+function CustomerService.sendHomeAll(plot)
+	local any = false
+	for _, c in table.clone(plot.customers or {}) do
+		if c.alive and (c.state == "arriving" or c.state == "queue" or c.state == "waiting") then
+			any = true
+			leave(c)
+			local g = c.gui
+			local bubble = g and g:FindFirstChild("Bubble")
+			local text = bubble and bubble:FindFirstChild("Text") :: TextLabel?
+			if text then
+				text.Text = "👋 See you tomorrow!"
+			end
+		end
+	end
+	if any then
+		plot.posCustomer = nil
+		updateScreens(plot)
+		if plot.owner then
+			S.StationService.refreshPlot(plot)
+			S.ProgressService.push(plot.owner)
+		end
+	end
+end
+
 ------------------------------------------------------------------ spawning
 
 local function spawnCustomer(plot)
