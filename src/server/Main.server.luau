@@ -10,6 +10,7 @@ local ORDER = {
 	"ProgressService",
 	"UpgradeService",
 	"GoalService", -- daily goals + streaks
+	"ShiftService", -- day / shift cycle, rushes, end-of-day summary
 	"HeldService",
 	"StationService",
 	"CleaningService",

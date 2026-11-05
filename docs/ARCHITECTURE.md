@@ -8,6 +8,7 @@
 | `src/shared/Food/FoodLogic` | `ReplicatedStorage.Shared.Food` | Pure rules: can-add, cook state, recipe matching |
 | `src/shared/Food/FoodVisuals` | same | Builds the 3D model for any item table (pizza, kebab, box, cup, supply box, ingredient pan) |
 | `src/shared/Goals/DailyGoals` | `ReplicatedStorage.Shared.Goals` | Pure daily-goal rules: generation, progress, claiming, streaks, rollover (no services, so it is unit-tested in Lune) |
+| `src/shared/Shift/DayCycle` | `ReplicatedStorage.Shared.Shift` | Pure day/shift rules: game clock, phases + rush traffic, day stats, grade, end-of-day bonus, wages, records (unit-tested in Lune) |
 | `src/shared/Net` | `ReplicatedStorage.Shared.Net` | Creates/locates every RemoteEvent/RemoteFunction |
 | `src/server/Main.server` | `ServerScriptService.Server.Main` | Bootstraps services in order (`init` for all, then `start`; DataService starts last) |
 | `src/server/Services/*` | `ServerScriptService.Server.Services` | Game systems (below) |
@@ -24,6 +25,7 @@ Each service is a module with `init(services)` (receives the registry) and `star
 | **ProgressService** | Money, XP, levels, reviews/rating. Sends the per-player **State snapshot** (throttled), toasts, level-up and sound events. Other services add fields with `addStateProvider`. |
 | **UpgradeService** | Buys upgrades, sums `effects` (cookSpeed, capacity, traffic, tip, queue), shows/hides upgrade models in the plot. |
 | **GoalService** | Daily goals + streaks. Other services call `GoalService.record(player, event, amount, param)`; it rolls goals at the UTC reset (auto-paying finished-but-unclaimed rewards), validates `ClaimGoal`, pays through ProgressService, and adds `goals` to the State snapshot. Saved in `profile.daily`. |
+| **ShiftService** | Day / shift cycle per restaurant. Opening the sign starts "Day N" at 10:00; rush phases multiply customer traffic (`CustomerService.spawnInterval` divides by `ShiftService.traffic(plot)`); at 22:00 it closes the sign, and once the last customers leave (or `ClosingGrace` runs out) it sends the `DaySummary` remote, pays the shift bonus and wages, and saves records in `profile.shift`. Day stats come from `GoalService.onEvent`. Adds `shift` to the State snapshot. |
 | **HeldService** | The one item each player carries (server table + a welded visual). |
 | **StationService** | Turns every part tagged `Station=<kind>` into prompts and runs its rules: Bin, PizzaBoard, KebabBoard, Topping, Oven, Fryer, BoxStation, HeatShelf, Trash, Fountain, Register, Pickup, Storage, OfficePC, OpenSign. Runs the cooking loop. |
 | **CleaningService** | Rubbish after customers, messy counters after N uses, the cleanliness score. |
@@ -66,8 +68,21 @@ Events currently recorded:
 | `serve_kind` (param = recipe kind), `serve_recipe` (param = recipe id) | `CustomerService.serve` |
 | `clean` | `CleaningService.rewardClean` |
 | `bake_perfect` | `StationService` oven take-out while the pizza is "cooked" |
+| `angry` (a walk-out; no goal uses it yet, ShiftService counts it) | `CustomerService` patience loop |
+
+`GoalService.record` is the game's event feed: `GoalService.onEvent(fn)` registers a listener that receives every event (ShiftService uses it for day stats), so new systems that need counts don't need new hooks in gameplay code.
 
 Goals are deterministic per (day, userId, level, upgrades), so the same player gets the same goals all day on any server.
+
+## Day / shift cycle
+
+Numbers: `Config/DayCycle.luau` (open/close hours, `SecondsPerHour`, phases with `traffic` and `rush`, closing grace, bonus formula, wages per staff role, grade thresholds). Rules: `Shared/Shift/DayCycle.luau`. Server: `ShiftService`. Client: `Controllers/DayClock.luau` (the clock pill top-left above the order list, with a timeline bar showing rushes in orange, and the end-of-day summary card).
+
+- Each restaurant runs its own day. The shift stores `startedAt` in `workspace:GetServerTimeNow()` time; the client works out the clock from that, so it ticks smoothly without extra snapshots.
+- Closing early by hand also ends the day (summary when the last customers leave). Reopening before closing time continues the same day; reopening after closing time ends it and starts the next.
+- A day only counts (day number, bonus, summary) once at least one order was served. If the player leaves mid-shift, that day is dropped.
+- Wages: `ShiftService.staffOf(player)` returns `{ [role] = count }`. It is empty until staff exist (TASKS #11); return the hired staff there and the summary charges `Config.Wages`.
+- Studio hooks: `DevCommand:Invoke("day", 12)` jumps the clock to 12:00, `("day", "close")` to closing time, `("day", "end")` closes and ends the day now.
 
 ## Offline tests
 

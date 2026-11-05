@@ -145,4 +145,22 @@ return {
 		T.ok(st.goals.resetsAt > G.clock())
 		T.eq(next(G.stateFor({ UserId = 7 })), nil)
 	end,
+
+	["onEvent listeners get every recorded event, and a failing one is contained"] = function()
+		local G, player = setup()
+		local seen = {}
+		G.onEvent(function()
+			error("boom")
+		end)
+		G.onEvent(function(p, event, amount, param)
+			table.insert(seen, { p = p, event = event, amount = amount, param = param })
+		end)
+		G.record(player, "angry", 1) -- no goal uses this event
+		G.record(player, "serve_kind", 2, "pizza")
+		T.eq(#seen, 2)
+		T.ok(seen[1].p == player)
+		T.eq(seen[1].event, "angry")
+		T.eq(seen[2].amount, 2)
+		T.eq(seen[2].param, "pizza")
+	end,
 }
