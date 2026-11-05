@@ -11,15 +11,24 @@ _Last updated: 2026-11-05 by Account 1_
 - The HUD and menu boards work. Lighting is no longer overexposed.
 - In a published place without Studio API access, DataStore now fails fast to a temporary profile (no 30 s retry delay).
 
+### Second pass (same day, using the `ServerStorage.DevCommand` test hooks)
+- Upgrades: bought 10 at level 8. Every upgrade model appeared and every placeholder was removed (kebab station, fryer, oven 2, prep 2, seating, heat shelf slots, plants, neon, pendants, storage).
+- **Kebab**: pitta → board → chicken doner spit → lettuce, tomato, garlic sauce → Wrap → "Wrapped Chicken Doner Kebab" ✓
+- **Loaded fries**: frozen chips → fryer → hot chips → heat shelf → food box on board → Add chips → cheddar, chicken doner, garlic → Close → "Loaded Fries" ✓
+- **Drinks**: cup → fountain pours after 1.5 s → "Planet Cola" ✓ (fixed: hold prompts never completed with the custom interaction UI; all prompts are now single-press)
+- **Cleaning**: spawned rubbish and a spill, cleaned both, cleanliness 84% → 100% ✓
+- **Level-up popup** (unlock list) ✓ and **office PC** (Pizza Planet OS) ✓
+- Fixed: newer emoji (🫓🫑🫒🪴🪧) rendered as blank boxes in Roblox, so they're replaced.
+- Added interior plaster cladding (back rooms, above the kitchen tiles, dining walls) so no brick shows inside. Not visually re-checked yet.
+
 ## Not yet verified end-to-end
-- Kebab station + fryer + drinks fountain + heat shelf (code paths shared with the tested pizza ones)
-- Buying an upgrade and its visible model swapping (needs level 2+)
-- Cleaning (rubbish, messy counters), angry walk-outs, the level-up popup, the office-PC UI
+- Angry walk-outs, messy-counter wiping, emergency delivery, the extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
 
 ## Known issues / gaps
 - Roblox only shows a prompt when its part is on screen, so players must look at what they interact with (that's intended).
-- Back rooms (storage, office, staff) show exterior brick on the inside walls. They need interior wall panels.
+- Stainless steel (Metal material) looks quite dark in enclosed rooms. Consider a lighter colour or SmoothPlastic for counter bodies.
+- Box items say "Wrapped Loaded Fries"; they should say "Closed".
 - `Lighting.Technology` must be set to **Future** by hand (scripts can't set it).
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
 - Other players can see (but not use) prompts in your restaurant. The server rejects their use, but the client still draws the panel.

@@ -27,6 +27,7 @@ type Station = {
 	dirty: boolean,
 	gui: BillboardGui?,
 	lastState: string?,
+	busy: boolean?,
 }
 
 local StationService = {}
@@ -581,12 +582,22 @@ actions.Fountain = function(st, player)
 			return deny(player, r.name .. " unlocks at level " .. r.level)
 		end
 	end
+	if st.busy then
+		return
+	end
 	if not useStock(player, syrup) then
 		return deny(player, "Out of " .. ingName(syrup))
 	end
-	held.syrup = syrup
-	S.HeldService.changed(player)
+	-- Pour takes a moment (single press; hold-prompts don't work with the custom UI).
+	st.busy = true
 	S.ProgressService.sound(player, "Pour")
+	show(st.prompts.main, false, "Pouring...")
+	task.wait(GameConfig.PourTime)
+	st.busy = false
+	if S.HeldService.get(player) == held and held.syrup == nil then
+		held.syrup = syrup
+		S.HeldService.changed(player)
+	end
 end
 
 actions.Register = function(st, player)
@@ -625,8 +636,7 @@ local function setupStation(plot, part: BasePart)
 		dirty = false,
 		gui = nil,
 	}
-	local mainHold = if kind == "Fountain" then GameConfig.PourTime else 0
-	newPrompt(st, "main", Enum.KeyCode.E, mainHold)
+	newPrompt(st, "main", Enum.KeyCode.E, 0)
 	if kind == "KebabBoard" then
 		newPrompt(st, "wrap", Enum.KeyCode.F)
 		newPrompt(st, "chips", Enum.KeyCode.R)

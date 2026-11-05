@@ -14,6 +14,7 @@ local ORDER = {
 	"SupplyService",
 	"CustomerService",
 	"PlotService", -- last: claiming plots uses all the others
+	"DevService", -- Studio-only test hooks
 }
 
 local registry: { [string]: any } = {}

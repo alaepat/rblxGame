@@ -47,7 +47,7 @@ local list: { Upgrade } = {
 	{ id = "expansion_1", name = "Dining Room Extension", category = "Dining", level = 10, cost = 2000, icon = "🏗️",
 		description = "Knock through into the extension. Bigger queue, +25% customers.", effects = { traffic = 0.25, queue = 2 } },
 	-- Decor
-	{ id = "decor_plants", name = "Plants & Planters", category = "Decor", level = 2, cost = 80, icon = "🪴",
+	{ id = "decor_plants", name = "Plants & Planters", category = "Decor", level = 2, cost = 80, icon = "🌿",
 		description = "Leafy planters. Customers tip a little more.", effects = { tip = 0.03 } },
 	{ id = "decor_neon", name = "Neon Wall Signs", category = "Decor", level = 5, cost = 200, icon = "💡",
 		description = "Glowing pizza and kebab neon signs.", effects = { tip = 0.04 } },

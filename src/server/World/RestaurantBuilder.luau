@@ -208,6 +208,7 @@ local function buildShell(c: Ctx)
 	end)
 	B.box(eastDining, "Glass", 29.9, 2, 9, 30.1, 10, 20, C.GLASS, M.Glass, { Transparency = 0.65, CastShadow = false })
 	B.box(eastDining, "Mullion", 29.8, 2, 14.4, 30.2, 10, 14.6, C.BLACK, M.Metal)
+	B.wallZ(eastDining, "InEastDining", 29.42, 6, 21.4, 3.6, 13, 0.1, Color3.fromRGB(246, 232, 204), M.Plaster, { { 9, 20, 10, 2 } })
 
 	-- Corner piers, base plinth and cornice
 	for _, x in { -30.5, 30.5 } do
@@ -329,6 +330,26 @@ local function buildShell(c: Ctx)
 	B.wallZ(s, "Wainscot", 29.45, 6, 21.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, { { 9, 20, 3.6, 2 } })
 	B.box(s, "Rail", -29.5, 3.6, 6, -29.3, 3.8, 9, C.WOOD_DARK, M.Wood)
 	B.box(s, "Rail", -29.5, 3.6, 20, -29.3, 3.8, 21.5, C.WOOD_DARK, M.Wood)
+
+	-- Interior cladding so no exterior brick shows inside
+	local paint = Color3.fromRGB(240, 236, 228)
+	local warm = Color3.fromRGB(246, 232, 204)
+	-- back rooms: back wall, west + east walls
+	B.wallX(s, "InBack", -21.45, -29.5, 29.5, 0, 13, 0.1, paint, M.Plaster, { { -27, -22, 8.4 }, { 1.5, 8.5, 9, 4 }, { 17, 25, 9, 4 } })
+	B.wallZ(s, "InWestBack", -29.45, -21.4, -8.3, 0, 13, 0.1, paint, M.Plaster, { { -18, -12, 9, 4 } })
+	B.wallZ(s, "InEastBack", 29.45, -21.4, -8.3, 0, 13, 0.1, paint, M.Plaster, { { -18, -12, 9, 4 } })
+	-- kitchen: above the tiles
+	B.box(s, "InWestKitchen", -29.45, 8.5, -7.7, -29.4, 13, 6, paint, M.Plaster)
+	B.box(s, "InEastKitchen", 29.4, 8.5, -7.7, 29.45, 13, 6, paint, M.Plaster)
+	-- dining: above the wainscot (west), front wall inner face
+	B.wallZ(s, "InWestDining", -29.42, 6, 21.4, 3.6, 13, 0.1, warm, M.Plaster, { { 9, 20, 10, 2 } })
+	B.wallX(s, "InFront", 21.45, -29.4, 29.4, 0, 13, 0.1, warm, M.Plaster, {
+		{ -28, -17.2, 10, 1.4 },
+		{ -16.4, -5.6, 10, 1.4 },
+		{ -4.8, 12, 10, 1.4 },
+		{ 13.5, 20.5, 8.6 },
+		{ 22.5, 28.5, 10, 2.6 },
+	})
 
 	-- Ceiling lights
 	for _, z in { -3, 2 } do
@@ -453,7 +474,7 @@ local function buildKitchen(c: Ctx)
 		B.ball(doughUnit, "DoughBall", Vector3.new(0.7, 0.4, 0.7), dx, COUNTER_H + 0.3, dz, Color3.fromRGB(242, 224, 190), M.SmoothPlastic, { CanQuery = false })
 	end
 	local doughHit = B.hitbox(doughUnit, "DoughBin", Vector3.new(2.6, 0.9, 2.2), CFrame.new(0, COUNTER_H + 0.45, 0))
-	B.station(doughHit, "Bin", "🫓 Dough Tray", { Ingredient = "dough" })
+	B.station(doughHit, "Bin", "🍞 Dough Tray", { Ingredient = "dough" })
 	local tempTag = B.box(doughUnit, "Temp", -0.6, 2.4, 1.36, 0.6, 2.8, 1.4, C.BLACK)
 	B.label(tempTag, Enum.NormalId.Back, "3°C", { color = Color3.fromRGB(80, 220, 255), font = Enum.Font.Code })
 
@@ -846,7 +867,7 @@ local function buildFront(c: Ctx)
 	local signStand = B.box(f, "SignStand", 10.3, 0, 19.6, 11.2, 3.4, 20.6, C.BLACK, M.Metal)
 	signStand.CanQuery = false
 	local signHit = B.hitbox(f, "OpenSign", Vector3.new(3, 8, 2.4), CFrame.new(10.75, 4, 20.3))
-	B.station(signHit, "OpenSign", "🪧 Open Sign")
+	B.station(signHit, "OpenSign", "🚪 Open Sign")
 end
 
 ------------------------------------------------------------------ back of house

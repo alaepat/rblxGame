@@ -18,7 +18,7 @@ local function cleanPrompt(parent: BasePart, text: string, onClean: (Player) -> 
 	local p = Instance.new("ProximityPrompt")
 	p.ObjectText = "Mess"
 	p.ActionText = text
-	p.HoldDuration = 0.8
+	p.HoldDuration = 0 -- hold prompts don't complete with the custom interaction UI
 	p.MaxActivationDistance = GameConfig.PromptDistance
 	p.RequiresLineOfSight = false
 	p.KeyboardKeyCode = Enum.KeyCode.E

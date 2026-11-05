@@ -161,7 +161,7 @@ local function renderRecipes()
 			for _, t in r.toppings :: { string } do
 				table.insert(tops, ingName(t))
 			end
-			steps = "1. 🫓 Dough on the board  →  2. " .. ingName(r.sauce :: string) .. "  →  3. " .. table.concat(tops, ", ") .. "  →  4. 🔥 Bake until READY  →  5. 📦 Box it"
+			steps = "1. 🍞 Dough on the board  →  2. " .. ingName(r.sauce :: string) .. "  →  3. " .. table.concat(tops, ", ") .. "  →  4. 🔥 Bake until READY  →  5. 📦 Box it"
 		elseif r.kind == "kebab" then
 			local fills = {}
 			for _, t in r.fillings :: { string } do

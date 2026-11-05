@@ -37,7 +37,7 @@ local list: { Recipe } = {
 		sauce = "tomato_sauce", toppings = { "mozzarella", "ham" }, description = "Mozzarella and smoked ham." },
 	{ id = "chicken_pizza", name = "Chicken Pizza", kind = "pizza", level = 4, price = 12, xp = 16, icon = "🍗",
 		sauce = "tomato_sauce", toppings = { "mozzarella", "chicken" }, description = "Mozzarella and roast chicken pieces." },
-	{ id = "vegetable_pizza", name = "Vegetable Pizza", kind = "pizza", level = 4, price = 13, xp = 18, icon = "🫑",
+	{ id = "vegetable_pizza", name = "Vegetable Pizza", kind = "pizza", level = 4, price = 13, xp = 18, icon = "🥦",
 		sauce = "tomato_sauce", toppings = { "mozzarella", "mushroom", "onion", "green_pepper", "olive" }, description = "Mushroom, red onion, green pepper and olives." },
 	{ id = "extra_cheese_pizza", name = "Extra Cheese Pizza", kind = "pizza", level = 4, price = 11, xp = 15, icon = "🧀",
 		sauce = "tomato_sauce", toppings = { "mozzarella", "cheddar" }, description = "Mozzarella AND cheddar." },

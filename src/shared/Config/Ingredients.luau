@@ -19,7 +19,7 @@ export type Ingredient = {
 
 local list: { Ingredient } = {
 	-- Pizza base & sauces
-	{ id = "dough", name = "Pizza Dough", category = "cold", boxSize = 12, boxCost = 10, level = 1, color = Color3.fromRGB(240, 222, 186), shape = "dough", icon = "🫓" },
+	{ id = "dough", name = "Pizza Dough", category = "cold", boxSize = 12, boxCost = 10, level = 1, color = Color3.fromRGB(240, 222, 186), shape = "dough", icon = "🍞" },
 	{ id = "tomato_sauce", name = "Tomato Sauce", category = "dry", boxSize = 30, boxCost = 6, level = 1, color = Color3.fromRGB(196, 40, 28), shape = "sauce", icon = "🥫" },
 	{ id = "bbq_sauce", name = "BBQ Sauce", category = "dry", boxSize = 30, boxCost = 8, level = 9, color = Color3.fromRGB(105, 40, 20), shape = "sauce", icon = "🍖" },
 	-- Cheese
@@ -31,9 +31,9 @@ local list: { Ingredient } = {
 	{ id = "mushroom", name = "Mushrooms", category = "cold", boxSize = 30, boxCost = 7, level = 2, color = Color3.fromRGB(214, 196, 168), shape = "mushroom", icon = "🍄" },
 	{ id = "ham", name = "Ham", category = "cold", boxSize = 30, boxCost = 10, level = 3, color = Color3.fromRGB(240, 150, 150), shape = "square", icon = "🥓" },
 	{ id = "onion", name = "Red Onions", category = "cold", boxSize = 30, boxCost = 5, level = 3, color = Color3.fromRGB(175, 95, 160), shape = "ring", icon = "🧅" },
-	{ id = "green_pepper", name = "Green Peppers", category = "cold", boxSize = 30, boxCost = 6, level = 3, color = Color3.fromRGB(70, 160, 50), shape = "strip", icon = "🫑" },
+	{ id = "green_pepper", name = "Green Peppers", category = "cold", boxSize = 30, boxCost = 6, level = 3, color = Color3.fromRGB(70, 160, 50), shape = "strip", icon = "🥦" },
 	{ id = "chicken", name = "Chicken Pieces", category = "cold", boxSize = 30, boxCost = 12, level = 4, color = Color3.fromRGB(230, 200, 150), shape = "chunk", icon = "🍗" },
-	{ id = "olive", name = "Black Olives", category = "cold", boxSize = 30, boxCost = 7, level = 4, color = Color3.fromRGB(35, 30, 35), shape = "ring", icon = "🫒" },
+	{ id = "olive", name = "Black Olives", category = "cold", boxSize = 30, boxCost = 7, level = 4, color = Color3.fromRGB(35, 30, 35), shape = "ring", icon = "⚫" },
 	{ id = "beef", name = "Ground Beef", category = "cold", boxSize = 30, boxCost = 12, level = 9, color = Color3.fromRGB(110, 60, 40), shape = "crumble", icon = "🥩" },
 	{ id = "jalapeno", name = "Jalapeños", category = "cold", boxSize = 30, boxCost = 7, level = 9, color = Color3.fromRGB(60, 140, 40), shape = "disc", icon = "🌶️" },
 	-- Kebab
