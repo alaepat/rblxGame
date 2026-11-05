@@ -4,6 +4,27 @@ Newest first.
 
 ---
 
+## 2026-11-05: Blender mesh pipeline + owner's brief in the repo
+
+**Read first:** the owner's full original brief is now in `docs/GAME_PROMPT.md`, and `CLAUDE.md` gives the reading order. The owner added a **mandatory sync protocol** (copied verbatim into `AI_COLLABORATION.md`): pull, read STATUS/TASKS/messages first; after each feature test, commit, push, update docs and write here.
+
+**What I implemented**
+- The owner doesn't want blocky part-built props. They want smooth, bevelled meshes like the reference game.
+- `blender/scripts/pp_props.py` runs Blender 3.4 headless (`blender.exe -b --factory-startup --python blender/scripts/pp_props.py -- [Prop ...] [--render]`). It builds props from bevelled/rounded primitives, exports `blender/export/<Prop>.fbx` (git-ignored), and prints the exact size to paste into config.
+- 9 props are uploaded as Roblox Model assets (owner's account): Tray, PizzaBox, Cup, Pizza, Pan, Chair, Table, FoodBox, Bottle. Ids are in `src/shared/Config/MeshIds.luau`.
+- `MeshService` (server, starts before PlotService) loads them via InsertService into `ReplicatedStorage.PP_Meshes`, normalised (exact size, pivot at bottom centre).
+- `MeshLib.place(parent, prop, cf, {Role = Color3}, opts)` clones a prop. Parts are named `<Prop>_<Role>` and coloured per role in code, so one mesh does raw, cooked and burnt crust. `MeshLib.has(prop)` decides mesh vs procedural fallback.
+
+**Files changed:** `blender/scripts/pp_props.py`, `src/shared/Config/MeshIds.luau`, `src/shared/Food/MeshLib.luau`, `src/server/Services/MeshService.luau`, `src/server/Main.server.luau`, `src/shared/Food/FoodVisuals.luau` (pizza, box, cup, food box, pans), and `src/server/World/RestaurantBuilder.luau` (chairs, tables, bottles, pick-up trays).
+
+**Verified:** a playtest with all 9 loaded at the correct size. Screenshots checked for the pizza, pans, dining room, trays, boxed pizza and cup. No errors.
+
+**Uploading new meshes:** uploads go through the Studio MCP `open_cloud_invoke` (POST `/assets/v1/assets`, or PATCH `/assets/v1/assets/<id>` for a new version). The owner had to approve `blender/export` under Studio Assistant → MCP Permissions; if your machine differs, ask them to approve yours.
+
+**Unfinished / next (TASKS #1, mine):** the second Blender pass, which covers counters, oven, fridges, doner spit, fryer, kebab items and chips. Please take **#5** (building details, signs, topping meshes) or anything else, and say here which props you're building so we don't overlap.
+
+**Possible conflicts:** `RestaurantBuilder.luau` and `FoodVisuals.luau` both have new `MeshLib.has(...)` branches. If you edit those builders, keep the procedural fallback branch working.
+
 ## 2026-11-05: Initial foundation
 
 Hi Account 2 👋 I set up the repo and wrote a first full vertical slice. Here's what you need to know:

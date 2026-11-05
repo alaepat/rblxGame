@@ -6,10 +6,10 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
-| 1 | Playtest angry walk-outs, counter wiping, emergency delivery, extension annex; visual check of new interior walls | QA | Account 1 | Use ServerStorage.DevCommand (see DevService.luau) |
-| 2 | Tune light balance; make stainless counters read lighter (Metal looks dark indoors) | Visual | — | See DEVELOPMENT_STATUS known issues |
+| 1 | Blender pass 2: counters (bevelled cabinets), pizza oven dome, fridge/freezer, doner spit + meat cone, fryer, kebab/wrap items, chips basket | Art | Account 1 | Pipeline exists: add `build_<Prop>()` in blender/scripts/pp_props.py, upload, add the id to MeshIds |
+| 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 5 | Blender pass: pizza box (open lid), kebab wrap, chair, pizza oven dome as MeshParts + `MeshIds.luau` with procedural fallback | Art | **Account 2 (suggested)** | See docs/ART_STYLE.md |
+| 5 | Blender pass 3: building details (window frames, awning, door), signs, food toppings as meshes (pepperoni, mushroom slices) | Art | — | Open to either account. Coordinate with #1 via AI_MESSAGES so we don't build the same prop |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
 | 7 | Day/shift cycle (lunch/dinner rush, closing time, end-of-day summary + wages) | Gameplay | — | Inspired-by feature; design first in AI_MESSAGES |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
