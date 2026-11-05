@@ -7,6 +7,8 @@
 --   ServerStorage.DevCommand:Invoke("upgrade", "kebab_station")
 --   ServerStorage.DevCommand:Invoke("trash")            -- spawn rubbish
 --   ServerStorage.DevCommand:Invoke("info")
+--   ServerStorage.DevCommand:Invoke("goals")            -- finish every daily goal
+--   ServerStorage.DevCommand:Invoke("goals", "reset")   -- roll a fresh set of goals
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -78,6 +80,18 @@ local function run(cmd: string, arg: any): any
 	elseif cmd == "broke" then
 		S.ProgressService.addMoney(player, -profile.money + 5)
 		return "money " .. profile.money
+	elseif cmd == "goals" then
+		if arg == "reset" then
+			profile.daily = nil
+			S.GoalService.ensure(player)
+			return "goals rerolled"
+		end
+		S.GoalService.ensure(player)
+		for _, g in profile.daily.goals do
+			g.progress = g.target
+		end
+		S.ProgressService.push(player)
+		return "goals finished: " .. #profile.daily.goals
 	elseif cmd == "info" then
 		local up = {}
 		for id in profile.upgrades do

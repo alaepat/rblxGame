@@ -43,6 +43,7 @@ return {
 
 	-- Economy
 	MaxTipFraction = 0.3,
+	HappyPatience = 0.5, -- patience fraction left for a customer to count as "happy" (daily goals)
 	WrongOrderPatiencePenalty = 0.15,
 	AngryRatingStars = 1,
 	DeliveryTime = 12, -- seconds for supplies to arrive at the back door

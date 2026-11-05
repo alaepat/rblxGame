@@ -101,8 +101,24 @@ local function findPrompts(hit: BasePart): (Instance?, { ProximityPrompt })
 	return nil, {}
 end
 
+-- Prompts inside another player's restaurant are skipped. The server would
+-- reject them anyway, but drawing them is confusing. Restaurant models carry
+-- an OwnerUserId attribute (PlotService.claim).
+local function ownedByOther(inst: Instance): boolean
+	local node: Instance? = inst
+	while node and node ~= workspace do
+		local owner = node:GetAttribute("OwnerUserId")
+		if owner ~= nil then
+			return owner ~= player.UserId
+		end
+		node = node.Parent
+	end
+	return false
+end
+Interaction.ownedByOther = ownedByOther
+
 local function usable(p: ProximityPrompt, root: BasePart): boolean
-	if not p.Enabled then
+	if not p.Enabled or ownedByOther(p) then
 		return false
 	end
 	local parent = p.Parent

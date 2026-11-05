@@ -44,6 +44,7 @@ local function rewardClean(player: Player)
 	local profile = S.DataService.get(player)
 	profile.stats.cleaned = (profile.stats.cleaned or 0) + 1
 	S.ProgressService.addXP(player, GameConfig.CleanXP)
+	S.GoalService.record(player, "clean", 1)
 	S.ProgressService.sound(player, "Clean")
 	S.ProgressService.push(player)
 end

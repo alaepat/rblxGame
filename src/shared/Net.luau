@@ -15,12 +15,13 @@
 --   OrderSupplies({id=qty})    -> ok, message
 --   EmergencyDelivery()        -> ok, message
 --   ToggleOpen()               -> ok, message
+--   ClaimGoal(index | "bonus") -> ok, message   (daily goals)
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local EVENTS = { "State", "Notify", "LevelUp", "OpenPOS", "OpenManager", "Sound" }
-local FUNCTIONS = { "SubmitOrder", "CancelPOS", "BuyUpgrade", "OrderSupplies", "EmergencyDelivery", "ToggleOpen" }
+local FUNCTIONS = { "SubmitOrder", "CancelPOS", "BuyUpgrade", "OrderSupplies", "EmergencyDelivery", "ToggleOpen", "ClaimGoal" }
 
 local Net = {}
 

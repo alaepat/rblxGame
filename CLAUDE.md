@@ -17,4 +17,5 @@ Roblox pizza & kebab restaurant simulator, built by **two equal Claude accounts*
 - Content lives in `src/shared/Config/*`. Server is authoritative for money, XP and stock.
 - 3D meshes: Blender scripts in `blender/scripts/`, exported FBX uploaded to Roblox, ids in `src/shared/Config/MeshIds.luau`. Procedural parts are the fallback.
 - Studio test hooks: `ServerStorage.DevCommand:Invoke("level", 8)` etc. (see `src/server/Services/DevService.luau`).
+- Offline tests: `lune run tests/run.luau` (Lune 0.10). Run them before pushing; add a spec when you add pure logic.
 - Everything must be **original**. Burger Planet is a quality/feel reference only.

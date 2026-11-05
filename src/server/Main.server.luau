@@ -9,6 +9,7 @@ local ORDER = {
 	"MeshService", -- loads Blender meshes before anything builds models
 	"ProgressService",
 	"UpgradeService",
+	"GoalService", -- daily goals + streaks
 	"HeldService",
 	"StationService",
 	"CleaningService",

@@ -681,6 +681,14 @@ local function completeOrder(player: Player, plot, order)
 	local stars = 1.5 + 3.5 * (0.35 + 0.65 * frac) * (0.5 + 0.5 * cleanliness)
 	S.ProgressService.addReview(player, math.floor(stars + 0.5))
 	profile.stats.served = (profile.stats.served or 0) + 1
+	S.GoalService.record(player, "order", 1)
+	S.GoalService.record(player, "earn", order.price + tip)
+	if tip > 0 then
+		S.GoalService.record(player, "tip", tip)
+	end
+	if frac >= GameConfig.HappyPatience then
+		S.GoalService.record(player, "happy", 1)
+	end
 	S.ProgressService.notify(player, ("Order #%d complete! +$%.2f%s"):format(order.number, order.price + tip, tip > 0 and (" (tip $%.2f)"):format(tip) or ""), "good")
 	S.ProgressService.sound(player, "Cash")
 	-- walk to the counter, grab the bag, then leave
@@ -725,6 +733,8 @@ function CustomerService.serve(player: Player, plot)
 					profile.stats.kebabs = (profile.stats.kebabs or 0) + 1
 				end
 				S.ProgressService.sound(player, "Serve")
+				S.GoalService.record(player, "serve_kind", 1, r.kind)
+				S.GoalService.record(player, "serve_recipe", 1, recipeId)
 				local all = true
 				for _, e in order.items do
 					if not e.done then
