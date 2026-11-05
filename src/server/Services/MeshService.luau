@@ -1,0 +1,81 @@
+--!strict
+-- Loads the uploaded Blender meshes (Config.MeshIds) with InsertService,
+-- normalises each one (exact size from config, upright, pivot at bottom
+-- centre, origin at CFrame.new()) and stores it in ReplicatedStorage.PP_Meshes
+-- for MeshLib. Runs before the world is built; any failure just means the
+-- procedural fallback is used.
+
+local InsertService = game:GetService("InsertService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local MeshIds = require(Shared.Config.MeshIds)
+
+local MeshService = {}
+
+local function sortedDims(v: Vector3): { number }
+	local t = { v.X, v.Y, v.Z }
+	table.sort(t)
+	return t
+end
+
+local function normalise(prop: string, info: MeshIds.MeshInfo, container: Instance): Model?
+	local parts: { BasePart } = {}
+	for _, d in container:GetDescendants() do
+		if d:IsA("MeshPart") then
+			table.insert(parts, d)
+		end
+	end
+	if #parts == 0 then
+		return nil
+	end
+	local m = Instance.new("Model")
+	m.Name = prop
+	for _, p in parts do
+		p.Anchored = true
+		p.Parent = m
+		-- strip the prop prefix variants the importer may add ("Tray_Body.001")
+		p.Name = string.gsub(p.Name, "%.%d+$", "")
+	end
+	-- 1) uniform scale so the largest dimension matches the config
+	local _, size = m:GetBoundingBox()
+	local want = sortedDims(info.size)
+	local have = sortedDims(size)
+	local scale = want[3] / math.max(have[3], 1e-4)
+	m:ScaleTo(m:GetScale() * scale)
+	-- 2) fix orientation if the importer left it Z-up (Y and Z swapped)
+	local cf, s2 = m:GetBoundingBox()
+	if math.abs(s2.Y - info.size.Y) > math.abs(s2.Z - info.size.Y) + 0.01 then
+		m:PivotTo(CFrame.new(cf.Position) * CFrame.Angles(math.rad(-90), 0, 0) * cf.Rotation:Inverse() * m:GetPivot())
+		cf, s2 = m:GetBoundingBox()
+	end
+	-- 3) pivot at bottom centre, then move the pivot to the origin
+	m.WorldPivot = CFrame.new(cf.Position - Vector3.new(0, s2.Y / 2, 0))
+	m:PivotTo(CFrame.new())
+	return m
+end
+
+function MeshService.start()
+	local folder = ReplicatedStorage:FindFirstChild("PP_Meshes") or Instance.new("Folder")
+	folder.Name = "PP_Meshes"
+	folder.Parent = ReplicatedStorage
+	for prop, info in MeshIds do
+		if info.assetId and info.assetId > 0 and not folder:FindFirstChild(prop) then
+			local ok, res = pcall(function()
+				return InsertService:LoadAsset(info.assetId)
+			end)
+			if ok and res then
+				local m = normalise(prop, info, res)
+				if m then
+					m.Parent = folder
+				else
+					warn("[MeshService] " .. prop .. ": asset has no MeshParts")
+				end
+				res:Destroy()
+			else
+				warn("[MeshService] could not load " .. prop .. " (" .. info.assetId .. "): " .. tostring(res))
+			end
+		end
+	end
+end
+
+return MeshService

@@ -19,6 +19,7 @@ local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
 local FoodVisuals = require(Shared.Food.FoodVisuals)
 local FoodLogic = require(Shared.Food.FoodLogic)
+local MeshLib = require(Shared.Food.MeshLib)
 local B = require(script.Parent.Build)
 local C = B.C
 
@@ -72,6 +73,14 @@ local function bottle(c: Ctx, ingredientId: string, x: number, y: number, z: num
 	B.cyl(m, "Cap", 0.36, 0.18, x, y + 1.0, z, color:Lerp(C.WHITE, 0.3), M.SmoothPlastic, { CanQuery = false })
 	B.cyl(m, "Nozzle", 0.12, 0.35, x, y + 1.18, z, color:Lerp(C.WHITE, 0.3), M.SmoothPlastic, { CanQuery = false })
 	B.box(m, "Tag", x - 0.18, y + 0.35, z + 0.24, x + 0.18, y + 0.7, z + 0.26, C.WHITE, nil, { CanQuery = false })
+	if MeshLib.has("Bottle") then
+		for _, p in m.parent:GetChildren() do
+			if p:IsA("BasePart") then
+				p:Destroy()
+			end
+		end
+		MeshLib.place(m.parent, "Bottle", c.origin * CFrame.new(x, y, z), { Body = color, Cap = color:Lerp(C.WHITE, 0.6), Nozzle = color:Lerp(C.WHITE, 0.6) })
+	end
 	local hit = B.hitbox(m, "Topping_" .. ingredientId, Vector3.new(0.7, 1.5, 0.7), CFrame.new(x, y + 0.75, z))
 	B.station(hit, "Topping", (ing and (ing.icon .. " " .. ing.name) or ingredientId), { Ingredient = ingredientId, Board = boardId })
 end
@@ -80,6 +89,12 @@ local function chair(c: Ctx, x: number, z: number, yaw: number, color: Color3?)
 	local s = B.sub(c, x, z, yaw)
 	local m = B.model(s, "Chair")
 	local col = color or C.WHITE
+	if MeshLib.has("Chair") then
+		-- Blender chair: back is on +Z after import, procedural back is on -Z
+		local parts = MeshLib.place(m.parent, "Chair", s.origin * CFrame.Angles(0, math.pi, 0), { Shell = col, Legs = C.BLACK }, { collide = true })
+		_ = parts
+		return
+	end
 	for _, lx in { -0.7, 0.7 } do
 		for _, lz in { -0.7, 0.7 } do
 			B.cyl(m, "Leg", 0.14, 1.75, lx, 0, lz, C.BLACK, M.Metal)
@@ -93,10 +108,17 @@ end
 local function table4(c: Ctx, name: string, x: number, z: number, top: Color3?)
 	local s = B.sub(c, x, z, 0)
 	local m = B.model(s, name)
-	B.cyl(m, "Base", 1.6, 0.15, 0, 0, 0, C.BLACK, M.Metal)
-	B.cyl(m, "Pole", 0.3, 2.7, 0, 0.15, 0, C.BLACK, M.Metal)
-	B.box(m, "Top", -1.6, 2.85, -1.6, 1.6, 3.05, 1.6, top or C.WOOD, M.Wood)
-	B.box(m, "Edge", -1.62, 2.8, -1.62, 1.62, 2.88, 1.62, C.WOOD_DARK, M.Wood)
+	if MeshLib.has("Table") then
+		MeshLib.place(m.parent, "Table", s.origin, { Top = top or C.WOOD, Edge = C.WOOD_DARK, Base = C.BLACK }, {
+			collide = true,
+			materials = { Top = M.Wood, Edge = M.Wood, Base = M.Metal },
+		})
+	else
+		B.cyl(m, "Base", 1.6, 0.15, 0, 0, 0, C.BLACK, M.Metal)
+		B.cyl(m, "Pole", 0.3, 2.7, 0, 0.15, 0, C.BLACK, M.Metal)
+		B.box(m, "Top", -1.6, 2.85, -1.6, 1.6, 3.05, 1.6, top or C.WOOD, M.Wood)
+		B.box(m, "Edge", -1.62, 2.8, -1.62, 1.62, 2.88, 1.62, C.WOOD_DARK, M.Wood)
+	end
 	-- napkin holder + sauce pots
 	B.box(m, "Napkins", -0.3, 3.05, -0.15, 0.3, 3.5, 0.15, C.STEEL, M.Metal)
 	B.cyl(m, "Chilli", 0.25, 0.5, 0.55, 3.05, 0.1, C.RED)
@@ -741,8 +763,16 @@ local function buildFront(c: Ctx)
 	B.label(psign, Enum.NormalId.Back, "ORDER PICK-UP", { color = C.RED_DARK, font = Enum.Font.GothamBlack, pad = 6 })
 	B.label(psign, Enum.NormalId.Front, "SERVE HERE", { color = C.RED_DARK, font = Enum.Font.GothamBlack, pad = 6 })
 	-- tray stack + bag stack decor
-	for i = 0, 4 do
-		B.box(pick, "Tray", -14, 3.55 + i * 0.12, 5.4, -12, 3.65 + i * 0.12, 6.8, C.RED)
+	if MeshLib.has("Tray") then
+		for i = 0, 4 do
+			MeshLib.place(pick.parent, "Tray", pick.origin * CFrame.new(-13, 3.55 + i * 0.12, 6.1) * CFrame.Angles(0, math.rad(90), 0) * CFrame.new(0, 0, 0), {
+				Body = C.RED, Liner = Color3.fromRGB(250, 244, 230), Print = C.RED,
+			}, { scale = 0.72 })
+		end
+	else
+		for i = 0, 4 do
+			B.box(pick, "Tray", -14, 3.55 + i * 0.12, 5.4, -12, 3.65 + i * 0.12, 6.8, C.RED)
+		end
 	end
 	for i = 0, 5 do
 		B.box(pick, "Bag", -9.6, 3.55 + i * 0.08, 5.5, -8.2, 3.62 + i * 0.08, 6.6, Color3.fromRGB(190, 145, 95), M.Cardboard)

@@ -29,19 +29,27 @@ _Last updated: 2026-11-05 by Account 2 (daily goals section; the rest is Account
 - Studio hooks: `DevCommand:Invoke("goals")` finishes every goal, `DevCommand:Invoke("goals", "reset")` rerolls.
 - **Needs a Studio check**: the panel layout on PC and mobile, the badge and pulsing Claim buttons, the toasts, saving `profile.daily`, and the countdown.
 
+### Blender meshes (2026-11-05)
+- `blender/scripts/pp_props.py` builds 9 smooth props headless in Blender 3.4 (Tray, PizzaBox, Cup, Pizza, Pan, Chair, Table, FoodBox, Bottle) → FBX → uploaded as Roblox Model assets (ids in `Config/MeshIds.luau`, all moderation-approved).
+- In a playtest, MeshService loaded all 9 at the exact config size with the pivot at bottom centre. Verified visually: pizza (rolled crust, organic sauce/cheese), steel topping pans, dining chairs + tables, pick-up trays, boxed pizza, cup with lid and straw. No errors.
+- PizzaBox v2 uploaded (the logo ring was standing upright; now flat). The re-upload isn't re-checked in game yet.
+- Still procedural: counters, ovens, fridges, doner spits, fryer, kebab/wrap items, the building itself.
+
+### Also verified (2026-11-05, third pass)
+- An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
+
 ## Not yet verified end-to-end
-- Angry walk-outs, messy-counter wiping, emergency delivery, the extension annex (level 10)
+- The extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
 
 ## Known issues / gaps
 - Roblox only shows a prompt when its part is on screen, so players must look at what they interact with (that's intended).
 - Stainless steel (Metal material) looks quite dark in enclosed rooms. Consider a lighter colour or SmoothPlastic for counter bodies.
-- Box items say "Wrapped Loaded Fries"; they should say "Closed".
 - `Lighting.Technology` must be set to **Future** by hand (scripts can't set it).
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
 - ~~Other players can see prompts in your restaurant~~: fixed on `a2/daily-goals` (not yet Studio-verified).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
-- No custom Blender meshes yet. All visuals are procedural parts.
+- Blender meshes are in for 9 props; counters, ovens, fridges, spits, the fryer and the building are still procedural (TASKS #1, #5).
 - No day/shift cycle, staff, menu mastery or delivery orders yet (see TASKS.md). Daily goals are on `a2/daily-goals`.
 
 ## Phase progress (from the master prompt)
