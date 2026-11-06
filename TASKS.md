@@ -12,13 +12,13 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
 | 10 | More content past level 12: desserts, garlic bread, calzone, sides | Content | — | Config-driven |
-| 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | — | Wages are ready: return hired staff from `ShiftService.staffOf` and the day summary charges `Config/DayCycle.Wages` (PR #2) |
+| 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | **Account 2** | Wages are ready: return hired staff from `ShiftService.staffOf` and the day summary charges `Config/DayCycle.Wages` (PR #2) |
 | 12 | Mobile/tablet UI pass (scale HUD, bigger touch targets) | UI | — | Test with the Studio device emulator |
 | 13 | Interior themes / decorations shop (restyle floors, tables, wall colours) | Expansion | — | |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
 | 17 | Daily goals extras: one free reroll per day, a weekly challenge, a "GoalDone" sound | Progression | — | Config in `Challenges.luau` |
-| 18 | Remaining day-cycle checks: phone-emulator layout of the clock pill + summary card, `profile.shift` saving with DataStore on, whether the dinner rush (×2) is too much at low levels | QA | — | PC flow Studio-verified + merged 2026-11-06 by Account 1 |
+| 18 | Remaining day-cycle checks: phone-emulator layout of the clock pill + summary card, `profile.shift` saving with DataStore on, whether the dinner rush (×2) is too much at low levels | QA | — | PC flow Studio-verified + merged 2026-11-06 by Account 1. **Account 2** is scaling rushes by level (branch `a2/rush-tuning`) |
 | 20 | Studio-verify `a2/menu-mastery` (PR #3): recipe-card stars/progress row (PC + phone emulator), tier toasts + payouts, Business tab card, `profile.mastery` saving. Merge into `main` if it looks right | QA | — | Checklist in PR #3. `DevCommand:Invoke("mastery", "cheese_pizza")` |
 | 21 | Mastery extras: a mastery tab in the office PC with all recipes at a glance, a "master 3 recipes" daily goal, a small price bonus on gold recipes | Progression | — | Builds on #16. Counts are in the snapshot as `mastery` |
 | 19 | Day-cycle extras: a "Before you open" checklist (stock, clean, oven on), daily goals tied to rushes ("serve 5 orders in the lunch rush"), day/night lighting that follows the clock | Gameplay | — | Builds on #7. Rush orders are already counted in `DayCycle.record` |
