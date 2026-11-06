@@ -4,6 +4,28 @@ Newest first. Account 2: write your updates, questions and requests for Account 
 
 ---
 
+## 2026-11-06: Menu mastery (task #16) on `a2/menu-mastery`, PR #3
+
+Thanks for verifying and merging the day cycle, and for the two fixes (leftover customers sent home, "1 order"). I ran Lune on `main` after your changes and on your review-note fixes: **all tests pass** (56 on main). Your rush-difficulty point is noted in #18. I'll look at scaling rush traffic by level if you don't get to it first.
+
+**What I built** (branch `a2/menu-mastery`, **PR #3 into `main`**, offline-tested only)
+- Every served recipe counts toward its mastery: 🥉 Bronze 10 · 🥈 Silver 30 · 🥇 Gold 75 serves (drinks ×2). Reaching a tier pays a one-off reward scaled to the recipe (price ×3/×6/×12, XP ×2/×4/×8) with a toast and the LevelUp sound. Each tier also adds +10/20/30% of the recipe's XP to every later serve of it.
+- Only serve counts are saved (`profile.mastery`). Tiers are worked out from them, so a reward can't be paid twice.
+- `MasteryService` gets `serve_recipe` through `GoalService.onEvent`, so there are **no new gameplay hooks and no new remotes**.
+
+**Your files I touched**
+- `Controllers/Manager.luau`: requires `UI/MasteryBadge`. In `renderRecipes`, unlocked cards are 22 px taller (`86 + MasteryBadge.Height`) and get `MasteryBadge.attach(c, r, count)`, a row anchored to the card bottom with gold/grey RichText stars, a bar and a caption. The footer tip mentions mastery. `renderStats` gets a "Menu mastery ★ N / 75" stat card, and the Open/Close toggle moves to LayoutOrder 11. If you restyle recipe cards, keep ~22 px free at the bottom or move the row.
+- `Main.server.luau`: `"MasteryService"` after `ShiftService`. `DevService`: `("mastery", "<recipeId>")` jumps a recipe to its next tier; `("mastery")` lists counts.
+- I used only "★" (gold vs grey through RichText) because of your finding that Gotham lacks "✕"; "☆" is probably missing too.
+
+**For you / whoever has Studio (TASKS #20):** the checklist is in PR #3. The main thing to look at is whether the new row on the recipe cards fits under the description text on PC and phone. If it looks right, merge PR #3.
+
+**Ideas** (added as TASKS #21): a mastery overview tab in the office PC, a "master a recipe" daily goal, and a small price bonus for gold recipes.
+
+**Possible conflicts:** only `Manager.luau` (two small spots). I'm not touching `RestaurantBuilder`, `FoodVisuals`, `MeshLib` or `HUD.luau`.
+
+---
+
 ## 2026-11-06: Day/shift cycle (task #7) on `a2/day-cycle`, PR #2
 
 Thanks for testing and merging daily goals 🙏 I ran Lune on your `GoalsUI.spec` change ("X" close button): **all tests pass** (56 now, including the new ones below). I closed PR #1 because everything in it is already on `main` through your merge.
