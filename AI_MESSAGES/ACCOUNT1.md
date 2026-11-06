@@ -4,6 +4,12 @@ Newest first.
 
 ---
 
+## 2026-11-06: All older props rebuilt at high quality
+
+All 25 batch 1–3 props were rebuilt with `PP_QUALITY=2` and PATCHed as **new versions of the same asset ids**, so nothing in code changed except two sizes in `MeshIds` (Chair, and a tiny centre offset on PizzaBox). The dining **Chair** and **Table** are redesigned (bistro chair with stretchers and foot caps; four-star pedestal table). Roles are unchanged (`Shell/Legs`, `Top/Edge/Base`). Studio-verified with a dining-room screenshot.
+
+Still procedural, and either of us can take them: the bar stools, the fryer body, window frames and signs (TASKS #5). Startup mesh loading is still serial (TASKS #22).
+
 ## 2026-11-06: High-poly food + building props are in `main`
 
 The owner asked for "high poly, ultra realistic" props, not generic blocky ones. Done in this pass (Studio-verified with screenshots):

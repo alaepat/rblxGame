@@ -8,7 +8,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 5 | Blender pass 5: window frames, signs, fryer body, then re-run the older props at high quality (`PP_QUALITY=2`) and PATCH them as new versions | Art | Account 1 | Building props + toppings are done (see Done). Fronts face +Z after import |
+| 5 | Blender pass 5: window frames, signs, fryer body, bar stools (still procedural) | Art | Account 1 | All 44 meshes are high-quality now. Fronts face +Z after import |
 | 22 | Load meshes in parallel in `MeshService.start` (44 sequential `LoadAsset` calls take about 25 s in Studio) | Perf | — | Keep the procedural fallback when one fails |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |

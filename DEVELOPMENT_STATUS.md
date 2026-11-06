@@ -53,7 +53,8 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
   - Building props are wired in: storefront Awning (11 curved bays), DoorLeaf ×2, WallLamp ×4 (lights on the glow part), kitchen Hood over the ovens, patio Parasols, Bench, Planters and StreetLamps (arm over the road on both curbs).
   - `MeshLib.role` now takes the text after the **last** underscore, so prop names may contain underscores (`Top_Pepperoni_Fat` → `Fat`).
   - Verified with screenshots: storefront, three topped pizzas and the dough, the hood over the ovens. All 44 meshes load (about 25 s at server start in Studio).
-- Still procedural: fryer body, the building shell walls, window frames, signs.
+- **High-quality rebuild (2026-11-06, Account 1):** the 25 older props were rebuilt at `PP_QUALITY=2` and re-uploaded as new versions (same ids). The dining **Chair** (dished seat, curved tapered back, splayed tapered legs, sub-frame, stretchers, foot caps) and **Table** (eased laminate top, four-star cast base with levelling pads) were redesigned. Screenshot of the dining room checked.
+- Still procedural: fryer body, the building shell walls, window frames, signs, bar stools.
 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.

@@ -308,38 +308,87 @@ def build_Pan():
 
 
 def build_Chair():
-    # Modern cafe chair: moulded seat + curved back + tube legs.
-    seat = rounded_box("Chair_Shell", 1.7, 1.6, 0.18, 0.08, 4, (0, 0, 1.85))
-    back = rounded_box("back", 1.7, 0.16, 1.55, 0.07, 4, (0, -0.78, 2.75))
+    # Moulded bistro chair: dished seat with a waterfall front, a curved,
+    # tapered back with a hand-hold slot, splayed tapered legs on a steel
+    # sub-frame with side stretchers and foot caps.
+    seat = rounded_box("seat", 1.7, 1.6, 0.16, 0.075, 6, (0, 0, 1.86))
+    for v in seat.data.vertices:
+        x, y = v.co.x / 0.85, v.co.y / 0.8
+        if v.co.z > 1.86:  # dish the sitting surface
+            v.co.z -= 0.05 * max(0, 1 - x * x) * max(0, 1 - y * y)
+        if y > 0.55:  # front edge rolls down (Blender +Y = chair front)
+            v.co.z -= 0.09 * ((y - 0.55) / 0.45) ** 2
+    back = rounded_box("back", 1.66, 0.13, 1.6, 0.06, 6, (0, -0.76, 2.78))
+    # dense grid first so the bend below stays smooth (no long triangles)
+    sub = back.modifiers.new("sub", "SUBSURF")
+    sub.subdivision_type = "SIMPLE"
+    sub.levels = 3
+    apply_mods(back)
+    for v in back.data.vertices:  # taper: wider at the top
+        t = (v.co.z - 1.98) / 1.6
+        v.co.x *= 0.88 + 0.14 * t
     bend = back.modifiers.new("bend", "SIMPLE_DEFORM")
     bend.deform_method = "BEND"
-    bend.angle = math.radians(25)
+    bend.angle = math.radians(32)
     bend.deform_axis = "Z"
     apply_mods(back)
-    back.rotation_euler = (math.radians(-8), 0, 0)
+    back.rotation_euler = (math.radians(-9), 0, 0)
     select_only([back])
     bpy.ops.object.transform_apply(rotation=True)
+    smooth(back, 60)
+    # hand-hold slot, cut after bending (straight through the curved shell)
+    slot = rounded_box("cut", 0.62, 0.8, 0.16, 0.07, 6, (0, -0.86, 3.32))
+    boolean_diff(back, slot)
     join([seat, back], "Chair_Shell")
     legs = []
-    for x in (-0.68, 0.68):
-        for y in (-0.62, 0.62):
-            lg = cylinder("leg", 0.065, 1.78, (x, y, 0.89), 16)
-            lg.rotation_euler = (math.radians(4 if y > 0 else -4), math.radians(-4 if x > 0 else 4), 0)
+    for x in (-0.66, 0.66):
+        for y in (-0.6, 0.6):
+            lg = cylinder("leg", 0.075, 1.8, (x, y, 0.9), 24, r2=0.05)
+            sx, sy = (1 if x > 0 else -1), (1 if y > 0 else -1)
+            lg.rotation_euler = (math.radians(5 * sy), math.radians(5 * sx), 0)
+            select_only([lg])
+            bpy.ops.object.transform_apply(rotation=True)
             legs.append(lg)
-    for lg in legs:
-        select_only([lg])
-        bpy.ops.object.transform_apply(rotation=True)
+            # foot cap centred under the splayed bottom of the leg
+            low = [v.co for v in lg.data.vertices if v.co.z < 0.05]
+            cx = sum(c.x for c in low) / len(low)
+            cy = sum(c.y for c in low) / len(low)
+            legs.append(cylinder("cap", 0.06, 0.05, (cx, cy, 0.025), 20, bevel=0.015))
+    # sub-frame under the seat + side stretchers between front and back legs
+    legs.append(tube("frame", [(-0.62, -0.58, 1.75), (0.62, -0.58, 1.75), (0.62, 0.58, 1.75), (-0.62, 0.58, 1.75), (-0.62, -0.58, 1.75)], 0.03, 3))
+    for x in (-0.7, 0.7):
+        legs.append(tube("str", [(x, -0.64, 0.6), (x * 1.01, 0, 0.6), (x, 0.64, 0.6)], 0.025, 3))
     join(legs, "Chair_Legs")
 
 
 def build_Table():
-    top = rounded_box("Table_Top", 3.2, 3.2, 0.2, 0.09, 4, (0, 0, 2.95))
-    edge = rounded_box("Table_Edge", 3.24, 3.24, 0.08, 0.05, 3, (0, 0, 2.84))
-    hole = rounded_box("cut", 3.0, 3.0, 0.3, 0.05, 3, (0, 0, 2.84))
+    # Laminate top with a soft eased edge, a contrasting edge band, and a
+    # cast four-star pedestal base with levelling feet.
+    top = rounded_box("Table_Top", 3.2, 3.2, 0.16, 0.07, 8, (0, 0, 2.97))
+    edge = rounded_box("Table_Edge", 3.24, 3.24, 0.07, 0.035, 4, (0, 0, 2.86))
+    hole = rounded_box("cut", 3.0, 3.0, 0.3, 0.05, 3, (0, 0, 2.86))
     boolean_diff(edge, hole)
-    base = cylinder("b", 0.8, 0.1, (0, 0, 0.05), 40, bevel=0.03)
-    pole = cylinder("p", 0.14, 2.75, (0, 0, 1.45), 24)
-    join([base, pole], "Table_Base")
+    parts = []
+    # spider plate under the top + column with collars
+    parts.append(rounded_box("spider", 1.1, 1.1, 0.06, 0.025, 3, (0, 0, 2.8)))
+    parts.append(lathe("col", [(0.0, 0.12), (0.17, 0.12), (0.17, 0.2), (0.11, 0.26), (0.085, 0.4),
+                               (0.075, 2.5), (0.1, 2.6), (0.15, 2.7), (0.15, 2.77), (0.0, 2.77)], 40))
+    # four tapered feet radiating from a hub
+    parts.append(lathe("hub", [(0.0, 0.0), (0.24, 0.0), (0.26, 0.06), (0.22, 0.2), (0.0, 0.22)], 40))
+    for i in range(4):
+        a = i * math.pi / 2 + math.pi / 4
+        foot = rounded_box("foot", 1.05, 0.22, 0.13, 0.055, 4, (0.6, 0, 0.1))
+        for v in foot.data.vertices:  # tapers + dips toward the tip
+            t = max(0.0, (v.co.x - 0.1) / 1.0)
+            v.co.y *= 1 - 0.45 * t
+            if v.co.z > 0.1:
+                v.co.z -= 0.06 * t
+        foot.rotation_euler = (0, 0, a)
+        select_only([foot])
+        bpy.ops.object.transform_apply(rotation=True)
+        parts.append(foot)
+        parts.append(cylinder("pad", 0.09, 0.04, (math.cos(a) * 1.08, math.sin(a) * 1.08, 0.02), 20, bevel=0.012))
+    join(parts, "Table_Base")
 
 
 def build_FoodBox():
