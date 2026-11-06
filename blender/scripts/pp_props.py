@@ -1069,6 +1069,95 @@ def build_ArtFrame():
     rounded_box("ArtFrame_Mat", 3.72, 0.04, 2.92, 0.01, 2, (0, 0.08, 1.8))
 
 
+# ---- batch 8: counter + kitchen small kit
+
+def build_SodaFountain():
+    # Three-valve drinks tower, 4.8 wide x 1.5 deep x 3.4 tall; front = -Y.
+    # Origin = body centre at the base. Flavour panels are Parts in game,
+    # mounted on the flat front face (y = -0.75) between z 1.7 and 3.1.
+    W, D, H = 4.8, 1.5, 3.4
+    body = rounded_box("SodaFountain_Body", W, D, H - 0.5, 0.1, 5, (0, 0, 0.5 + (H - 0.5) / 2))
+    rounded_box("SodaFountain_Header", W + 0.1, D + 0.1, 0.35, 0.12, 5, (0, 0, H - 0.1))
+    # drip tray with a slotted grille
+    tray = rounded_box("SodaFountain_Tray", W - 0.2, 1.05, 0.5, 0.08, 4, (0, -0.95, 0.25))
+    for i in range(14):
+        x = -W / 2 + 0.35 + i * (W - 0.7) / 13
+        cut = rounded_box("cut", 0.12, 0.85, 0.2, 0.03, 2, (x, -0.97, 0.5))
+        boolean_diff(tray, cut)
+    chrome = []
+    for x in (-1.55, 0.0, 1.55):
+        n = cylinder("noz", 0.12, 0.45, (x, -0.95, 1.5), 24, r2=0.07, bevel=0.02)
+        chrome.append(n)
+        chrome.append(rot_apply(cylinder("arm", 0.08, 0.3, (x, -0.85, 1.75), 16), math.radians(90), 0, 0))
+        chrome.append(rounded_box("valve", 0.55, 0.3, 0.3, 0.08, 4, (x, -0.88, 1.85)))
+    join(chrome, "SodaFountain_Chrome")
+    levers = []
+    for x in (-1.55, 0.0, 1.55):
+        lv = rounded_box("lv", 0.12, 0.08, 0.7, 0.04, 3, (x, -1.0, 1.3))
+        levers.append(rot_apply(lv, math.radians(14), 0, 0))
+    join(levers, "SodaFountain_Lever")
+
+
+def build_CupDispenser():
+    # Clear cup tube on a chrome collar; the game fills it with Cup meshes.
+    rounded_box("CupDispenser_Base", 1.15, 1.15, 0.18, 0.06, 4, (0, 0, 0.09))
+    lathe("CupDispenser_Tube", [(0.0, 0.18), (0.45, 0.18), (0.45, 2.3), (0.41, 2.3), (0.41, 0.24), (0.0, 0.24)], 48)
+    ch = [torus("ring", 0.47, 0.04, (0, 0, 0.3), 48, 8), torus("ring2", 0.47, 0.04, (0, 0, 2.28), 48, 8)]
+    for a in (0.0, math.pi):
+        ch.append(cylinder("strut", 0.035, 2.0, (math.cos(a) * 0.5, math.sin(a) * 0.5, 1.29), 12))
+    join(ch, "CupDispenser_Chrome")
+
+
+def build_TrashBin():
+    # Stainless pedal bin: tapered body, domed lid, foot pedal, bag rim.
+    lathe("TrashBin_Body", [(0.0, 0.05), (0.72, 0.05), (0.76, 0.12), (0.84, 2.7), (0.86, 2.78), (0.8, 2.8), (0.0, 2.8)], 64)
+    lathe("TrashBin_Base", [(0.0, 0.0), (0.74, 0.0), (0.76, 0.06), (0.74, 0.14), (0.0, 0.14)], 64)
+    lathe("TrashBin_Lid", [(0.0, 3.05), (0.5, 3.0), (0.82, 2.9), (0.9, 2.82), (0.9, 2.78), (0.0, 2.78)], 64)
+    torus("TrashBin_Bag", 0.84, 0.035, (0, 0, 2.76), 64, 8)
+    p = rounded_box("TrashBin_Pedal", 0.5, 0.35, 0.08, 0.03, 3, (0, -0.88, 0.12))
+
+
+def build_TableCaddy():
+    # Napkin holder (chrome frame + napkin stack) with salt + pepper shakers.
+    ch = []
+    for x in (-0.28, 0.28):
+        ch.append(rounded_box("side", 0.04, 0.42, 0.42, 0.02, 2, (x, 0, 0.23)))
+    ch.append(rounded_box("bottom", 0.6, 0.42, 0.04, 0.02, 2, (0, 0, 0.02)))
+    ch.append(rot_apply(cylinder("bar", 0.02, 0.56, (0, 0, 0.44), 12), 0, math.radians(90), 0))
+    join(ch, "TableCaddy_Chrome")
+    rounded_box("TableCaddy_Napkin", 0.5, 0.34, 0.36, 0.015, 2, (0, 0, 0.22))
+    glass, caps = [], []
+    for x in (0.45, 0.62):
+        glass.append(lathe("g", [(0.0, 0.0), (0.07, 0.0), (0.08, 0.04), (0.08, 0.22), (0.065, 0.25), (0.0, 0.25)], 24, (x, 0, 0)))
+        caps.append(lathe("c", [(0.0, 0.25), (0.066, 0.25), (0.066, 0.3), (0.04, 0.33), (0.0, 0.33)], 24, (x, 0, 0)))
+    join(glass, "TableCaddy_Glass")
+    join(caps, "TableCaddy_Cap")
+
+
+def build_PosStand():
+    # Register terminal stand: weighted base, angled neck. The game puts the
+    # screen bezel (PosBezel) + screen Part on top.
+    rounded_box("PosStand_Base", 1.5, 1.1, 0.14, 0.06, 4, (0, 0, 0.07))
+    neck = rounded_box("neck", 0.3, 0.22, 1.2, 0.08, 4, (0, 0.05, 0.72))
+    join([neck, rounded_box("hinge", 0.6, 0.3, 0.2, 0.08, 4, (0, 0.05, 1.3))], "PosStand_Neck")
+
+
+def build_PosBezel():
+    # Screen bezel around a 2.2 x 1.5 display (screen Part sits in the window).
+    bez = rounded_box("PosBezel_Bezel", 2.48, 0.2, 1.78, 0.1, 5, (0, 0, 0.89))
+    cut = rounded_box("cut", 2.22, 0.6, 1.52, 0.04, 3, (0, -0.2, 0.89))
+    boolean_diff(bez, cut)
+
+
+def build_ReceiptPrinter():
+    body = rounded_box("ReceiptPrinter_Body", 0.95, 0.85, 0.55, 0.12, 5, (0, 0, 0.275))
+    slot = rounded_box("cut", 0.6, 0.12, 0.2, 0.02, 2, (0, -0.1, 0.56))
+    boolean_diff(body, slot)
+    paper = rounded_box("ReceiptPrinter_Paper", 0.56, 0.02, 0.45, 0.005, 2, (0, -0.1, 0.68))
+    rot_apply(paper, math.radians(-12), 0, 0)
+    rounded_box("ReceiptPrinter_Button", 0.12, 0.06, 0.06, 0.02, 2, (0.3, -0.43, 0.4))
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1348,7 +1437,8 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
          "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench",
          "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign",
-         "BoothBench", "BoothTable", "ArtFrame"] + TOPPINGS
+         "BoothBench", "BoothTable", "ArtFrame",
+         "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1410,7 +1500,14 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "BoothBench_Seat": (0.81, 0.16, 0.16), "BoothBench_Back": (0.81, 0.16, 0.16), "BoothBench_Cap": (0.43, 0.28, 0.19),
              "BoothBench_Piping": (0.95, 0.92, 0.85), "BoothTable_Top": (0.77, 0.55, 0.36), "BoothTable_Edge": (0.85, 0.87, 0.89),
              "BoothTable_Base": (0.13, 0.13, 0.14), "ArtFrame_Frame": (0.13, 0.13, 0.14), "ArtFrame_Lip": (1.0, 0.77, 0.16),
-             "ArtFrame_Mat": (0.98, 0.95, 0.88)}
+             "ArtFrame_Mat": (0.98, 0.95, 0.88), "SodaFountain_Body": (0.13, 0.13, 0.14), "SodaFountain_Header": (0.81, 0.16, 0.16),
+             "SodaFountain_Tray": (0.5, 0.52, 0.55), "SodaFountain_Chrome": (0.85, 0.87, 0.89), "SodaFountain_Lever": (0.95, 0.95, 0.95),
+             "CupDispenser_Base": (0.5, 0.52, 0.55), "CupDispenser_Tube": (0.85, 0.92, 0.97), "CupDispenser_Chrome": (0.85, 0.87, 0.89),
+             "TrashBin_Body": (0.78, 0.8, 0.82), "TrashBin_Base": (0.13, 0.13, 0.14), "TrashBin_Lid": (0.85, 0.87, 0.89),
+             "TrashBin_Bag": (0.13, 0.13, 0.14), "TrashBin_Pedal": (0.13, 0.13, 0.14), "TableCaddy_Chrome": (0.85, 0.87, 0.89),
+             "TableCaddy_Napkin": (0.98, 0.98, 0.96), "TableCaddy_Glass": (0.85, 0.92, 0.97), "TableCaddy_Cap": (0.78, 0.8, 0.82),
+             "PosStand_Base": (0.13, 0.13, 0.14), "PosStand_Neck": (0.2, 0.2, 0.22), "PosBezel_Bezel": (0.13, 0.13, 0.14),
+             "ReceiptPrinter_Body": (0.2, 0.2, 0.22), "ReceiptPrinter_Paper": (0.98, 0.98, 0.96), "ReceiptPrinter_Button": (0.3, 0.8, 0.3)}
 
 
 def render_preview(prop):

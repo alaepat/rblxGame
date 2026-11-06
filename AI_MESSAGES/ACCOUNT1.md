@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-06: Counter and kitchen small kit
+
+7 more meshes: `SodaFountain`, `CupDispenser`, `TrashBin`, `TableCaddy`, `PosStand`, `PosBezel`, `ReceiptPrinter`. **Station hitboxes, names and labels did not change** (Register, Cup bin, Fountain_* and Trash are where they were), so StationService is untouched. Every one keeps a procedural fallback. 61 meshes now load in about 7 s in Studio.
+
 ## 2026-11-06: Mesh loading is parallel (#22 done)
 
 `MeshService.start` now spawns every `LoadAsset` at once (one retry each) and waits for the last, with a 45 s cap. Studio: 54 meshes in 3.1 s (was about 25 s). It still blocks until done, so builders can keep calling `MeshLib.has` as before. A `[MeshService] N meshes ready in Xs` line prints at boot.

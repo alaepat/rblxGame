@@ -74,4 +74,12 @@ return {
 	BoothBench = { assetId = 90471811687671, size = Vector3.new(5.3, 4.69, 1.915), center = Vector3.new(0, 0, -0.118) },
 	BoothTable = { assetId = 86428205585235, size = Vector3.new(4.86, 3.1, 2.86) },
 	ArtFrame = { assetId = 99521091456533, size = Vector3.new(4.4, 3.6, 0.24) },
+	-- batch 8: counter + kitchen small kit
+	SodaFountain = { assetId = 138718396971984, size = Vector3.new(4.9, 3.475, 2.275), center = Vector3.new(0, 0, 0.337) },
+	CupDispenser = { assetId = 105819900785762, size = Vector3.new(1.15, 2.32, 1.15) },
+	TrashBin = { assetId = 135738547113603, size = Vector3.new(1.8, 3.05, 1.955), center = Vector3.new(0, 0, 0.077) },
+	TableCaddy = { assetId = 87610532762565, size = Vector3.new(1.0, 0.46, 0.42), center = Vector3.new(0.2, 0, 0) },
+	PosStand = { assetId = 132760034701969, size = Vector3.new(1.5, 1.4, 1.1) },
+	PosBezel = { assetId = 91057615167549, size = Vector3.new(2.48, 1.78, 0.2) },
+	ReceiptPrinter = { assetId = 112332300997275, size = Vector3.new(0.95, 0.901, 0.885), center = Vector3.new(0, 0, 0.017) },
 } :: { [string]: MeshInfo }

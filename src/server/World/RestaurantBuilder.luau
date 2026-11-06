@@ -147,9 +147,15 @@ local function table4(c: Ctx, name: string, x: number, z: number, top: Color3?)
 		B.box(m, "Top", -1.6, 2.85, -1.6, 1.6, 3.05, 1.6, top or C.WOOD, M.Wood)
 		B.box(m, "Edge", -1.62, 2.8, -1.62, 1.62, 2.88, 1.62, C.WOOD_DARK, M.Wood)
 	end
-	-- napkin holder + sauce pots
-	B.box(m, "Napkins", -0.3, 3.05, -0.15, 0.3, 3.5, 0.15, C.STEEL, M.Metal)
-	B.cyl(m, "Chilli", 0.25, 0.5, 0.55, 3.05, 0.1, C.RED)
+	-- napkin holder + salt & pepper (mesh), or the simple parts
+	if MeshLib.has("TableCaddy") then
+		MeshLib.place(m.parent, "TableCaddy", m.origin * CFrame.new(-0.2, 3.05, 0) * CFrame.Angles(0, math.rad(20), 0), {
+			Chrome = C.STEEL, Napkin = C.WHITE, Glass = Color3.fromRGB(225, 235, 240), Cap = C.STEEL,
+		}, { materials = { Chrome = M.Metal, Napkin = M.SmoothPlastic, Glass = M.Glass, Cap = M.Metal }, shadow = false })
+	else
+		B.box(m, "Napkins", -0.3, 3.05, -0.15, 0.3, 3.5, 0.15, C.STEEL, M.Metal)
+		B.cyl(m, "Chilli", 0.25, 0.5, 0.55, 3.05, 0.1, C.RED)
+	end
 	chair(s, 0, 2.3, 180)
 	chair(s, 0, -2.3, 0)
 	chair(s, 2.3, 0, -90)
@@ -170,8 +176,11 @@ local function booth(c: Ctx, name: string, x: number, z: number, yaw: number)
 		end
 		MeshLib.place(m.parent, "BoothTable", m.origin, { Top = C.WOOD, Edge = C.STEEL, Base = C.BLACK },
 			{ collide = true, materials = { Top = M.Wood, Edge = M.Metal, Base = M.Metal } })
-		B.box(m, "Napkins", -0.3, 3.1, -0.15, 0.3, 3.55, 0.15, C.STEEL, M.Metal)
-		B.cyl(m, "Chilli", 0.25, 0.5, 0.55, 3.1, 0.1, C.RED)
+		if MeshLib.has("TableCaddy") then
+			MeshLib.place(m.parent, "TableCaddy", m.origin * CFrame.new(-0.2, 3.1, 0) * CFrame.Angles(0, math.rad(20), 0), {
+			Chrome = C.STEEL, Napkin = C.WHITE, Glass = Color3.fromRGB(225, 235, 240), Cap = C.STEEL,
+		}, { materials = { Chrome = M.Metal, Napkin = M.SmoothPlastic, Glass = M.Glass, Cap = M.Metal }, shadow = false })
+		end
 		return
 	end
 	local leather = C.RED
@@ -752,8 +761,14 @@ local function buildKitchen(c: Ctx)
 	end
 	-- Trash bin by the prep line
 	local bin = B.model(k, "KitchenBin")
-	B.cyl(bin, "Bin", 1.7, 3, -6.6, 0, -2.6, C.STEEL_DARK, M.Metal)
-	B.cyl(bin, "Lid", 1.8, 0.2, -6.6, 3, -2.6, C.BLACK)
+	if MeshLib.has("TrashBin") then
+		MeshLib.place(bin.parent, "TrashBin", bin.origin * CFrame.new(-6.6, 0, -2.6), {
+			Body = C.STEEL, Base = C.BLACK, Lid = C.STEEL:Lerp(C.WHITE, 0.15), Bag = C.BLACK, Pedal = C.BLACK,
+		}, { collide = true, materials = { Body = M.Metal, Base = M.SmoothPlastic, Lid = M.Metal, Bag = M.SmoothPlastic, Pedal = M.SmoothPlastic } })
+	else
+		B.cyl(bin, "Bin", 1.7, 3, -6.6, 0, -2.6, C.STEEL_DARK, M.Metal)
+		B.cyl(bin, "Lid", 1.8, 0.2, -6.6, 3, -2.6, C.BLACK)
+	end
 	local binHit = B.hitbox(bin, "TrashHit", Vector3.new(1.9, 3.4, 1.9), CFrame.new(-6.6, 1.7, -2.6))
 	B.station(binHit, "Trash", "🗑️ Bin")
 
@@ -795,15 +810,32 @@ local function buildKitchen(c: Ctx)
 	local drinks = B.sub(k, 4, 0.6, 180)
 	local dr = counter(drinks, "DrinksCounter", 7, 2.8)
 	-- cup dispenser tube
-	B.cyl(dr, "CupTube", 0.9, 2.2, -2.6, COUNTER_H, 0.2, C.STEEL, M.Metal, { Transparency = 0.2 })
+	if MeshLib.has("CupDispenser") then
+		local parts = MeshLib.place(dr.parent, "CupDispenser", dr.origin * CFrame.new(-2.6, COUNTER_H, 0.2), {
+			Base = C.STEEL_DARK, Tube = Color3.fromRGB(215, 235, 245), Chrome = C.STEEL,
+		}, { materials = { Base = M.Metal, Tube = M.Glass, Chrome = M.Metal } })
+		if parts.Tube then
+			parts.Tube.Transparency = 0.55
+		end
+	else
+		B.cyl(dr, "CupTube", 0.9, 2.2, -2.6, COUNTER_H, 0.2, C.STEEL, M.Metal, { Transparency = 0.2 })
+	end
 	for i = 0, 5 do
 		B.cyl(dr, "Cup", 0.75, 0.3, -2.6, COUNTER_H + 0.2 + i * 0.32, 0.2, if i % 2 == 0 then C.WHITE else C.RED, nil, { CanQuery = false })
 	end
 	local cupHit = B.hitbox(dr, "CupBin", Vector3.new(1.4, 2.6, 1.4), CFrame.new(-2.6, COUNTER_H + 1.2, 0.2))
 	B.station(cupHit, "Bin", "🥤 Drink Cups", { Ingredient = "cup" })
 	-- fountain body
-	B.box(dr, "Fountain", -1.6, COUNTER_H, -1.3, 3.2, COUNTER_H + 3.4, 0.2, C.BLACK)
-	B.box(dr, "DripTray", -1.5, COUNTER_H, 0.2, 3.1, COUNTER_H + 0.15, 1.2, C.STEEL_DARK, M.DiamondPlate)
+	local fountainMesh = MeshLib.has("SodaFountain")
+	if fountainMesh then
+		-- three-valve tower with a slotted drip tray; flavour panels sit on its front face
+		MeshLib.place(dr.parent, "SodaFountain", dr.origin * CFrame.new(0.8, COUNTER_H, -0.55), {
+			Body = C.BLACK, Header = C.RED, Tray = C.STEEL_DARK, Chrome = C.STEEL, Lever = C.WHITE,
+		}, { materials = { Body = M.SmoothPlastic, Header = M.SmoothPlastic, Tray = M.Metal, Chrome = M.Metal, Lever = M.SmoothPlastic } })
+	else
+		B.box(dr, "Fountain", -1.6, COUNTER_H, -1.3, 3.2, COUNTER_H + 3.4, 0.2, C.BLACK)
+		B.box(dr, "DripTray", -1.5, COUNTER_H, 0.2, 3.1, COUNTER_H + 0.15, 1.2, C.STEEL_DARK, M.DiamondPlate)
+	end
 	local flavours = {
 		{ "cola_syrup", "PLANET\nCOLA", Color3.fromRGB(200, 30, 30) },
 		{ "orange_syrup", "ORBIT\nORANGE", Color3.fromRGB(255, 140, 20) },
@@ -813,7 +845,9 @@ local function buildKitchen(c: Ctx)
 		local fx = -0.8 + (i - 1) * 1.55
 		local panel = B.box(dr, "Panel_" .. f[1], fx - 0.65, COUNTER_H + 1.7, 0.2, fx + 0.65, COUNTER_H + 3.1, 0.3, f[3])
 		B.label(panel, Enum.NormalId.Back, f[2], { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 4, brightness = 1.5 })
-		B.box(dr, "Nozzle", fx - 0.15, COUNTER_H + 1.3, 0.25, fx + 0.15, COUNTER_H + 1.7, 0.55, C.STEEL, M.Metal)
+		if not fountainMesh then
+			B.box(dr, "Nozzle", fx - 0.15, COUNTER_H + 1.3, 0.25, fx + 0.15, COUNTER_H + 1.7, 0.55, C.STEEL, M.Metal)
+		end
 		local hit = B.hitbox(dr, "Fountain_" .. f[1], Vector3.new(1.3, 2.6, 1.2), CFrame.new(fx, COUNTER_H + 1.5, 0.6))
 		B.station(hit, "Fountain", "🥤 " .. string.gsub(f[2], "\n", " "), { Ingredient = f[1] })
 	end
@@ -1009,12 +1043,27 @@ local function buildFront(c: Ctx)
 	end
 	-- Register (POS) at x = -2
 	local reg = B.model(f, "Register")
-	B.box(reg, "Base", -3, 3.55, 5.6, -1, 3.85, 6.9, C.BLACK)
-	B.box(reg, "Stand", -2.15, 3.85, 6.0, -1.85, 4.6, 6.3, C.BLACK, M.Metal)
-	local posScreen = B.part(reg, "Screen", Vector3.new(2.2, 1.5, 0.12), CFrame.new(-2, 5.1, 6.2) * CFrame.Angles(math.rad(-15), 0, 0), C.BLACK)
+	local posCF = CFrame.new(-2, 5.1, 6.2) * CFrame.Angles(math.rad(-15), 0, 0)
+	local posMesh = MeshLib.has("PosStand") and MeshLib.has("PosBezel") and MeshLib.has("ReceiptPrinter")
+	if posMesh then
+		-- terminal on a weighted stand with a bezel around the screen, receipt printer beside it
+		MeshLib.place(reg.parent, "PosStand", reg.origin * CFrame.new(-2, 3.55, 6.3), { Base = C.BLACK, Neck = Color3.fromRGB(40, 40, 44) },
+			{ scale = Vector3.new(1, 0.6, 1), materials = { Base = M.Metal, Neck = M.Metal } }) -- neck ends at the screen's bottom edge
+		MeshLib.place(reg.parent, "PosBezel", reg.origin * posCF * CFrame.new(0, -0.89, 0), { Bezel = Color3.fromRGB(28, 28, 32) },
+			{ materials = { Bezel = M.SmoothPlastic } })
+		MeshLib.place(reg.parent, "ReceiptPrinter", reg.origin * CFrame.new(-0.3, 3.55, 6.05) * CFrame.Angles(0, math.pi, 0), {
+			Body = Color3.fromRGB(40, 40, 44), Paper = C.WHITE, Button = C.GREEN,
+		}, { materials = { Body = M.SmoothPlastic, Paper = M.SmoothPlastic, Button = M.Neon } })
+	else
+		B.box(reg, "Base", -3, 3.55, 5.6, -1, 3.85, 6.9, C.BLACK)
+		B.box(reg, "Stand", -2.15, 3.85, 6.0, -1.85, 4.6, 6.3, C.BLACK, M.Metal)
+	end
+	local posScreen = B.part(reg, "Screen", Vector3.new(2.2, 1.5, 0.12), posCF, C.BLACK)
 	B.label(posScreen, Enum.NormalId.Front, "🪐 Pizza Planet\nTap to take order", { color = C.WHITE, font = Enum.Font.GothamBold, pad = 6, bg = Color3.fromRGB(30, 30, 40) })
 	B.label(posScreen, Enum.NormalId.Back, "✓ Ready", { color = C.GREEN, font = Enum.Font.GothamBold, pad = 6, bg = Color3.fromRGB(245, 240, 230) })
-	B.box(reg, "Printer", -0.8, 3.55, 5.6, 0.2, 4.2, 6.5, C.BLACK)
+	if not posMesh then
+		B.box(reg, "Printer", -0.8, 3.55, 5.6, 0.2, 4.2, 6.5, C.BLACK)
+	end
 	local regHit = B.hitbox(reg, "RegisterHit", Vector3.new(3, 2.4, 2), CFrame.new(-2, 4.8, 6.2))
 	B.station(regHit, "Register", "🧾 Register")
 	-- Pickup counter section with heat lamps and sign

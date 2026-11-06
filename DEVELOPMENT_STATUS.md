@@ -72,7 +72,9 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
   - `BladeSign`: a new wrought-iron bracket sign over the right-hand storefront window with a two-sided "🍕 PIZZA" disc, readable along the street.
   - `meshBar()` is the shared helper for any 1-stud bar prop stretched between two points (`frameBar` uses it too).
 - **Booths + wall art (Studio-verified 2026-11-06, Account 1):** `BoothBench` (channel-tufted back, crowned cushion, piping, wood shell, cap rail, kick plate) placed in facing pairs around a `BoothTable` (rounded laminate top, chrome edge band, pedestal) by `booth()`. `ArtFrame` (moulded frame, gold lip, mat) holds a printed poster Part on each dining side wall ("SLICE OF THE GALAXY" east, "KEBAB ORBIT" west).
-- Still procedural: the building shell walls (brick/plaster parts with materials).
+- **Counter + kitchen small kit (2026-11-06, Account 1):** `SodaFountain` (three valves with levers, slotted drip tray, red header; the flavour panels/labels and Fountain stations are unchanged and sit on its front face), `CupDispenser` (clear tube, the cup stack shows through), `TrashBin` (pedal bin), `TableCaddy` (napkin holder + salt & pepper on all 14 tables and booths), `PosStand` + `PosBezel` + `ReceiptPrinter` around the register screen.
+  - Verified in Studio: all built, all four stations (RegisterHit, CupBin, Fountain_*, TrashHit) present, 61 meshes in 7.1 s, no errors. Screenshots of the register and a table caddy; the fountain was checked by measuring (panels flush on its front face, valves in front of each panel) because the Studio viewport went blank for the last captures.
+- Still procedural: the building shell walls (brick/plaster parts with materials), the heat-shelf gantry and the prep-line rails.
 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
