@@ -32,4 +32,13 @@ return {
 	Pitta = { assetId = 133882486226033, size = Vector3.new(1.7, 0.34, 1.069), center = Vector3.new(0.013, 0, -0.01) },
 	WrapRoll = { assetId = 114164787975862, size = Vector3.new(1.76, 0.69, 0.69), center = Vector3.new(-0.03, 0, 0) },
 	KebabPaper = { assetId = 88859290777596, size = Vector3.new(1.83, 0.61, 1.13) },
+	-- batch 3 (uploaded, NOT yet wired into the builders - see TASKS #5)
+	Awning = { assetId = 110910852509985, size = Vector3.new(2.0, 2.81, 4.14), center = Vector3.new(0, 0, 1.96) },
+	DoorLeaf = { assetId = 117465565905076, size = Vector3.new(3.3, 8.2, 0.37), center = Vector3.new(0, 0, 0.095) },
+	Hood = { assetId = 78189935457667, size = Vector3.new(12.8, 5.5, 6.5) },
+	WallLamp = { assetId = 98581202296636, size = Vector3.new(0.72, 1.24, 1.092), center = Vector3.new(0, 0, 0.466) },
+	StreetLamp = { assetId = 84333486745577, size = Vector3.new(1.5, 13.7, 4.0), center = Vector3.new(0, 0, 1.55) },
+	Planter = { assetId = 120604147995887, size = Vector3.new(5.2, 2.885, 2.2) },
+	Parasol = { assetId = 103836274296009, size = Vector3.new(7.015, 8.225, 7.015) },
+	Bench = { assetId = 119556240349489, size = Vector3.new(6.0, 3.2, 1.61) },
 } :: { [string]: MeshInfo }

@@ -539,8 +539,225 @@ def build_KebabPaper():
     wobble_edge(bread, 0.03, 3)
 
 
+# ---- batch 3: building + outdoor props
+
+def sheet(n, pts_fn, nu, nv, thickness):
+    """Surface from pts_fn(u, v) -> (x, y, z) on a nu x nv grid, solidified."""
+    bm = bmesh.new()
+    grid = [[bm.verts.new(pts_fn(i / nu, j / nv)) for j in range(nv + 1)] for i in range(nu + 1)]
+    for i in range(nu):
+        for j in range(nv):
+            bm.faces.new((grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]))
+    me = bpy.data.meshes.new(n)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(n, me)
+    bpy.context.scene.collection.objects.link(o)
+    s = o.modifiers.new("solid", "SOLIDIFY")
+    s.thickness = thickness
+    s.offset = 0
+    apply_mods(o)
+    smooth(o, 50)
+    return name(o, n)
+
+
+def build_Awning():
+    # One awning bay: a red and a white stripe, each 1 stud wide. The canopy
+    # curves out from the wall (y = 0) to the front (y = -4); a scalloped
+    # valance hangs from the front edge. Tiled + stretched along X in game.
+    D, DROP = 4.0, 2.0
+
+    def canopy(x0):
+        def f(u, v):
+            y = -D * v
+            z = -DROP * (v ** 1.5) + 0.25 * math.sin(math.pi * v)
+            return (x0 + u, y, z)
+        return f
+
+    def valance(x0):
+        def f(u, v):
+            z_top = -DROP
+            scallop = 0.18 * abs(math.sin(math.pi * u))
+            return (x0 + u, -D, z_top - v * (0.7 - scallop))
+        return f
+
+    for role, x0 in (("Red", -1.0), ("White", 0.0)):
+        a = sheet("a", canopy(x0), 4, 16, 0.07)
+        b = sheet("b", valance(x0), 8, 2, 0.06)
+        join([a, b], "Awning_" + role)
+    rod = cylinder("Awning_Rod", 0.06, 2.0, (0, 0.05, 0.05), 16)
+    rod.rotation_euler = (0, math.radians(90), 0)
+    select_only([rod])
+    bpy.ops.object.transform_apply(rotation=True)
+
+
+def build_DoorLeaf():
+    # Glass shop door, 3.3 x 8.2, thin along Y. Hinge side doesn't matter.
+    W, H = 3.3, 8.2
+    fr = rounded_box("DoorLeaf_Frame", W, 0.16, H, 0.06, 3, (0, 0, H / 2))
+    win = rounded_box("cut", W - 0.5, 0.6, H - 0.8, 0.05, 3, (0, 0, H / 2 + 0.1))
+    boolean_diff(fr, win)
+    rounded_box("DoorLeaf_Glass", W - 0.48, 0.03, H - 0.78, 0.01, 1, (0, 0, H / 2 + 0.1))
+    bar = cylinder("DoorLeaf_Bar", 0.06, W - 0.7, (0, -0.22, 3.6), 16)
+    bar.rotation_euler = (0, math.radians(90), 0)
+    select_only([bar])
+    bpy.ops.object.transform_apply(rotation=True)
+    posts = [rounded_box("p", 0.08, 0.16, 0.08, 0.03, 2, (x, -0.14, 3.6)) for x in (-(W - 0.9) / 2, (W - 0.9) / 2)]
+    join([bar] + posts, "DoorLeaf_Bar")
+    rounded_box("DoorLeaf_Kick", W - 0.5, 0.18, 0.5, 0.05, 2, (0, 0, 0.3))
+
+
+def build_Hood():
+    # Extractor hood over the ovens: 12.8 long (X), 6.5 deep, wall at +Y.
+    L, D = 12.8, 6.5
+    skirt = rounded_box("Hood_Body", L, D, 1.0, 0.08, 3, (0, 0, 0.5))
+    under = rounded_box("cut", L - 0.3, D - 0.3, 1.0, 0.06, 3, (0, 0, 0.2))
+    boolean_diff(skirt, under)
+    # tapered top: loft from the skirt to a narrower box near the wall
+    bm = bmesh.new()
+    lo = [(-L / 2, -D / 2, 1.0), (L / 2, -D / 2, 1.0), (L / 2, D / 2, 1.0), (-L / 2, D / 2, 1.0)]
+    hi = [(-L / 2 + 0.8, D / 2 - 2.6, 2.4), (L / 2 - 0.8, D / 2 - 2.6, 2.4), (L / 2 - 0.8, D / 2, 2.4), (-L / 2 + 0.8, D / 2, 2.4)]
+    vl = [bm.verts.new(p) for p in lo]
+    vh = [bm.verts.new(p) for p in hi]
+    for i in range(4):
+        bm.faces.new((vl[i], vl[(i + 1) % 4], vh[(i + 1) % 4], vh[i]))
+    bm.faces.new(vh)
+    bm.faces.new(list(reversed(vl)))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new("t")
+    bm.to_mesh(me)
+    bm.free()
+    top = bpy.data.objects.new("t", me)
+    bpy.context.scene.collection.objects.link(top)
+    b = top.modifiers.new("bevel", "BEVEL")
+    b.width = 0.08
+    b.segments = 3
+    b.limit_method = "ANGLE"
+    apply_mods(top)
+    join([skirt, top], "Hood_Body")
+    rounded_box("Hood_Duct", 3.0, 2.4, 3.2, 0.1, 3, (0, D / 2 - 1.3, 3.9))
+    # baffle filters underneath
+    fs = []
+    for i in range(6):
+        fs.append(rounded_box("f", 1.8, 0.9, 0.05, 0.02, 1, (-L / 2 + 1.3 + i * 2.05, -1.4, 0.92)))
+    join(fs, "Hood_Filter")
+    rounded_box("Hood_Light", L - 1.2, 0.3, 0.05, 0.02, 1, (0, -2.6, 0.9))
+
+
+def build_WallLamp():
+    # Lantern on a curved arm; back plate on the wall at y = 0, sticks out to -Y.
+    rounded_box("WallLamp_Plate", 0.5, 0.08, 0.8, 0.04, 2, (0, 0.04, 1.3))
+    arm = lathe("arm", [(0.0, 0.0), (0.05, 0.0), (0.05, 0.7), (0.0, 0.7)], 12)
+    arm.rotation_euler = (math.radians(90), 0, 0)
+    arm.location = (0, 0, 1.45)
+    select_only([arm])
+    bpy.ops.object.transform_apply(location=True, rotation=True)
+    hook = cylinder("hook", 0.04, 0.3, (0, -0.7, 1.3), 10)
+    join([arm, hook], "WallLamp_Plate2")
+    join([bpy.data.objects["WallLamp_Plate"], bpy.data.objects["WallLamp_Plate2"]], "WallLamp_Metal")
+    cap = lathe("WallLamp_Cap", [(0.0, 0.62), (0.32, 0.52), (0.36, 0.48), (0.24, 0.44), (0.0, 0.44)], 6, loc=(0, -0.7, 0.55))
+    cage = lathe("WallLamp_Cage", [(0.0, 0.0), (0.2, 0.0), (0.24, 0.06), (0.24, 0.44), (0.0, 0.44)], 6, loc=(0, -0.7, 0.55))
+    glow = lathe("WallLamp_Glow", [(0.0, 0.05), (0.18, 0.06), (0.2, 0.2), (0.17, 0.38), (0.0, 0.4)], 16, loc=(0, -0.7, 0.55))
+    cyl = cylinder("b", 0.12, 0.08, (0, -0.7, 0.5), 6)
+    join([cage, cyl], "WallLamp_Cage")
+
+
+def build_StreetLamp():
+    # Tapered pole with a curved arm reaching toward -Y and a lantern head.
+    pole = lathe("StreetLamp_Pole", [(0.0, 0.0), (0.45, 0.0), (0.45, 0.25), (0.3, 0.45), (0.2, 0.7), (0.15, 12.6), (0.18, 12.8), (0.0, 12.9)], 20)
+    # arm: a quarter circle swept out of a thin tube
+    pts = []
+    segs = 10
+    for i in range(segs + 1):
+        a = i / segs * math.pi / 2
+        pts.append(Vector((0, -1.6 * (1 - math.cos(a)), 12.2 + 1.2 * math.sin(a))))
+    parts = []
+    for i in range(segs):
+        p0, p1 = pts[i], pts[i + 1]
+        mid = (p0 + p1) / 2
+        d = p1 - p0
+        c = cylinder("s", 0.08, d.length + 0.04, tuple(mid), 10)
+        c.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
+        select_only([c])
+        bpy.ops.object.transform_apply(rotation=True)
+        parts.append(c)
+    straight = cylinder("s", 0.08, 1.2, (0, -2.2, 13.4), 10)
+    straight.rotation_euler = (math.radians(90), 0, 0)
+    select_only([straight])
+    bpy.ops.object.transform_apply(rotation=True)
+    join(parts + [straight, pole], "StreetLamp_Pole")
+    lathe("StreetLamp_Head", [(0.0, 13.7), (0.55, 13.5), (0.75, 13.3), (0.7, 13.2), (0.0, 13.2)], 24, loc=(0, -2.8, 0))
+    lathe("StreetLamp_Lamp", [(0.0, 13.22), (0.55, 13.22), (0.45, 13.05), (0.0, 12.98)], 24, loc=(0, -2.8, 0))
+
+
+def build_Planter():
+    # Brick trough with a stone rim, soil and three lumpy shrubs. 5 x 2 x 1.6.
+    rounded_box("Planter_Box", 5.0, 2.0, 1.45, 0.08, 3, (0, 0, 0.725))
+    rim = rounded_box("Planter_Rim", 5.2, 2.2, 0.18, 0.07, 3, (0, 0, 1.52))
+    hole = rounded_box("cut", 4.7, 1.7, 0.5, 0.05, 2, (0, 0, 1.55))
+    boolean_diff(rim, hole)
+    rounded_box("Planter_Soil", 4.7, 1.7, 0.1, 0.03, 1, (0, 0, 1.47))
+    rnd = random.Random(12)
+    shrubs = []
+    for x in (-1.6, 0.0, 1.6):
+        for k in range(4):
+            r = rnd.uniform(0.42, 0.6)
+            s = sphere("s", r, (x + rnd.uniform(-0.35, 0.35), rnd.uniform(-0.3, 0.3), 1.65 + r * 0.7 + rnd.uniform(0, 0.25)),
+                       (1, 1, rnd.uniform(0.8, 1.0)), 16, 10)
+            shrubs.append(s)
+    join(shrubs, "Planter_Shrub")
+
+
+def build_Parasol():
+    # Patio umbrella: pole, octagonal canopy with ribs and a scalloped edge.
+    cylinder("Parasol_Pole", 0.09, 7.8, (0, 0, 3.9), 12)
+    cylinder("Parasol_Base", 0.6, 0.12, (0, 0, 0.06), 24, bevel=0.03)
+    join([bpy.data.objects["Parasol_Pole"], bpy.data.objects["Parasol_Base"]], "Parasol_Pole")
+    R, top, edge = 3.5, 7.9, 7.0
+    n = 8
+
+    def canopy(u, v):
+        a = u * math.tau
+        k = (math.cos(math.pi / n) / math.cos(((a % (math.tau / n)) - math.pi / n))) if v > 0 else 1
+        r = R * v * (0.92 + 0.08 * k)
+        z = top - (top - edge) * (v ** 0.8) - 0.12 * math.sin(math.pi * v)
+        return (math.cos(a) * r, math.sin(a) * r, z)
+
+    sheet("Parasol_Canopy", canopy, 64, 8, 0.06)
+    val = []
+    for i in range(n):
+        a0, a1 = i / n * math.tau, (i + 1) / n * math.tau
+
+        def f(u, v, a0=a0, a1=a1):
+            a = a0 + (a1 - a0) * u
+            rr = R * 0.995
+            return (math.cos(a) * rr, math.sin(a) * rr, edge - v * (0.45 - 0.15 * abs(math.sin(math.pi * u))))
+        val.append(sheet("v", f, 8, 1, 0.05))
+    join(val, "Parasol_Valance")
+    cylinder("Parasol_Finial", 0.12, 0.35, (0, 0, top + 0.15), 12, bevel=0.04)
+
+
+def build_Bench():
+    # Park bench: wooden slats on two curved iron frames. Faces -Y.
+    L = 6.0
+    slats = []
+    for i in range(4):
+        slats.append(rounded_box("s", L, 0.28, 0.09, 0.04, 2, (0, -0.55 + i * 0.36, 1.75)))
+    for i in range(3):
+        slats.append(rounded_box("s", L, 0.09, 0.3, 0.04, 2, (0, 0.72, 2.25 + i * 0.4)))
+    join(slats, "Bench_Wood")
+    legs = []
+    for x in (-L / 2 + 0.5, L / 2 - 0.5):
+        legs.append(rounded_box("l", 0.12, 0.12, 1.7, 0.04, 2, (x, -0.55, 0.85)))
+        legs.append(rounded_box("l", 0.12, 0.12, 3.1, 0.04, 2, (x, 0.75, 1.55)))
+        legs.append(rounded_box("l", 0.12, 1.4, 0.12, 0.04, 2, (x, 0.1, 1.65)))
+        legs.append(rounded_box("l", 0.12, 0.5, 0.1, 0.04, 2, (x, -0.55, 2.3)))
+    join(legs, "Bench_Iron")
+
+
 PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
-         "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper"]
+         "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
+         "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench"]
 
 
 PREVIEW_COLORS = {
@@ -569,7 +786,17 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "ChipsBasket_Handle": (0.78, 0.8, 0.82), "ChipsBasket_Grip": (0.85, 0.15, 0.15),
              "Pitta_Bread": (0.91, 0.77, 0.55), "Pitta_Toast": (0.82, 0.6, 0.35),
              "WrapRoll_Bread": (0.93, 0.81, 0.6), "WrapRoll_Foil": (0.84, 0.85, 0.89), "WrapRoll_Band": (0.85, 0.15, 0.15),
-             "KebabPaper_Paper": (0.98, 0.96, 0.92), "KebabPaper_Band": (0.85, 0.15, 0.15), "KebabPaper_Bread": (0.91, 0.77, 0.55)}
+             "KebabPaper_Paper": (0.98, 0.96, 0.92), "KebabPaper_Band": (0.85, 0.15, 0.15), "KebabPaper_Bread": (0.91, 0.77, 0.55),
+             "Awning_Red": (0.81, 0.16, 0.16), "Awning_White": (0.97, 0.96, 0.94), "Awning_Rod": (0.13, 0.13, 0.14),
+             "DoorLeaf_Frame": (0.13, 0.13, 0.14), "DoorLeaf_Glass": (0.67, 0.82, 0.9), "DoorLeaf_Bar": (0.78, 0.8, 0.82),
+             "DoorLeaf_Kick": (0.78, 0.8, 0.82), "Hood_Body": (0.78, 0.8, 0.82), "Hood_Duct": (0.7, 0.72, 0.75),
+             "Hood_Filter": (0.5, 0.52, 0.55), "Hood_Light": (1.0, 0.95, 0.85), "WallLamp_Metal": (0.13, 0.13, 0.14),
+             "WallLamp_Cap": (0.13, 0.13, 0.14), "WallLamp_Cage": (0.13, 0.13, 0.14), "WallLamp_Glow": (1.0, 0.85, 0.5),
+             "StreetLamp_Pole": (0.13, 0.13, 0.14), "StreetLamp_Head": (0.13, 0.13, 0.14), "StreetLamp_Lamp": (1.0, 0.95, 0.8),
+             "Planter_Box": (0.66, 0.3, 0.21), "Planter_Rim": (0.59, 0.55, 0.51), "Planter_Soil": (0.3, 0.2, 0.13),
+             "Planter_Shrub": (0.27, 0.59, 0.27), "Parasol_Pole": (0.78, 0.8, 0.82), "Parasol_Canopy": (0.81, 0.16, 0.16),
+             "Parasol_Valance": (0.97, 0.96, 0.94), "Parasol_Finial": (0.78, 0.8, 0.82),
+             "Bench_Wood": (0.77, 0.55, 0.36), "Bench_Iron": (0.13, 0.13, 0.14)}
 
 
 def render_preview(prop):
