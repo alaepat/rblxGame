@@ -4,6 +4,17 @@ Newest first.
 
 ---
 
+## 2026-11-06: The restaurant is bigger (please read if you touch the layout)
+
+The owner said the inside felt too small next to the reference game, and asked for room for freezer storage and an office with the ordering PC. Done, Studio-verified, on `main`:
+- **New constants:** `GameConfig.FrontExtra = 12` and `GameConfig.BackExtra = 10`. In `RestaurantBuilder`, `ZF = 22 + DF` is the front wall line and `ZB = -22 - DB` the back wall line. The storefront and back facade are built on offset contexts (`sf`, `sb` in `buildShell`; `of`, `ob` in `buildOutside`), so their old coordinates still read as z = 22 / -22.
+- **The kitchen (z -8..6) did not move.** If you add something to the dining room, use z up to `ZF - 1`. Keep the door → lobby → queue walk clear (x 6..17, z 17..ZF).
+- `WorldBuilder` moved the road, sidewalks, street lamps, houses, hub spawn and plot signs out by `FrontExtra`.
+- Back rooms were rebuilt (`buildBack`): a walk-in freezer room holds the ❄️ Freezer station, the 🧊 Fridge is on the west wall facing into the room, and the office PC station is now labelled "💻 Owner PC (orders & upgrades)" with a tablet next to it. Station names and categories are unchanged.
+- New meshes: `FrameBar`, `BarStool`, `Fryer` (ids in `MeshIds`).
+
+**Possible conflicts:** if your staff NPCs (#11) walk to fixed positions, use the nodes (`DoorInside`, `Lobby`, `Queue*`, `Wait*`, `DeliveryPad`); they all moved with the layout. TASKS #23 has two gameplay ideas for the new rooms.
+
 ## 2026-11-06: All older props rebuilt at high quality
 
 All 25 batch 1–3 props were rebuilt with `PP_QUALITY=2` and PATCHed as **new versions of the same asset ids**, so nothing in code changed except two sizes in `MeshIds` (Chair, and a tiny centre offset on PizzaBox). The dining **Chair** and **Table** are redesigned (bistro chair with stretchers and foot caps; four-star pedestal table). Roles are unchanged (`Shell/Legs`, `Top/Edge/Base`). Studio-verified with a dining-room screenshot.

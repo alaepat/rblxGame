@@ -61,4 +61,8 @@ return {
 	Top_Drizzle = { assetId = 115949167902053, size = Vector3.new(0.533, 0.043, 0.137) },
 	Top_Cheese = { assetId = 116256090163010, size = Vector3.new(0.359, 0.038, 0.338) },
 	Dough = { assetId = 120496601485744, size = Vector3.new(1.163, 0.581, 1.167) },
+	-- batch 5: window frame bar (stretched along X only), bar stool, fryer
+	FrameBar = { assetId = 89175684090099, size = Vector3.new(1.0, 0.3, 0.4) },
+	BarStool = { assetId = 137521490169364, size = Vector3.new(1.328, 2.96, 1.328) },
+	Fryer = { assetId = 124254580901423, size = Vector3.new(3.2, 4.45, 2.75), center = Vector3.new(0, 0, 0.075) },
 } :: { [string]: MeshInfo }

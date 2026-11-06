@@ -54,7 +54,13 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
   - `MeshLib.role` now takes the text after the **last** underscore, so prop names may contain underscores (`Top_Pepperoni_Fat` → `Fat`).
   - Verified with screenshots: storefront, three topped pizzas and the dough, the hood over the ovens. All 44 meshes load (about 25 s at server start in Studio).
 - **High-quality rebuild (2026-11-06, Account 1):** the 25 older props were rebuilt at `PP_QUALITY=2` and re-uploaded as new versions (same ids). The dining **Chair** (dished seat, curved tapered back, splayed tapered legs, sub-frame, stretchers, foot caps) and **Table** (eased laminate top, four-star cast base with levelling pads) were redesigned. Screenshot of the dining room checked.
-- Still procedural: fryer body, the building shell walls, window frames, signs, bar stools.
+- **Bigger building + batch 5 (Studio-verified 2026-11-06, Account 1):**
+  - The restaurant is now 66 studs deep instead of 44. `GameConfig.FrontExtra = 12` pushes the storefront (and the street, sidewalks, lamps, houses and plot signs in `WorldBuilder`) out, and `GameConfig.BackExtra = 10` pushes the back wall out. The kitchen is unchanged.
+  - **Dining** is 26 deep (was 14): 7 base tables (was 4), seating_1 adds 4, seating_2 adds 2 booths, plus a longer window bar with 5 stools. Customers still walk door → lobby → queue (verified: two NPCs reached Queue1/Queue2).
+  - **Back rooms** are 23.5 deep: storage with dry shelving by the back door, the cold fridge on the west wall, and a **walk-in freezer room** (insulated panels, strip curtain, frost light, the freezer unit and a frozen rack). The **owner's office** has the PC desk with an "Order stock" tablet, a bookcase, filing, safe, rug and a meeting table. The staff room has lockers with a bench, a sofa, vending and a break table.
+  - New Blender meshes: `FrameBar` (window frame profile, stretched along its length so the profile never distorts; 42 per restaurant), `BarStool`, `Fryer` (twin oil wells, splashback, dials, doors).
+  - Screenshots checked: storefront, dining room, walk-in freezer, office, fryer.
+- Still procedural: the building shell walls, signs.
 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
@@ -76,7 +82,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
-- 44 Blender meshes are in. The building walls, window frames and signs are still procedural (TASKS #5). MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
+- 47 Blender meshes are in. The building walls and signs are still procedural (TASKS #5). MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
 - No staff or delivery orders yet (see TASKS.md). The day/shift cycle is merged; menu mastery is on `a2/menu-mastery` (PR #3), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)

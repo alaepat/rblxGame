@@ -108,22 +108,23 @@ function WorldBuilder.build(): { CFrame }
 	local spacing = GameConfig.PlotSpacing
 	local half = (n * spacing) / 2 + 60
 	local c = B.ctx(world, CFrame.new())
+	local F = GameConfig.FrontExtra -- the street sits in front of the (deeper) restaurants
 
 	-- ground, road, sidewalks
 	B.box(c, "Ground", -half - 200, -3, -260, half + 200, -1.4, 300, C.GRASS, M.Grass)
-	B.box(c, "Road", -half, -1.6, 34.2, half, -0.15, 60, C.ASPHALT, M.Asphalt)
+	B.box(c, "Road", -half, -1.6, 34.2 + F, half, -0.15, 60 + F, C.ASPHALT, M.Asphalt)
 	for x = -half + 4, half - 8, 14 do
-		B.box(c, "LaneMark", x, -0.15, 46.8, x + 7, -0.12, 47.4, C.WHITE)
+		B.box(c, "LaneMark", x, -0.15, 46.8 + F, x + 7, -0.12, 47.4 + F, C.WHITE)
 	end
-	B.box(c, "SidewalkFar", -half, -1.6, 60, half, 0.05, 68, C.CONCRETE, M.Concrete)
-	B.box(c, "CurbFar", -half, -1.6, 59.8, half, 0.25, 60.4, C.WHITE, M.Concrete)
+	B.box(c, "SidewalkFar", -half, -1.6, 60 + F, half, 0.05, 68 + F, C.CONCRETE, M.Concrete)
+	B.box(c, "CurbFar", -half, -1.6, 59.8 + F, half, 0.25, 60.4 + F, C.WHITE, M.Concrete)
 
 	-- street lamps along both curbs
 	for x = -half + 20, half - 20, 40 do
-		for _, z in { 35.5, 62 } do
+		for _, z in { 35.5 + F, 62 + F } do
 			if MeshLib.has("StreetLamp") then
 				-- the arm reaches out over the road from both curbs
-				local yaw = if z > 47 then math.pi else 0
+				local yaw = if z > 47 + F then math.pi else 0
 				local parts = MeshLib.place(c.parent, "StreetLamp", c.origin * CFrame.new(x, 0, z) * CFrame.Angles(0, yaw, 0), {
 					Pole = C.BLACK, Head = C.BLACK, Lamp = Color3.fromRGB(255, 244, 210),
 				}, { collide = true, materials = { Pole = M.Metal, Head = M.Metal, Lamp = M.Neon } })
@@ -141,7 +142,7 @@ function WorldBuilder.build(): { CFrame }
 	-- houses across the road
 	local seed = 1
 	for x = -half + 18, half - 18, 34 do
-		house(c, x, 82, seed)
+		house(c, x, 82 + F, seed)
 		seed += 1
 	end
 
@@ -150,7 +151,7 @@ function WorldBuilder.build(): { CFrame }
 	hub.Name = "HubSpawn"
 	hub.Anchored = true
 	hub.Size = Vector3.new(8, 0.3, 8)
-	hub.CFrame = CFrame.new(0, 0.2, 64)
+	hub.CFrame = CFrame.new(0, 0.2, 64 + F)
 	hub.Color = C.YELLOW
 	hub.Material = M.SmoothPlastic
 	hub.Neutral = true
@@ -162,7 +163,7 @@ function WorldBuilder.build(): { CFrame }
 		local x = (i - (n + 1) / 2) * spacing
 		table.insert(origins, CFrame.new(x, 0, 0))
 		-- empty-lot sign for unclaimed plots
-		local sign = B.box(c, "PlotSign" .. i, x - 4, 0, 30, x + 4, 5, 30.6, C.WHITE)
+		local sign = B.box(c, "PlotSign" .. i, x - 4, 0, 30 + F, x + 4, 5, 30.6 + F, C.WHITE)
 		sign.CanCollide = false
 		B.label(sign, Enum.NormalId.Back, "Plot " .. i, { color = C.RED_DARK, font = Enum.Font.FredokaOne, pad = 10 })
 	end

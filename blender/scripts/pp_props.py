@@ -853,6 +853,80 @@ def build_Bench():
     join(legs, "Bench_Iron")
 
 
+# ---- batch 5: window frames, bar stool, fryer
+
+def rot_apply(o, rx=0.0, ry=0.0, rz=0.0):
+    o.rotation_euler = (rx, ry, rz)
+    select_only([o])
+    bpy.ops.object.transform_apply(rotation=True)
+    return o
+
+
+def build_FrameBar():
+    # 1-stud length of moulded window frame (chamfered face, glazing rebate).
+    # The game stretches it along X only, so the profile never distorts.
+    # Profile as (height, depth); front = -Y.
+    prof = [(0.0, -0.2), (0.0, 0.2), (0.24, 0.2), (0.3, 0.13), (0.3, 0.02), (0.26, 0.02),
+            (0.26, -0.08), (0.3, -0.1), (0.3, -0.15), (0.25, -0.2)]
+    o = outline("FrameBar_Frame", [(-h, d) for h, d in prof], 1.0, -0.5, 0.012)
+    rot_apply(o, 0, math.radians(90), 0)
+
+
+def build_BarStool():
+    # Diner bar stool: padded seat with a welt, chrome column + foot ring,
+    # weighted domed base.
+    lathe("BarStool_Seat", [(0.0, 2.62), (0.55, 2.62), (0.62, 2.67), (0.645, 2.77), (0.62, 2.87),
+                            (0.5, 2.93), (0.25, 2.955), (0.0, 2.96)], 48)
+    torus("BarStool_Welt", 0.64, 0.024, (0, 0, 2.77), 64, 10)
+    chrome = [lathe("pan", [(0.0, 2.48), (0.38, 2.52), (0.52, 2.6), (0.52, 2.63), (0.0, 2.63)], 40),
+              cylinder("col", 0.085, 2.35, (0, 0, 1.3), 24),
+              cylinder("lift", 0.13, 0.3, (0, 0, 2.3), 24, bevel=0.03),
+              torus("ring", 0.46, 0.035, (0, 0, 1.0), 48, 10)]
+    for i in range(3):
+        a = i / 3 * math.tau
+        sp = cylinder("spoke", 0.025, 0.4, (math.cos(a) * 0.27, math.sin(a) * 0.27, 1.0), 10)
+        chrome.append(rot_apply(sp, 0, math.radians(90), a))
+    join(chrome, "BarStool_Chrome")
+    lathe("BarStool_Base", [(0.0, 0.0), (0.6, 0.0), (0.625, 0.03), (0.6, 0.08), (0.35, 0.13),
+                            (0.15, 0.17), (0.12, 0.2), (0.0, 0.2)], 48)
+
+
+def build_Fryer():
+    # Twin-well commercial fryer, 3.2 x 2.6, worktop at 3.2, splashback to 4.45.
+    # Front (controls, doors) = -Y.
+    W, D, H = 3.2, 2.6, 3.2
+    body = rounded_box("Fryer_Body", W, D, H - 0.25, 0.05, 4, (0, 0, 0.25 + (H - 0.25) / 2))
+    for x in (-0.76, 0.76):
+        cut = rounded_box("cut", 1.22, 1.5, 0.9, 0.08, 4, (x, 0.1, H - 0.36))
+        boolean_diff(body, cut)
+    wells, oils = [], []
+    for x in (-0.76, 0.76):
+        wells.append(rounded_box("w", 1.2, 1.48, 0.04, 0.02, 2, (x, 0.1, H - 0.8)))
+        oils.append(rounded_box("o", 1.18, 1.46, 0.06, 0.02, 2, (x, 0.1, H - 0.25)))
+    join(wells, "Fryer_Well")
+    join(oils, "Fryer_Oil")
+    # front control strip + two doors
+    pan = [rounded_box("p", W - 0.2, 0.06, 0.62, 0.025, 3, (0, -D / 2 - 0.01, H - 0.55))]
+    for x in (-0.77, 0.77):
+        pan.append(rounded_box("door", 1.46, 0.05, 1.85, 0.03, 3, (x, -D / 2 - 0.01, 1.3)))
+    join(pan, "Fryer_Panel")
+    knobs = []
+    for x in (-1.15, -0.45, 0.45, 1.15):
+        k = cylinder("k", 0.085, 0.1, (x, -D / 2 - 0.08, H - 0.55), 24, bevel=0.02)
+        knobs.append(rot_apply(k, math.radians(90), 0, 0))
+    join(knobs, "Fryer_Knob")
+    rounded_box("Fryer_Splash", W, 0.12, 1.3, 0.04, 3, (0, D / 2 - 0.06, H + 0.6))
+    hang = [rot_apply(cylinder("rod", 0.04, W - 0.4, (0, D / 2 - 0.3, H + 1.05), 16), 0, math.radians(90), 0)]
+    for x in (-1.3, 1.3):
+        hang.append(rounded_box("br", 0.08, 0.32, 0.08, 0.02, 2, (x, D / 2 - 0.2, H + 1.05)))
+    for x in (-0.77, 0.77):
+        hang.append(rot_apply(cylinder("hdl", 0.03, 0.8, (x, -D / 2 - 0.12, 2.05), 12), 0, math.radians(90), 0))
+    for x in (-W / 2 + 0.2, W / 2 - 0.2):
+        for y in (-D / 2 + 0.2, D / 2 - 0.2):
+            hang.append(cylinder("leg", 0.07, 0.26, (x, y, 0.13), 16))
+    join(hang, "Fryer_Hanger")
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1130,7 +1204,8 @@ TOPPINGS = ["Top_Pepperoni", "Top_Cucumber", "Top_Jalapeno", "Top_Tomato", "Top_
 
 PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
          "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
-         "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench"] + TOPPINGS
+         "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench",
+         "FrameBar", "BarStool", "Fryer"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1180,7 +1255,11 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "Top_Shred_Main": (1.0, 0.67, 0.15), "Top_Leaf_Main": (0.45, 0.78, 0.27), "Top_Leaf_Vein": (0.75, 0.9, 0.55),
              "Top_Doner_Main": (0.8, 0.55, 0.3), "Top_Doner_Sear": (0.5, 0.28, 0.12), "Top_Chip_Main": (0.98, 0.78, 0.3),
              "Top_Drizzle_Main": (0.97, 0.96, 0.9), "Top_Cheese_Main": (1.0, 0.9, 0.6),
-             "Dough_Dough": (0.95, 0.88, 0.75), "Dough_Flour": (0.99, 0.97, 0.94)}
+             "Dough_Dough": (0.95, 0.88, 0.75), "Dough_Flour": (0.99, 0.97, 0.94),
+             "FrameBar_Frame": (0.13, 0.13, 0.14), "BarStool_Seat": (0.81, 0.16, 0.16), "BarStool_Welt": (0.55, 0.1, 0.1),
+             "BarStool_Chrome": (0.85, 0.87, 0.89), "BarStool_Base": (0.13, 0.13, 0.14), "Fryer_Body": (0.78, 0.8, 0.82),
+             "Fryer_Well": (0.3, 0.3, 0.32), "Fryer_Oil": (0.9, 0.67, 0.18), "Fryer_Panel": (0.66, 0.68, 0.7),
+             "Fryer_Knob": (0.1, 0.1, 0.1), "Fryer_Splash": (0.78, 0.8, 0.82), "Fryer_Hanger": (0.45, 0.47, 0.5)}
 
 
 def render_preview(prop):

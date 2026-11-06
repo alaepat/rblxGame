@@ -24,6 +24,10 @@ return {
 	-- Plots (one restaurant per player)
 	PlotCount = 6,
 	PlotSpacing = 160,
+	-- Building size: the dining room and the back rooms are this much deeper
+	-- than the original 44-stud shell (the street moves out with the front).
+	FrontExtra = 12,
+	BackExtra = 10,
 
 	-- Cooking
 	PizzaBaseCookTime = 14, -- seconds at 1x speed
