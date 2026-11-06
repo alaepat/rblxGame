@@ -82,4 +82,9 @@ return {
 	PosStand = { assetId = 132760034701969, size = Vector3.new(1.5, 1.4, 1.1) },
 	PosBezel = { assetId = 91057615167549, size = Vector3.new(2.48, 1.78, 0.2) },
 	ReceiptPrinter = { assetId = 112332300997275, size = Vector3.new(0.95, 0.901, 0.885), center = Vector3.new(0, 0, 0.017) },
+	-- batch 9: pass gantry, topping rail, office
+	HeatGantry = { assetId = 118459727899376, size = Vector3.new(5.32, 3.29, 2.4) },
+	PrepRail = { assetId = 101890749349770, size = Vector3.new(7.4, 2.526, 0.986), center = Vector3.new(0, 0, -0.837) },
+	OfficeDesk = { assetId = 124198552250950, size = Vector3.new(7.9, 3.1, 3.6) },
+	OfficeChair = { assetId = 116609512196526, size = Vector3.new(2.16, 4.189, 2.06), center = Vector3.new(0, 0, -0.131) },
 } :: { [string]: MeshInfo }

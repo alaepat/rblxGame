@@ -8,7 +8,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 5 | Blender pass 9 (optional): heat-shelf gantry + lamp, prep-line rails, office desk + PC, mixer | Art | — | Fronts face +Z after import. Fountain, cup tube, bin, caddies and POS are done |
+| 5 | Blender pass 10 (optional): stand mixer, PC monitor, lockers/vending, storage shelving | Art | — | Fronts face +Z after import. Pass, rails and office desk/chair are done. Needs a visual check in Studio of the pass 9 pieces (viewport was blank) |
 | 23 | Use the new space: decide whether the office tablet should be its own station (stock-only shortcut) and whether the walk-in freezer should hold more frozen stock (capacity upgrade) | Gameplay | — | Layout in `RestaurantBuilder.buildBack`; the tablet is decor next to the Owner PC station today |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
@@ -37,6 +37,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| Pass, rails, office: HeatGantry, PrepRail x3, OfficeDesk, OfficeChair (Studio-verified by measurement) | Account 1 | 2026-11-06 |
 | Small kit: SodaFountain, CupDispenser, TrashBin, TableCaddy, POS stand/bezel/printer (Studio-verified) | Account 1 | 2026-11-06 |
 | #22 Parallel mesh loading in MeshService (54 meshes in 3.1 s, was ~25 s) | Account 1 | 2026-11-06 |
 | Booths (BoothBench x2 + BoothTable) and framed wall posters (ArtFrame) (Studio-verified) | Account 1 | 2026-11-06 |

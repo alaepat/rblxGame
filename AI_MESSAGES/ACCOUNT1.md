@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-06: Pass gantry, topping rails, office desk + chair
+
+4 more meshes (`HeatGantry`, `PrepRail`, `OfficeDesk`, `OfficeChair`). Pans, boards, heat-shelf slots and the Owner PC station did not move. Verified by measurement only (the Studio viewport rendered white), so if you're in Studio, a quick look at the prep line and the pass would be welcome.
+
 ## 2026-11-06: Counter and kitchen small kit
 
 7 more meshes: `SodaFountain`, `CupDispenser`, `TrashBin`, `TableCaddy`, `PosStand`, `PosBezel`, `ReceiptPrinter`. **Station hitboxes, names and labels did not change** (Register, Cup bin, Fountain_* and Trash are where they were), so StationService is untouched. Every one keeps a procedural fallback. 61 meshes now load in about 7 s in Studio.

@@ -1158,6 +1158,86 @@ def build_ReceiptPrinter():
     rounded_box("ReceiptPrinter_Button", 0.12, 0.06, 0.06, 0.02, 2, (0.3, -0.43, 0.4))
 
 
+# ---- batch 9: pass gantry, topping rail, office
+
+def build_HeatGantry():
+    # Heat shelf over the pass: steel deck, chrome posts, hood with four
+    # heat-lamp shades. 5.2 wide (X) x 2.4 deep, 3.3 tall. Origin = deck centre.
+    rounded_box("HeatGantry_Base", 5.2, 2.4, 0.1, 0.04, 3, (0, 0, 0.05))
+    posts = []
+    for x in (-2.5, 2.5):
+        posts.append(cylinder("p", 0.09, 3.0, (x, 0, 1.6), 24))
+        posts.append(cylinder("foot", 0.16, 0.08, (x, 0, 0.14), 24, bevel=0.02))
+    join(posts, "HeatGantry_Post")
+    hood = [rounded_box("hood", 5.3, 1.3, 0.28, 0.1, 5, (0, 0, 3.15))]
+    for i in range(4):
+        x = -1.95 + i * 1.3
+        hood.append(lathe("shade", [(0.0, 3.02), (0.22, 3.02), (0.36, 2.86), (0.4, 2.78), (0.36, 2.78), (0.2, 2.94), (0.0, 2.94)], 32, (x, 0, 0)))
+    join(hood, "HeatGantry_Hood")
+    bulbs = [sphere("b", 0.17, (-1.95 + i * 1.3, 0, 2.86), (1, 1, 0.7), 20, 10) for i in range(4)]
+    join(bulbs, "HeatGantry_Glow")
+
+
+def build_PrepRail():
+    # Topping rail on a 7.4 prep counter: lower rail housing, steel
+    # backsplash, upper pan shelf on brackets, LED strip, angled sneeze guard.
+    # Front = -Y; origin = worktop centre (the rail sits at the back, +Y).
+    steel = [rounded_box("rail", 7.2, 0.9, 0.35, 0.05, 3, (0, 0.8, 0.175)),
+             rounded_box("splash", 7.4, 0.06, 1.8, 0.02, 2, (0, 1.3, 0.9)),
+             rounded_box("shelf", 7.4, 0.77, 0.15, 0.04, 3, (0, 0.935, 1.875))]
+    for x in (-3.5, 0.0, 3.5):
+        g = rounded_box("bracket", 0.06, 0.6, 0.06, 0.02, 2, (x, 1.0, 1.55))
+        steel.append(rot_apply(g, math.radians(-40), 0, 0))
+    join(steel, "PrepRail_Steel")
+    rounded_box("PrepRail_Light", 7.0, 0.22, 0.06, 0.02, 2, (0, 0.85, 1.77))
+    guard = rounded_box("PrepRail_Glass", 7.2, 0.04, 0.62, 0.02, 2, (0, 0.5, 2.25))
+    rot_apply(guard, math.radians(28), 0, 0)
+
+
+def build_OfficeDesk():
+    # Owner's desk 7.9 x 3.6, top at 3.1: drawer pedestal (left), side panel
+    # (right), modesty panel at the back. Front (drawers) = -Y.
+    rounded_box("OfficeDesk_Top", 7.9, 3.6, 0.2, 0.08, 5, (0, 0, 3.0))
+    body = [rounded_box("ped", 2.0, 3.2, 2.9, 0.05, 3, (-2.8, 0.1, 1.45)),
+            rounded_box("side", 0.16, 3.2, 2.9, 0.05, 3, (3.7, 0.1, 1.45)),
+            rounded_box("modesty", 5.6, 0.12, 1.8, 0.04, 3, (0.5, 1.55, 1.95))]
+    join(body, "OfficeDesk_Body")
+    drawers, handles = [], []
+    for i, h in enumerate((0.75, 0.9, 0.9)):
+        z = 0.15 + sum((0.75, 0.9, 0.9)[:i]) + h / 2 + i * 0.06
+        drawers.append(rounded_box("dr", 1.85, 0.06, h, 0.04, 3, (-2.8, -1.53, z)))
+        handles.append(rot_apply(cylinder("hd", 0.035, 0.8, (-2.8, -1.62, z + h * 0.25), 12), 0, math.radians(90), 0))
+    join(drawers, "OfficeDesk_Drawer")
+    join(handles, "OfficeDesk_Handle")
+
+
+def build_OfficeChair():
+    # Swivel office chair: 5-star base with casters, gas lift, seat, mesh-look
+    # backrest on a spine, padded arms. Front = -Y.
+    frame = [cylinder("lift", 0.1, 1.3, (0, 0, 1.0), 24), cylinder("sleeve", 0.16, 0.7, (0, 0, 0.6), 24),
+             rounded_box("plate", 0.9, 0.9, 0.12, 0.04, 3, (0, 0, 1.68))]
+    wheels = []
+    for i in range(5):
+        a = i / 5 * math.tau + math.pi / 2
+        leg = rounded_box("leg", 1.05, 0.18, 0.14, 0.06, 3, (math.cos(a) * 0.52, math.sin(a) * 0.52, 0.32))
+        frame.append(rot_apply(leg, 0, 0, a))
+        wheels.append(sphere("w", 0.13, (math.cos(a) * 1.0, math.sin(a) * 1.0, 0.13), (1, 0.7, 1), 16, 8))
+    spine = tube("spine", [(0, 0.55, 1.7), (0, 0.85, 1.9), (0, 0.9, 2.6)], 0.07, 3)
+    frame.append(spine)
+    for x in (-0.85, 0.85):
+        frame.append(tube("armpost", [(x * 0.95, 0.1, 1.75), (x, 0.1, 2.45)], 0.05, 3))
+    join(frame, "OfficeChair_Frame")
+    join(wheels, "OfficeChair_Wheel")
+    pads = [rounded_box("seat", 1.7, 1.65, 0.32, 0.14, 6, (0, -0.05, 1.9))]
+    back = rounded_box("back", 1.6, 0.22, 1.9, 0.14, 6, (0, 0.95, 3.25))
+    for v in back.data.vertices:  # lumbar curve
+        v.co.y -= 0.12 * math.sin(max(0.0, min(1.0, (v.co.z - 2.3) / 1.9)) * math.pi)
+    pads.append(rot_apply(back, math.radians(-8), 0, 0))
+    for x in (-0.85, 0.85):
+        pads.append(rounded_box("arm", 0.22, 0.85, 0.1, 0.05, 3, (x, 0.05, 2.5)))
+    join(pads, "OfficeChair_Seat")
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1438,7 +1518,8 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench",
          "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign",
          "BoothBench", "BoothTable", "ArtFrame",
-         "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter"] + TOPPINGS
+         "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter",
+         "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1507,7 +1588,12 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "TrashBin_Bag": (0.13, 0.13, 0.14), "TrashBin_Pedal": (0.13, 0.13, 0.14), "TableCaddy_Chrome": (0.85, 0.87, 0.89),
              "TableCaddy_Napkin": (0.98, 0.98, 0.96), "TableCaddy_Glass": (0.85, 0.92, 0.97), "TableCaddy_Cap": (0.78, 0.8, 0.82),
              "PosStand_Base": (0.13, 0.13, 0.14), "PosStand_Neck": (0.2, 0.2, 0.22), "PosBezel_Bezel": (0.13, 0.13, 0.14),
-             "ReceiptPrinter_Body": (0.2, 0.2, 0.22), "ReceiptPrinter_Paper": (0.98, 0.98, 0.96), "ReceiptPrinter_Button": (0.3, 0.8, 0.3)}
+             "ReceiptPrinter_Body": (0.2, 0.2, 0.22), "ReceiptPrinter_Paper": (0.98, 0.98, 0.96), "ReceiptPrinter_Button": (0.3, 0.8, 0.3),
+             "HeatGantry_Base": (0.5, 0.52, 0.55), "HeatGantry_Post": (0.85, 0.87, 0.89), "HeatGantry_Hood": (0.78, 0.8, 0.82),
+             "HeatGantry_Glow": (1.0, 0.55, 0.25), "PrepRail_Steel": (0.78, 0.8, 0.82), "PrepRail_Light": (1.0, 0.95, 0.85),
+             "PrepRail_Glass": (0.8, 0.9, 0.95), "OfficeDesk_Top": (0.36, 0.24, 0.16), "OfficeDesk_Body": (0.77, 0.55, 0.36),
+             "OfficeDesk_Drawer": (0.72, 0.5, 0.32), "OfficeDesk_Handle": (0.85, 0.87, 0.89), "OfficeChair_Frame": (0.13, 0.13, 0.14),
+             "OfficeChair_Wheel": (0.1, 0.1, 0.1), "OfficeChair_Seat": (0.2, 0.2, 0.22)}
 
 
 def render_preview(prop):

@@ -683,21 +683,38 @@ local function buildPrepCounter(c: Ctx, name: string, x: number, boardId: string
 	B.station(board, "PizzaBoard", label, { BoardId = boardId })
 	B.itemAt(board, CFrame.new(0, 0.09, 0))
 	-- topping rail (two tiers)
-	B.box(m, "Rail1", -3.6, COUNTER_H, -1.25, 3.6, COUNTER_H + 0.35, -0.35, C.STEEL, M.Metal)
-	B.box(m, "Rail2", -3.6, COUNTER_H, -1.3, 3.6, COUNTER_H + 0.9, -1.25, C.STEEL, M.Metal)
-	B.box(m, "Backsplash", -3.7, COUNTER_H, -1.32, 3.7, COUNTER_H + 1.8, -1.28, C.STEEL, M.Metal)
+	local railMesh = MeshLib.has("PrepRail")
+	if railMesh then
+		-- rail housing, backsplash, bracketed upper shelf, LED strip and sneeze guard
+		local rail = MeshLib.place(m.parent, "PrepRail", m.origin * CFrame.new(0, COUNTER_H, 0), {
+			Steel = C.STEEL, Light = Color3.fromRGB(255, 240, 210), Glass = Color3.fromRGB(215, 235, 245),
+		}, { materials = { Steel = M.Metal, Light = M.Neon, Glass = M.Glass } })
+		if rail.Glass then
+			rail.Glass.Transparency = 0.7
+			rail.Glass.CastShadow = false
+		end
+	else
+		B.box(m, "Rail1", -3.6, COUNTER_H, -1.25, 3.6, COUNTER_H + 0.35, -0.35, C.STEEL, M.Metal)
+		B.box(m, "Rail2", -3.6, COUNTER_H, -1.3, 3.6, COUNTER_H + 0.9, -1.25, C.STEEL, M.Metal)
+		B.box(m, "Backsplash", -3.7, COUNTER_H, -1.32, 3.7, COUNTER_H + 1.8, -1.28, C.STEEL, M.Metal)
+	end
 	local row1 = { "tomato_sauce", "mozzarella", "tomato", "pepperoni", "mushroom", "ham", "onion" }
 	local row2 = { "bbq_sauce", "cheddar", "green_pepper", "chicken", "olive", "beef", "jalapeno" }
 	for i, id in row1 do
 		pan(m, id, -3.6 + 0.5 + (i - 1) * 1.03, COUNTER_H + 0.35, -0.8, boardId, 0.95)
 	end
 	-- upper tier sits on a raised shelf behind
-	B.box(m, "Shelf", -3.7, COUNTER_H + 1.8, -1.32, 3.7, COUNTER_H + 1.95, -0.55, C.STEEL, M.Metal)
+	if not railMesh then
+		B.box(m, "Shelf", -3.7, COUNTER_H + 1.8, -1.32, 3.7, COUNTER_H + 1.95, -0.55, C.STEEL, M.Metal)
+	end
 	for i, id in row2 do
 		pan(m, id, -3.6 + 0.5 + (i - 1) * 1.03, COUNTER_H + 1.95, -0.95, boardId, 0.95)
 	end
 	-- heat-lamp style strip under shelf
 	local strip = B.box(m, "LightStrip", -3.5, COUNTER_H + 1.7, -1.0, 3.5, COUNTER_H + 1.78, -0.7, Color3.fromRGB(255, 240, 210), M.Neon)
+	if railMesh then
+		strip.Transparency = 1 -- the mesh has its own LED strip; keep this part for its light
+	end
 	B.surfaceLight(strip, Enum.NormalId.Bottom, Color3.fromRGB(255, 236, 200), 6, 0.8)
 	return m
 end
@@ -784,14 +801,25 @@ local function buildKitchen(c: Ctx)
 	local boxHit = B.hitbox(isl, "BoxStation", Vector3.new(3, 1.4, 2.3), CFrame.new(2.9, COUNTER_H + 0.7, 0))
 	B.station(boxHit, "BoxStation", "📦 Pizza Boxes")
 	-- heat shelf gantry with 4 slots
-	B.box(isl, "ShelfBase", -4.4, COUNTER_H, -1.2, 0.8, COUNTER_H + 0.1, 1.2, C.STEEL_DARK, M.Metal)
-	for _, x in { -4.3, 0.7 } do
-		B.box(isl, "Post", x - 0.1, COUNTER_H, -0.1, x + 0.1, COUNTER_H + 3, 0.1, C.STEEL, M.Metal)
+	local gantryMesh = MeshLib.has("HeatGantry")
+	if gantryMesh then
+		-- steel deck, chrome posts, hood with four glowing heat-lamp shades
+		MeshLib.place(isl.parent, "HeatGantry", isl.origin * CFrame.new(-1.8, COUNTER_H, 0), {
+			Base = C.STEEL_DARK, Post = C.STEEL, Hood = C.STEEL, Glow = Color3.fromRGB(255, 130, 60),
+		}, { materials = { Base = M.Metal, Post = M.Metal, Hood = M.Metal, Glow = M.Neon } })
+	else
+		B.box(isl, "ShelfBase", -4.4, COUNTER_H, -1.2, 0.8, COUNTER_H + 0.1, 1.2, C.STEEL_DARK, M.Metal)
+		for _, x in { -4.3, 0.7 } do
+			B.box(isl, "Post", x - 0.1, COUNTER_H, -0.1, x + 0.1, COUNTER_H + 3, 0.1, C.STEEL, M.Metal)
+		end
+		local lamp = B.box(isl, "HeatLamp", -4.4, COUNTER_H + 3, -0.6, 0.8, COUNTER_H + 3.3, 0.6, C.STEEL, M.Metal)
+		lamp.CanQuery = false
 	end
-	local lamp = B.box(isl, "HeatLamp", -4.4, COUNTER_H + 3, -0.6, 0.8, COUNTER_H + 3.3, 0.6, C.STEEL, M.Metal)
 	local glow = B.box(isl, "LampGlow", -4.2, COUNTER_H + 2.95, -0.45, 0.6, COUNTER_H + 3.0, 0.45, Color3.fromRGB(255, 120, 50), M.Neon)
 	glow.CanQuery = false
-	lamp.CanQuery = false
+	if gantryMesh then
+		glow.Transparency = 1 -- light source only; the mesh bulbs do the glowing
+	end
 	B.surfaceLight(glow, Enum.NormalId.Bottom, Color3.fromRGB(255, 150, 80), 6, 1.2)
 	for i = 1, 4 do
 		local sx = -3.75 + (i - 1) * 1.25
@@ -860,9 +888,19 @@ local function buildKitchen(c: Ctx)
 	local kboard = B.box(kc, "KebabBoard", -1.6, COUNTER_H, -0.1, 1.6, COUNTER_H + 0.18, 1.25, Color3.fromRGB(235, 235, 230), M.SmoothPlastic)
 	B.station(kboard, "KebabBoard", "🥙 Kebab Board", { BoardId = "kebab1" })
 	B.itemAt(kboard, CFrame.new(0, 0.09, 0))
-	B.box(kc, "Rail1", -3.6, COUNTER_H, -1.25, 3.6, COUNTER_H + 0.35, -0.35, C.STEEL, M.Metal)
-	B.box(kc, "Backsplash", -3.7, COUNTER_H, -1.32, 3.7, COUNTER_H + 1.8, -1.28, C.STEEL, M.Metal)
-	B.box(kc, "Shelf", -3.7, COUNTER_H + 1.8, -1.32, 3.7, COUNTER_H + 1.95, -0.55, C.STEEL, M.Metal)
+	if MeshLib.has("PrepRail") then
+		local rail = MeshLib.place(kc.parent, "PrepRail", kc.origin * CFrame.new(0, COUNTER_H, 0), {
+			Steel = C.STEEL, Light = Color3.fromRGB(255, 240, 210), Glass = Color3.fromRGB(215, 235, 245),
+		}, { materials = { Steel = M.Metal, Light = M.Neon, Glass = M.Glass } })
+		if rail.Glass then
+			rail.Glass.Transparency = 0.7
+			rail.Glass.CastShadow = false
+		end
+	else
+		B.box(kc, "Rail1", -3.6, COUNTER_H, -1.25, 3.6, COUNTER_H + 0.35, -0.35, C.STEEL, M.Metal)
+		B.box(kc, "Backsplash", -3.7, COUNTER_H, -1.32, 3.7, COUNTER_H + 1.8, -1.28, C.STEEL, M.Metal)
+		B.box(kc, "Shelf", -3.7, COUNTER_H + 1.8, -1.32, 3.7, COUNTER_H + 1.95, -0.55, C.STEEL, M.Metal)
+	end
 	local salad = { "lettuce", "tomato", "cucumber", "red_cabbage", "onion", "cheddar" }
 	for i, id in salad do
 		pan(kc, id, -3.6 + 0.6 + (i - 1) * 1.2, COUNTER_H + 0.35, -0.8, "kebab1", 1.1)
@@ -1359,8 +1397,15 @@ local function buildBack(c: Ctx)
 	-- filing, safe, bookcase, corkboard and a small meeting corner
 	local o = B.folder(c, "Office")
 	local dz = zIn + 0.7 -- desk back edge
-	B.box(o, "Desk", 1, 0, dz, 8.5, 2.9, dz + 3.2, C.WOOD, M.Wood)
-	B.box(o, "DeskTop", 0.8, 2.9, dz - 0.2, 8.7, 3.1, dz + 3.4, C.WOOD_DARK, M.Wood)
+	if MeshLib.has("OfficeDesk") then
+		-- desk with a drawer pedestal facing the chair
+		MeshLib.place(o.parent, "OfficeDesk", o.origin * CFrame.new(4.75, 0, dz + 1.6), {
+			Top = C.WOOD_DARK, Body = C.WOOD, Drawer = C.WOOD:Lerp(C.WOOD_DARK, 0.25), Handle = C.STEEL,
+		}, { collide = true, materials = { Top = M.Wood, Body = M.Wood, Drawer = M.Wood, Handle = M.Metal } })
+	else
+		B.box(o, "Desk", 1, 0, dz, 8.5, 2.9, dz + 3.2, C.WOOD, M.Wood)
+		B.box(o, "DeskTop", 0.8, 2.9, dz - 0.2, 8.7, 3.1, dz + 3.4, C.WOOD_DARK, M.Wood)
+	end
 	B.box(o, "MonitorStand", 4.4, 3.1, dz + 1, 4.8, 3.9, dz + 1.4, C.BLACK)
 	local mon = B.box(o, "Monitor", 2.6, 3.9, dz + 0.9, 6.6, 6.3, dz + 1.1, C.BLACK)
 	B.label(mon, Enum.NormalId.Back, "🪐 Pizza Planet OS", { color = C.WHITE, bg = Color3.fromRGB(70, 90, 210), font = Enum.Font.FredokaOne, pad = 12, brightness = 1.5 })
@@ -1372,7 +1417,14 @@ local function buildBack(c: Ctx)
 	B.label(tab, Enum.NormalId.Back, "📦 Order stock", { color = C.WHITE, bg = Color3.fromRGB(230, 90, 40), font = Enum.Font.GothamBlack, pad = 4, brightness = 1.5 })
 	local pcHit = B.hitbox(o, "PCHit", Vector3.new(6.6, 3.6, 2.6), CFrame.new(5.4, 5, dz + 1.6))
 	B.station(pcHit, "OfficePC", "💻 Owner PC (orders & upgrades)")
-	chair(B.sub(o, 4.6, dz + 4.4, 0), 0, 0, 0, C.DARK)
+	if MeshLib.has("OfficeChair") then
+		-- swivel chair turned to face the desk
+		MeshLib.place(o.parent, "OfficeChair", o.origin * CFrame.new(4.6, 0, dz + 4.6) * CFrame.Angles(0, math.pi + 0.25, 0), {
+			Frame = C.BLACK, Wheel = C.BLACK, Seat = Color3.fromRGB(45, 45, 52),
+		}, { collide = true, materials = { Frame = M.Metal, Wheel = M.SmoothPlastic, Seat = M.Fabric } })
+	else
+		chair(B.sub(o, 4.6, dz + 4.4, 0), 0, 0, 0, C.DARK)
+	end
 	B.box(o, "Filing", 9.5, 0, zIn + 0.2, 11.4, 4.2, zIn + 2.2, C.STEEL_DARK, M.Metal)
 	B.box(o, "Bookcase", -1.6, 0, -24, -0.6, 7, -18, C.WOOD_DARK, M.Wood)
 	for i = 0, 3 do
