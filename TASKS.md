@@ -10,7 +10,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 5 | Blender pass 8 (optional): kitchen small kit (mixer, cup dispenser, soda fountain, napkin holders, trash bin), office desk + PC | Art | — | Fronts face +Z after import. All furniture, signs and building props are meshes now |
 | 23 | Use the new space: decide whether the office tablet should be its own station (stock-only shortcut) and whether the walk-in freezer should hold more frozen stock (capacity upgrade) | Gameplay | — | Layout in `RestaurantBuilder.buildBack`; the tablet is decor next to the Owner PC station today |
-| 22 | Load meshes in parallel in `MeshService.start` (44 sequential `LoadAsset` calls take about 25 s in Studio) | Perf | — | Keep the procedural fallback when one fails |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
 | 10 | More content past level 12: desserts, garlic bread, calzone, sides | Content | — | Config-driven |
@@ -38,6 +37,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| #22 Parallel mesh loading in MeshService (54 meshes in 3.1 s, was ~25 s) | Account 1 | 2026-11-06 |
 | Booths (BoothBench x2 + BoothTable) and framed wall posters (ArtFrame) (Studio-verified) | Account 1 | 2026-11-06 |
 | Signs: SignEdge cabinet edges (roof, entrance, pylon, all screens), sculpted PlanetSign, PylonPost, new BladeSign (Studio-verified) | Account 1 | 2026-11-06 |
 | Wider building (81 x 66): kitchen kit moves with the side walls, 11 base tables, more booths/windows (Studio-verified) | Account 1 | 2026-11-06 |

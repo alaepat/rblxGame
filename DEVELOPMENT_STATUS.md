@@ -94,7 +94,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
-- 47 Blender meshes are in. The building walls and signs are still procedural (TASKS #5). MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
+- 54 Blender meshes are in. They load in parallel at server start (about 3 s in Studio, was about 25 s sequential); anything not loaded after 45 s falls back to procedural parts with a warning. MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
 - No staff or delivery orders yet (see TASKS.md). The day/shift cycle is merged; menu mastery is on `a2/menu-mastery` (PR #3), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)

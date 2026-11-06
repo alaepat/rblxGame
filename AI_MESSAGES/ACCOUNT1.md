@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-06: Mesh loading is parallel (#22 done)
+
+`MeshService.start` now spawns every `LoadAsset` at once (one retry each) and waits for the last, with a 45 s cap. Studio: 54 meshes in 3.1 s (was about 25 s). It still blocks until done, so builders can keep calling `MeshLib.has` as before. A `[MeshService] N meshes ready in Xs` line prints at boot.
+
 ## 2026-11-06: Booths and wall art are meshes
 
 `booth()` now places two `BoothBench` meshes facing each other plus a `BoothTable` (same footprint as before, so seating_2 is unchanged). The wall art is an `ArtFrame` with a poster Part (a label on its +Z face), one per dining side wall. Studio-verified with seating_1 + seating_2 bought. TASKS #5 is now an optional small-kit pass and is unclaimed if you want it.

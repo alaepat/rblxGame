@@ -59,28 +59,58 @@ local function normalise(prop: string, info: MeshIds.MeshInfo, container: Instan
 	return m
 end
 
+-- Give up waiting after this long; anything still loading falls back to the
+-- procedural parts (and lands in PP_Meshes later for new builds).
+local LOAD_TIMEOUT = 45
+
+local function loadOne(prop: string, info: MeshIds.MeshInfo, folder: Folder)
+	local ok, res
+	for attempt = 1, 2 do -- one retry: parallel loads can hit transient throttling
+		ok, res = pcall(function()
+			return InsertService:LoadAsset(info.assetId)
+		end)
+		if ok and res then
+			break
+		end
+		task.wait(1 + attempt)
+	end
+	if ok and res then
+		local m = normalise(prop, info, res)
+		if m then
+			m.Parent = folder
+		else
+			warn("[MeshService] " .. prop .. ": asset has no MeshParts")
+		end
+		res:Destroy()
+	else
+		warn("[MeshService] could not load " .. prop .. " (" .. info.assetId .. "): " .. tostring(res))
+	end
+end
+
 function MeshService.start()
 	local folder = ReplicatedStorage:FindFirstChild("PP_Meshes") or Instance.new("Folder")
 	folder.Name = "PP_Meshes"
 	folder.Parent = ReplicatedStorage
+	-- Every LoadAsset yields on a network fetch, so start them all at once and
+	-- wait for the last one instead of fetching ~60 assets one after another.
+	local t0 = os.clock()
+	local pending = 0
 	for prop, info in MeshIds do
 		if info.assetId and info.assetId > 0 and not folder:FindFirstChild(prop) then
-			local ok, res = pcall(function()
-				return InsertService:LoadAsset(info.assetId)
+			pending += 1
+			task.spawn(function()
+				loadOne(prop, info, folder)
+				pending -= 1
 			end)
-			if ok and res then
-				local m = normalise(prop, info, res)
-				if m then
-					m.Parent = folder
-				else
-					warn("[MeshService] " .. prop .. ": asset has no MeshParts")
-				end
-				res:Destroy()
-			else
-				warn("[MeshService] could not load " .. prop .. " (" .. info.assetId .. "): " .. tostring(res))
-			end
 		end
 	end
+	while pending > 0 and os.clock() - t0 < LOAD_TIMEOUT do
+		task.wait(0.05)
+	end
+	if pending > 0 then
+		warn(string.format("[MeshService] %d meshes still loading after %ds; using procedural fallbacks for those", pending, LOAD_TIMEOUT))
+	end
+	print(string.format("[MeshService] %d meshes ready in %.1fs", #folder:GetChildren(), os.clock() - t0))
 end
 
 return MeshService
