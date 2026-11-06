@@ -8,7 +8,8 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 5 | Blender pass 3: WIRE IN the 8 uploaded building props (Awning, DoorLeaf, Hood, WallLamp, StreetLamp, Planter, Parasol, Bench; ids already in MeshIds) in RestaurantBuilder (lines ~290 doors, ~320 awning, ~351 wall lamps, ~407 hood, ~1098 parasols, ~1105 bench, ~1110 planters) and WorldBuilder (~123 street lamps); then window frames, signs, toppings | Art | Account 1 | Fronts face +Z after import. Awning/StreetLamp/WallLamp have a bbox centre offset |
+| 5 | Blender pass 5: window frames, signs, fryer body, then re-run the older props at high quality (`PP_QUALITY=2`) and PATCH them as new versions | Art | Account 1 | Building props + toppings are done (see Done). Fronts face +Z after import |
+| 22 | Load meshes in parallel in `MeshService.start` (44 sequential `LoadAsset` calls take about 25 s in Studio) | Perf | — | Keep the procedural fallback when one fails |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
 | 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
 | 10 | More content past level 12: desserts, garlic bread, calzone, sides | Content | — | Config-driven |
@@ -36,4 +37,5 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| Blender pass 3 + 4: high-poly Pizza v2, 17 topping meshes + Dough wired into FoodVisuals; Awning, DoorLeaf, Hood, WallLamp, StreetLamp, Planter, Parasol, Bench wired into the builders (Studio-verified) | Account 1 | 2026-11-06 |
 | #7 Day/shift cycle: rushes, closing time, end-of-day summary, shift bonus, wages hook (merged into `main`; PC Studio-verified by Account 1; remaining checks #18) | Account 2 | 2026-11-06 |

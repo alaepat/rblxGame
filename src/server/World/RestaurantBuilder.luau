@@ -287,9 +287,25 @@ local function buildShell(c: Ctx)
 	B.box(s, "DoorFrameL", 13.3, 0, 21.6, 13.7, 8.8, 22.6, C.BLACK, M.Metal)
 	B.box(s, "DoorFrameR", 20.3, 0, 21.6, 20.7, 8.8, 22.6, C.BLACK, M.Metal)
 	B.box(s, "DoorFrameT", 13.3, 8.4, 21.6, 20.7, 8.8, 22.6, C.BLACK, M.Metal)
-	local doorL = B.part(s, "DoorL", Vector3.new(3.3, 8.2, 0.15), CFrame.new(13.7, 4.1, 22) * CFrame.Angles(0, math.rad(-70), 0) * CFrame.new(1.65, 0, 0), C.GLASS, M.Glass, { Transparency = 0.55, CanCollide = false })
-	local doorR = B.part(s, "DoorR", Vector3.new(3.3, 8.2, 0.15), CFrame.new(20.3, 4.1, 22) * CFrame.Angles(0, math.rad(70), 0) * CFrame.new(-1.65, 0, 0), C.GLASS, M.Glass, { Transparency = 0.55, CanCollide = false })
-	for _, d in { doorL, doorR } do
+	local doors = {}
+	if MeshLib.has("DoorLeaf") then
+		-- Blender door leaves: aluminium frame, glass, push bar, kick plate
+		for _, d in { { 13.7, -70, 1.65 }, { 20.3, 70, -1.65 } } do
+			local cf = s.origin * CFrame.new(d[1], 0, 22) * CFrame.Angles(0, math.rad(d[2]), 0) * CFrame.new(d[3], 0, 0)
+			local parts = MeshLib.place(s.parent, "DoorLeaf", cf, { Frame = C.BLACK, Glass = C.GLASS, Bar = C.STEEL, Kick = C.STEEL },
+				{ materials = { Frame = M.Metal, Glass = M.Glass, Bar = M.Metal, Kick = M.Metal } })
+			if parts.Glass then
+				parts.Glass.Transparency = 0.55
+				parts.Glass.CastShadow = false
+			end
+		end
+	else
+		doors = {
+			B.part(s, "DoorL", Vector3.new(3.3, 8.2, 0.15), CFrame.new(13.7, 4.1, 22) * CFrame.Angles(0, math.rad(-70), 0) * CFrame.new(1.65, 0, 0), C.GLASS, M.Glass, { Transparency = 0.55, CanCollide = false }),
+			B.part(s, "DoorR", Vector3.new(3.3, 8.2, 0.15), CFrame.new(20.3, 4.1, 22) * CFrame.Angles(0, math.rad(70), 0) * CFrame.new(-1.65, 0, 0), C.GLASS, M.Glass, { Transparency = 0.55, CanCollide = false }),
+		}
+	end
+	for _, d in doors do
 		local bar = Instance.new("Part")
 		bar.Anchored = true
 		bar.CanCollide = false
@@ -322,6 +338,17 @@ local function buildShell(c: Ctx)
 	local stripes = 22
 	local x1, x2 = -29, 12.5
 	local sw = (x2 - x1) / stripes
+	if MeshLib.has("Awning") then
+		-- curved fabric bays (one red + one white stripe each) with a scalloped valance
+		local bays = stripes // 2
+		local bw = (x2 - x1) / bays
+		for i = 0, bays - 1 do
+			MeshLib.place(aw.parent, "Awning", s.origin * CFrame.new(x1 + bw * (i + 0.5), 11.55 - 2.81, 22.6), {
+				Red = C.RED, White = C.WHITE, Rod = C.BLACK,
+			}, { scale = Vector3.new(bw / 2, 1, 1), materials = { Red = M.Fabric, White = M.Fabric, Rod = M.Metal } })
+		end
+		stripes = 0
+	end
 	for i = 0, stripes - 1 do
 		local col = if i % 2 == 0 then C.RED else C.WHITE
 		local x = x1 + sw * (i + 0.5)
@@ -348,9 +375,18 @@ local function buildShell(c: Ctx)
 	B.label(namePanel, Enum.NormalId.Back, "ENTRANCE", { color = C.RED_DARK, font = Enum.Font.GothamBlack, pad = 6 })
 	-- Wall lanterns
 	for _, x in { -29.5, 12.8, 21.2, 29.5 } do
-		local lamp = B.box(s, "WallLamp", x - 0.35, 8.8, 22.5, x + 0.35, 9.8, 23.2, C.YELLOW, M.Neon)
-		B.box(s, "LampCap", x - 0.5, 9.8, 22.5, x + 0.5, 10.05, 23.35, C.BLACK, M.Metal)
-		B.pointLight(lamp, Color3.fromRGB(255, 210, 150), 14, 1)
+		if MeshLib.has("WallLamp") then
+			local parts = MeshLib.place(s.parent, "WallLamp", s.origin * CFrame.new(x, 8.7, 22.6), {
+				Metal = C.BLACK, Cap = C.BLACK, Cage = C.BLACK, Glow = Color3.fromRGB(255, 214, 140),
+			}, { materials = { Metal = M.Metal, Cap = M.Metal, Cage = M.Metal, Glow = M.Neon } })
+			if parts.Glow then
+				B.pointLight(parts.Glow, Color3.fromRGB(255, 210, 150), 14, 1)
+			end
+		else
+			local lamp = B.box(s, "WallLamp", x - 0.35, 8.8, 22.5, x + 0.35, 9.8, 23.2, C.YELLOW, M.Neon)
+			B.box(s, "LampCap", x - 0.5, 9.8, 22.5, x + 0.5, 10.05, 23.35, C.BLACK, M.Metal)
+			B.pointLight(lamp, Color3.fromRGB(255, 210, 150), 14, 1)
+		end
 	end
 
 	-- Interior partitions
@@ -404,9 +440,17 @@ local function buildShell(c: Ctx)
 		ceilingLight(s, p[1], p[2], 4, 2)
 	end
 	-- Kitchen extractor hood over the ovens
-	B.box(s, "Hood", -29.5, 9.5, -8, -23, 10.5, 4.8, C.STEEL, M.Metal)
-	B.wedge(s, "HoodSlope", Vector3.new(13, 1.6, 6.5), CFrame.new(-26.25, 11.3, -1.6) * CFrame.Angles(0, math.rad(-90), 0), C.STEEL, M.Metal)
-	B.box(s, "HoodDuct", -28.5, 10.5, -5.5, -26, 13, -3.5, C.STEEL, M.Metal)
+	if MeshLib.has("Hood") then
+		-- canopy hood with baffle filters + strip light; front faces the kitchen (+X).
+		-- Squashed a little in Y so the duct ends inside the ceiling.
+		MeshLib.place(s.parent, "Hood", s.origin * CFrame.new(-26.25, 9.5, -1.6) * CFrame.Angles(0, math.pi / 2, 0), {
+			Body = C.STEEL, Duct = C.STEEL:Lerp(C.BLACK, 0.08), Filter = C.STEEL_DARK, Light = Color3.fromRGB(255, 244, 220),
+		}, { scale = Vector3.new(1, 0.75, 1), materials = { Body = M.Metal, Duct = M.Metal, Filter = M.DiamondPlate, Light = M.Neon } })
+	else
+		B.box(s, "Hood", -29.5, 9.5, -8, -23, 10.5, 4.8, C.STEEL, M.Metal)
+		B.wedge(s, "HoodSlope", Vector3.new(13, 1.6, 6.5), CFrame.new(-26.25, 11.3, -1.6) * CFrame.Angles(0, math.rad(-90), 0), C.STEEL, M.Metal)
+		B.box(s, "HoodDuct", -28.5, 10.5, -5.5, -26, 13, -3.5, C.STEEL, M.Metal)
+	end
 end
 
 ------------------------------------------------------------------ kitchen
@@ -1095,21 +1139,38 @@ local function buildOutside(c: Ctx)
 	-- outdoor seating
 	for _, x in { -24, -12 } do
 		local s = B.sub(o, x, 29, 0)
-		B.cyl(s, "PatioPole", 0.3, 7.5, 0, 0, 0, C.STEEL, M.Metal)
-		B.part(s, "Umbrella", Vector3.new(0.6, 7, 7), CFrame.new(0, 7.3, 0) * CFrame.Angles(0, 0, math.rad(90)), C.RED, M.Fabric, { Shape = Enum.PartType.Cylinder })
+		if MeshLib.has("Parasol") then
+			MeshLib.place(s.parent, "Parasol", s.origin, { Pole = C.STEEL, Canopy = C.RED, Valance = C.WHITE, Finial = C.STEEL },
+				{ materials = { Pole = M.Metal, Canopy = M.Fabric, Valance = M.Fabric, Finial = M.Metal } })
+		else
+			B.cyl(s, "PatioPole", 0.3, 7.5, 0, 0, 0, C.STEEL, M.Metal)
+			B.part(s, "Umbrella", Vector3.new(0.6, 7, 7), CFrame.new(0, 7.3, 0) * CFrame.Angles(0, 0, math.rad(90)), C.RED, M.Fabric, { Shape = Enum.PartType.Cylinder })
+		end
 		B.box(s, "PatioTable", -1.4, 2.8, -1.4, 1.4, 3, 1.4, C.WHITE, M.Metal)
 		chair(s, 0, 2.1, 180, C.RED)
 		chair(s, 0, -2.1, 0, C.RED)
 	end
 	-- bench by the curb
-	B.box(o, "Bench", 23, 1.6, 31.6, 29, 1.9, 33, C.WOOD, M.Wood)
-	B.box(o, "BenchLegL", 23.4, 0, 31.7, 23.8, 1.6, 32.9, C.BLACK, M.Metal)
-	B.box(o, "BenchLegR", 28.2, 0, 31.7, 28.6, 1.6, 32.9, C.BLACK, M.Metal)
+	if MeshLib.has("Bench") then
+		-- park bench facing the street (+Z)
+		MeshLib.place(o.parent, "Bench", o.origin * CFrame.new(26, 0, 32.3), { Wood = C.WOOD, Iron = C.BLACK },
+			{ collide = true, materials = { Wood = M.Wood, Iron = M.Metal } })
+	else
+		B.box(o, "Bench", 23, 1.6, 31.6, 29, 1.9, 33, C.WOOD, M.Wood)
+		B.box(o, "BenchLegL", 23.4, 0, 31.7, 23.8, 1.6, 32.9, C.BLACK, M.Metal)
+		B.box(o, "BenchLegR", 28.2, 0, 31.7, 28.6, 1.6, 32.9, C.BLACK, M.Metal)
+	end
 	-- planter boxes along the front
 	for _, x in { -6, 4 } do
-		B.box(o, "Planter", x - 2.5, 0, 23.2, x + 2.5, 1.6, 25.2, C.BRICK, M.Brick)
-		for i = 0, 3 do
-			B.ball(o, "Shrub", Vector3.new(1.6, 1.4, 1.6), x - 1.8 + i * 1.2, 2, 24.2, Color3.fromRGB(70, 150, 70), M.LeafyGrass)
+		if MeshLib.has("Planter") then
+			MeshLib.place(o.parent, "Planter", o.origin * CFrame.new(x, 0, 24.2), {
+				Box = C.BRICK, Rim = C.CONCRETE, Soil = Color3.fromRGB(78, 52, 34), Shrub = Color3.fromRGB(70, 150, 70),
+			}, { collide = true, materials = { Box = M.Brick, Rim = M.Concrete, Soil = M.Ground, Shrub = M.LeafyGrass } })
+		else
+			B.box(o, "Planter", x - 2.5, 0, 23.2, x + 2.5, 1.6, 25.2, C.BRICK, M.Brick)
+			for i = 0, 3 do
+				B.ball(o, "Shrub", Vector3.new(1.6, 1.4, 1.6), x - 1.8 + i * 1.2, 2, 24.2, Color3.fromRGB(70, 150, 70), M.LeafyGrass)
+			end
 		end
 	end
 	-- pylon sign by the road

@@ -72,6 +72,62 @@ local function seedFor(id: string): number
 	return s
 end
 
+-- Blender topping mesh per ingredient (Config/MeshIds Top_*). Ingredients
+-- not listed here, or meshes that failed to load, use the procedural parts.
+local TOPPING_MESH: { [string]: string } = {
+	pepperoni = "Top_Pepperoni",
+	jalapeno = "Top_Jalapeno",
+	cucumber = "Top_Cucumber",
+	tomato = "Top_Tomato",
+	onion = "Top_Onion",
+	olive = "Top_Olive",
+	ham = "Top_Ham",
+	green_pepper = "Top_Pepper",
+	chicken = "Top_Chicken",
+	mushroom = "Top_Mushroom",
+	beef = "Top_Beef",
+	cheddar = "Top_Shred",
+	red_cabbage = "Top_Shred",
+	lettuce = "Top_Leaf",
+	chicken_doner = "Top_Doner",
+	lamb_doner = "Top_Doner",
+	chips = "Top_Chip",
+	garlic_sauce = "Top_Drizzle",
+	chilli_sauce = "Top_Drizzle",
+	mayo = "Top_Drizzle",
+	mozzarella = "Top_Cheese",
+}
+
+local WHITE = Color3.new(1, 1, 1)
+local SEAR = Color3.fromRGB(95, 50, 20)
+
+-- Role colours for a topping mesh, all derived from the ingredient colour so
+-- new ingredients (and the cooked tint) work without extra config.
+local function toppingRoles(mesh: string, c: Color3): { [string]: Color3 }
+	local r: { [string]: Color3 } = { Main = c }
+	if mesh == "Top_Pepperoni" then
+		r.Fat = c:Lerp(Color3.fromRGB(245, 190, 170), 0.6)
+	elseif mesh == "Top_Cucumber" then
+		r.Main = c:Lerp(Color3.fromRGB(225, 245, 200), 0.55)
+		r.Rim = c:Lerp(Color3.fromRGB(25, 80, 30), 0.75)
+		r.Inner = c:Lerp(WHITE, 0.7)
+	elseif mesh == "Top_Jalapeno" then
+		r.Inner = c:Lerp(Color3.fromRGB(215, 230, 160), 0.65)
+	elseif mesh == "Top_Tomato" then
+		r.Gel = c:Lerp(Color3.fromRGB(255, 120, 95), 0.45)
+		r.Seed = Color3.fromRGB(245, 215, 140)
+	elseif mesh == "Top_Chicken" then
+		r.Sear = c:Lerp(SEAR, 0.55)
+	elseif mesh == "Top_Mushroom" then
+		r.Gill = c:Lerp(Color3.fromRGB(110, 80, 55), 0.55)
+	elseif mesh == "Top_Leaf" then
+		r.Vein = c:Lerp(WHITE, 0.45)
+	elseif mesh == "Top_Doner" then
+		r.Sear = c:Lerp(SEAR, 0.5)
+	end
+	return r
+end
+
 -- Scatter topping pieces over a circle (pizza) or ellipse (kebab).
 local function scatter(model: Model, ingredientId: string, y: number, radiusX: number, radiusZ: number, count: number, cooked: boolean)
 	local ing = Ingredients.get(ingredientId)
@@ -83,6 +139,11 @@ local function scatter(model: Model, ingredientId: string, y: number, radiusX: n
 	if cooked then
 		color = color:Lerp(Color3.fromRGB(120, 60, 20), 0.12)
 	end
+	local mesh = TOPPING_MESH[ingredientId]
+	if mesh and not MeshLib.has(mesh) then
+		mesh = nil
+	end
+	local roles = mesh and toppingRoles(mesh, color)
 	for i = 1, count do
 		local ang = (i / count) * math.pi * 2 + rng:NextNumber(-0.35, 0.35)
 		local rad = math.sqrt(rng:NextNumber(0.08, 1))
@@ -91,7 +152,12 @@ local function scatter(model: Model, ingredientId: string, y: number, radiusX: n
 		local yaw = CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
 		local shape = ing.shape
 		local name = ingredientId
-		if shape == "disc" then
+		if mesh then
+			-- slight tilt + size variation so no two pieces look stamped
+			local tilt = CFrame.Angles(rng:NextNumber(-0.07, 0.07), 0, rng:NextNumber(-0.07, 0.07))
+			local s = rng:NextNumber(0.9, 1.1)
+			MeshLib.place(model, mesh, CFrame.new(x, y - 0.004, z) * yaw * tilt, roles, { scale = s, shadow = false })
+		elseif shape == "disc" then
 			disc(model, name, 0.42, 0.045, y, color, x, z)
 		elseif shape == "slice" then
 			disc(model, name, 0.44, 0.05, y, color, x, z)
@@ -167,6 +233,10 @@ end
 
 local function buildDough(): Model
 	local m = newModel("Dough")
+	if MeshLib.has("Dough") then
+		MeshLib.place(m, "Dough", CFrame.new(), { Dough = DOUGH_RAW, Flour = Color3.fromRGB(252, 248, 238) })
+		return m
+	end
 	newPart(m, "Ball", Vector3.new(1.15, 0.55, 1.15), CFrame.new(0, 0.27, 0), DOUGH_RAW, nil, Enum.PartType.Ball)
 	newPart(m, "Flour", Vector3.new(0.7, 0.2, 0.6), CFrame.new(0.1, 0.48, 0.05), Color3.fromRGB(252, 248, 238), nil, Enum.PartType.Ball)
 	return m
@@ -222,15 +292,8 @@ local function buildPizza(item: Item): Model
 			Sauce = sauceIng and sauceIng.color or BRAND_RED,
 			Cheese = cheeseColor,
 		}, { hide = { Sauce = item.sauce == nil, Cheese = not hasCheese } })
-		y = 0.2
-		if hasCheese and cooked and state ~= "burnt" then
-			local rng = Random.new(7)
-			for _ = 1, 6 do
-				local a = rng:NextNumber(0, math.pi * 2)
-				local r = rng:NextNumber(0.2, 0.7)
-				disc(m, "Brown", rng:NextNumber(0.18, 0.3), 0.02, 0.185, Color3.fromRGB(230, 160, 70), math.cos(a) * r, math.sin(a) * r)
-			end
-		end
+		-- toppings sit in the bubbly cheese (top ~0.2), or on the sauce
+		y = if hasCheese then 0.2 elseif item.sauce then 0.18 else 0.15
 	else
 		disc(m, "Crust", 2.4, 0.24, 0, base)
 		disc(m, "CrustTop", 2.25, 0.02, 0.24, base:Lerp(Color3.new(1, 1, 1), 0.08))

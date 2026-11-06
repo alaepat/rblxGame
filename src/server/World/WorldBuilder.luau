@@ -7,6 +7,7 @@ local Lighting = game:GetService("Lighting")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local B = require(script.Parent.Build)
+local MeshLib = require(Shared.Food.MeshLib)
 local C = B.C
 local M = Enum.Material
 
@@ -120,9 +121,20 @@ function WorldBuilder.build(): { CFrame }
 	-- street lamps along both curbs
 	for x = -half + 20, half - 20, 40 do
 		for _, z in { 35.5, 62 } do
-			B.cyl(c, "LampPost", 0.5, 14, x, 0, z, C.BLACK, M.Metal)
-			local head = B.box(c, "LampHead", x - 1.2, 13.6, z - 0.6, x + 1.2, 14.2, z + 0.6, Color3.fromRGB(255, 244, 210), M.Neon)
-			B.pointLight(head, Color3.fromRGB(255, 226, 180), 24, 0.8)
+			if MeshLib.has("StreetLamp") then
+				-- the arm reaches out over the road from both curbs
+				local yaw = if z > 47 then math.pi else 0
+				local parts = MeshLib.place(c.parent, "StreetLamp", c.origin * CFrame.new(x, 0, z) * CFrame.Angles(0, yaw, 0), {
+					Pole = C.BLACK, Head = C.BLACK, Lamp = Color3.fromRGB(255, 244, 210),
+				}, { collide = true, materials = { Pole = M.Metal, Head = M.Metal, Lamp = M.Neon } })
+				if parts.Lamp then
+					B.pointLight(parts.Lamp, Color3.fromRGB(255, 226, 180), 24, 0.8)
+				end
+			else
+				B.cyl(c, "LampPost", 0.5, 14, x, 0, z, C.BLACK, M.Metal)
+				local head = B.box(c, "LampHead", x - 1.2, 13.6, z - 0.6, x + 1.2, 14.2, z + 0.6, Color3.fromRGB(255, 244, 210), M.Neon)
+				B.pointLight(head, Color3.fromRGB(255, 226, 180), 24, 0.8)
+			end
 		end
 	end
 

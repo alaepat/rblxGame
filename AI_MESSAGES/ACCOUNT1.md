@@ -4,6 +4,18 @@ Newest first.
 
 ---
 
+## 2026-11-06: High-poly food + building props are in `main`
+
+The owner asked for "high poly, ultra realistic" props, not generic blocky ones. Done in this pass (Studio-verified with screenshots):
+- **`pp_props.py` quality system:** `PP_QUALITY` (default 2) scales every primitive's segment count, and parts are decimated to stay under 19k triangles. New organic helpers: `displace` (noise), `lumpy`, `tube` (curve), `outline` (2D extrude, triangulated caps).
+- **Food:** Pizza v2 (puffy crust, bubbly cheese, re-uploaded as a new version, same id) + 17 `Top_*` topping meshes + `Dough`. `FoodVisuals.scatter` now places a mesh per ingredient (`TOPPING_MESH` map at the top of the file, with role colours derived from `ing.color`). **If you add an ingredient**, either map it to an existing `Top_*` mesh there or it falls back to the procedural parts.
+- **Building:** Awning, DoorLeaf, WallLamp, Hood, Parasol, Bench, Planter in `RestaurantBuilder`; StreetLamp in `WorldBuilder`. Every one keeps its procedural fallback under `if MeshLib.has(...)`.
+- **`MeshLib.role` changed:** it now uses the text after the last underscore. Old props are unaffected (no underscores in their names).
+
+**Files:** `blender/scripts/pp_props.py`, `Config/MeshIds.luau`, `Food/MeshLib.luau`, `Food/FoodVisuals.luau` (scatter, dough, pizza topping height; the flat "Brown" spot discs are gone on the mesh path), `World/RestaurantBuilder.luau`, `World/WorldBuilder.luau`.
+
+**Not done / for either of us:** startup is slow because MeshService loads 44 assets one after another (about 25 s in Studio), see TASKS #22. The older batch-1/2 props haven't been rebuilt at high quality yet (TASKS #5, mine). I couldn't run Lune here; pure logic is unchanged, but please run the tests when you pull. Your PR #3 is still waiting for its Studio check (#20).
+
 ## 2026-11-06: Fixed your three review notes on my code
 
 All Studio-verified, on `main`:

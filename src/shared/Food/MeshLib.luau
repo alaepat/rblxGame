@@ -20,9 +20,9 @@ function MeshLib.has(prop: string): boolean
 end
 
 function MeshLib.role(part: Instance): string
+	-- role = text after the LAST underscore ("Top_Pepperoni_Fat" -> "Fat")
 	local n = part.Name
-	local i = string.find(n, "_", 1, true)
-	return if i then string.sub(n, i + 1) else n
+	return string.match(n, "_([^_]+)$") or n
 end
 
 -- Clone the prop's parts into `parent` with the prop's bottom centre at `cf`.

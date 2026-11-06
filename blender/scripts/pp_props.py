@@ -63,6 +63,25 @@ def name(obj, n):
     return obj
 
 
+# ---- quality: every primitive is built finer than its call asks for.
+# Q = 1 reproduces the original medium-poly props; 2 = high-poly (default).
+Q = float(os.environ.get("PP_QUALITY", "2"))
+MAX_TRIS = 19000  # Roblox MeshPart limit is 20k triangles
+
+
+def qv(n, cap=128):
+    """Scale a vertex / segment count by the quality factor."""
+    return int(min(cap, max(n, round(n * (0.5 + Q / 2) ** 1.25))))
+
+
+def weighted_normals(o):
+    """Face-weighted normals: flat faces stay flat, bevels catch the light."""
+    m = o.modifiers.new("wn", "WEIGHTED_NORMAL")
+    m.keep_sharp = True
+    m.weight = 50
+    apply_mods(o)
+
+
 def rounded_box(n, sx, sy, sz, radius, segments=5, loc=(0, 0, 0)):
     """Box with rounded edges. sx/sy/sz are full sizes, loc = centre."""
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
@@ -71,14 +90,18 @@ def rounded_box(n, sx, sy, sz, radius, segments=5, loc=(0, 0, 0)):
     bpy.ops.object.transform_apply(scale=True)
     b = o.modifiers.new("bevel", "BEVEL")
     b.width = min(radius, sx / 2.05, sy / 2.05, sz / 2.05)
-    b.segments = segments
+    b.segments = qv(segments, 12)
     b.limit_method = "NONE"
+    b.harden_normals = False
     apply_mods(o)
     smooth(o)
+    weighted_normals(o)
     return name(o, n)
 
 
 def cylinder(n, r, depth, loc=(0, 0, 0), verts=40, r2=None, bevel=0.0, seg=3):
+    verts = qv(verts, 96)
+    seg = qv(seg, 8)
     if r2 is None:
         bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=r, depth=depth, location=loc)
     else:
@@ -96,6 +119,7 @@ def cylinder(n, r, depth, loc=(0, 0, 0), verts=40, r2=None, bevel=0.0, seg=3):
 
 
 def torus(n, major, minor, loc=(0, 0, 0), maj_seg=48, min_seg=16):
+    maj_seg, min_seg = qv(maj_seg, 96), qv(min_seg, 32)
     bpy.ops.mesh.primitive_torus_add(major_radius=major, minor_radius=minor, major_segments=maj_seg,
                                      minor_segments=min_seg, location=loc)
     o = active()
@@ -104,6 +128,7 @@ def torus(n, major, minor, loc=(0, 0, 0), maj_seg=48, min_seg=16):
 
 
 def sphere(n, r, loc=(0, 0, 0), scale=(1, 1, 1), seg=32, rings=16):
+    seg, rings = qv(seg, 64), qv(rings, 32)
     bpy.ops.mesh.primitive_uv_sphere_add(segments=seg, ring_count=rings, radius=r, location=loc)
     o = active()
     o.scale = scale
@@ -150,6 +175,14 @@ def export(prop):
     objs = [o for o in bpy.data.objects if o.name.startswith(prop + "_")]
     for o in objs:
         apply_mods(o)
+        # keep every part under the Roblox per-MeshPart triangle limit
+        o.data.calc_loop_triangles()
+        t = len(o.data.loop_triangles)
+        if t > MAX_TRIS:
+            d = o.modifiers.new("dec", "DECIMATE")
+            d.ratio = MAX_TRIS / t * 0.97
+            apply_mods(o)
+            print(f"[pp] {o.name}: decimated {t} -> {MAX_TRIS} tris")
     select_only(objs)
     os.makedirs(EXPORT_DIR, exist_ok=True)
     path = os.path.join(EXPORT_DIR, prop + ".fbx")
@@ -236,17 +269,30 @@ def build_Cup():
 
 
 def build_Pizza():
-    # Crust with a rolled rim + organic sauce + cheese layers (coloured in game).
-    base = cylinder("Pizza_Crust", 1.18, 0.12, (0, 0, 0.06), 48, bevel=0.03, seg=2)
-    rim = torus("rim", 1.08, 0.12, (0, 0, 0.13), 48, 12)
-    rim.scale = (1, 1, 0.85)
-    select_only([rim])
-    bpy.ops.object.transform_apply(scale=True)
-    join([base, rim], "Pizza_Crust")
-    sauce = cylinder("Pizza_Sauce", 0.98, 0.035, (0, 0, 0.14), 48, bevel=0.012, seg=2)
+    # Hand-stretched base: thin centre, puffy uneven cornicione with air bubbles.
+    prof = [(0.0, 0.0), (0.9, 0.0), (1.1, 0.01), (1.18, 0.05), (1.2, 0.11), (1.18, 0.18), (1.12, 0.235),
+            (1.04, 0.25), (0.97, 0.22), (0.93, 0.16), (0.9, 0.13), (0.5, 0.12), (0.0, 0.12)]
+    crust = lathe("Pizza_Crust", prof, 96, jitter=0.02, seed=6)
+    displace(crust, 0.012, 6, 5)
+    sauce = cylinder("Pizza_Sauce", 0.97, 0.035, (0, 0, 0.14), 96, bevel=0.012, seg=2)
     wobble_edge(sauce, 0.025, 1)
-    cheese = cylinder("Pizza_Cheese", 0.9, 0.05, (0, 0, 0.165), 48, bevel=0.02, seg=2)
-    wobble_edge(cheese, 0.06, 2)
+    # melted cheese: bubbly top, uneven edge, a few runs toward the crust
+    # dense lathe disc so the noise can raise real bubbles across the top
+    cprof = [(0.0, 0.0), (0.86, 0.0), (0.885, 0.012), (0.885, 0.03), (0.86, 0.045)]
+    cprof += [(0.86 - i * 0.0574, 0.05 + 0.004 * math.sin(i)) for i in range(1, 16)] + [(0.0, 0.05)]
+    cheese = lathe("Pizza_Cheese", [(r, z + 0.145) for r, z in cprof], 96)
+    wobble_edge(cheese, 0.07, 2)
+    displace(cheese, 0.016, 2, 11)
+    displace(cheese, 0.006, 7, 30)
+    runs = []
+    for i in range(7):
+        a = i / 7 * math.tau + 0.3
+        run = lumpy("r", 0.09, (1.4, 0.8, 0.22), 0.01, 20 + i, (math.cos(a) * 0.88, math.sin(a) * 0.88, 0.165), 9)
+        run.rotation_euler = (0, 0, a)
+        select_only([run])
+        bpy.ops.object.transform_apply(rotation=True)
+        runs.append(run)
+    join([cheese] + runs, "Pizza_Cheese")
 
 
 def build_Pan():
@@ -343,6 +389,8 @@ def slab_x(n, sx, sy, sz, radius, seg=4, loc=(0, 0, 0)):
 def lathe(n, profile, segs=32, loc=(0, 0, 0), jitter=0.0, seed=0, ridges=0.0):
     """Revolve a list of (radius, z) points around Z. Optional organic jitter
     and horizontal ridges (doner meat layers)."""
+    if segs >= 12:  # low counts are deliberate facets (hex lanterns)
+        segs = qv(segs, 96)
     rnd = random.Random(seed)
     bm = bmesh.new()
     rings = []
@@ -543,6 +591,7 @@ def build_KebabPaper():
 
 def sheet(n, pts_fn, nu, nv, thickness):
     """Surface from pts_fn(u, v) -> (x, y, z) on a nu x nv grid, solidified."""
+    nu, nv = qv(nu, 128), qv(nv, 64)
     bm = bmesh.new()
     grid = [[bm.verts.new(pts_fn(i / nu, j / nv)) for j in range(nv + 1)] for i in range(nu + 1)]
     for i in range(nu):
@@ -755,9 +804,284 @@ def build_Bench():
     join(legs, "Bench_Iron")
 
 
+# ---- batch 4: realistic food. Toppings are small meshes scattered by
+# FoodVisuals; each is coloured per role from the ingredient colour.
+
+def displace(o, amp, seed, freq=7.0):
+    """Organic noise: push every vertex along its normal by smooth noise."""
+    from mathutils import noise
+    off = Vector((seed * 1.37, seed * 2.11, seed * 0.73))
+    o.data.update()
+    for v in o.data.vertices:
+        p = v.co * freq + off
+        d = noise.noise(p) * 0.65 + noise.noise(p * 2.3) * 0.35
+        v.co += v.normal * (d * amp)
+    o.data.update()
+    smooth(o, 80)
+
+
+def lumpy(n, r, scale, amp, seed, loc=(0, 0, 0), freq=7.0):
+    o = sphere(n, r, loc, scale, 40, 20)
+    displace(o, amp, seed, freq)
+    return o
+
+
+def tube(n, pts, radius, res=4):
+    """Round tube along a polyline of (x, y, z) points (sauce, shreds)."""
+    cu = bpy.data.curves.new(n, "CURVE")
+    cu.dimensions = "3D"
+    cu.bevel_depth = radius
+    cu.bevel_resolution = qv(res, 8)
+    cu.use_fill_caps = True
+    sp = cu.splines.new("NURBS")
+    sp.points.add(len(pts) - 1)
+    for i, p in enumerate(pts):
+        sp.points[i].co = (p[0], p[1], p[2], 1)
+    sp.use_endpoint_u = True
+    sp.order_u = 3
+    sp.resolution_u = qv(6, 16)
+    o = bpy.data.objects.new(n, cu)
+    bpy.context.scene.collection.objects.link(o)
+    select_only([o])
+    bpy.ops.object.convert(target="MESH")
+    o = active()
+    smooth(o, 70)
+    return name(o, n)
+
+
+def outline(n, pts2d, thickness, z0=0.0, bevel=0.0):
+    """Extrude a 2D outline (x, y) upward by `thickness`, with soft edges."""
+    bm = bmesh.new()
+    bottom = [bm.verts.new((x, y, z0)) for x, y in pts2d]
+    face = bm.faces.new(bottom)
+    ext = bmesh.ops.extrude_face_region(bm, geom=[face])
+    top = [e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)]
+    bmesh.ops.translate(bm, verts=top, vec=(0, 0, thickness))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(n)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(n, me)
+    bpy.context.scene.collection.objects.link(o)
+    if bevel > 0:
+        b = o.modifiers.new("bevel", "BEVEL")
+        b.width = bevel
+        b.segments = qv(3, 6)
+        b.limit_method = "ANGLE"
+        apply_mods(o)
+    # concave n-gon caps shade badly: triangulate them cleanly
+    t = o.modifiers.new("tri", "TRIANGULATE")
+    t.ngon_method = "BEAUTY"
+    t.min_vertices = 5
+    apply_mods(o)
+    smooth(o, 60)
+    return name(o, n)
+
+
+def ring_pts(cx, cy, r, n):
+    return [(cx + math.cos(i / n * math.tau) * r, cy + math.sin(i / n * math.tau) * r) for i in range(n)]
+
+
+def build_Top_Pepperoni():
+    # cupped slice: the rim curls up as it does in a hot oven
+    lathe("Top_Pepperoni_Main", [(0.0, 0.0), (0.12, 0.004), (0.18, 0.02), (0.205, 0.04), (0.21, 0.052),
+                                 (0.195, 0.058), (0.14, 0.04), (0.06, 0.034), (0.0, 0.033)], 40, jitter=0.03, seed=3)
+    displace(bpy.data.objects["Top_Pepperoni_Main"], 0.004, 3, 22)
+    # marbled fat flecks, mostly sunk into the surface so only a sliver shows
+    rnd = random.Random(4)
+    spots = []
+    for _ in range(14):
+        a, rr = rnd.uniform(0, math.tau), rnd.uniform(0.02, 0.15)
+        s = rnd.uniform(0.008, 0.017)
+        o = sphere("s", s, (math.cos(a) * rr, math.sin(a) * rr, 0.0335 + (rr / 0.15) ** 3 * 0.012),
+                   (rnd.uniform(1, 1.8), 1, 0.12), 10, 5)
+        o.rotation_euler = (0, 0, rnd.uniform(0, math.pi))
+        spots.append(o)
+    join(spots, "Top_Pepperoni_Fat")
+
+
+def build_Top_Cucumber():
+    cylinder("Top_Cucumber_Main", 0.195, 0.04, (0, 0, 0.02), 40, bevel=0.012)
+    torus("Top_Cucumber_Rim", 0.195, 0.022, (0, 0, 0.02), 48, 10)
+    seeds = []
+    for i in range(10):
+        a = i / 10 * math.tau
+        seeds.append(sphere("s", 0.018, (math.cos(a) * 0.075, math.sin(a) * 0.075, 0.041), (1, 0.55, 0.25), 10, 6))
+    join(seeds, "Top_Cucumber_Inner")
+
+
+def build_Top_Jalapeno():
+    ring = cylinder("Top_Jalapeno_Main", 0.18, 0.035, (0, 0, 0.0175), 40, bevel=0.01)
+    hole = cylinder("cut", 0.13, 0.2, (0, 0, 0.02), 32)
+    boolean_diff(ring, hole)
+    core = cylinder("Top_Jalapeno_Inner", 0.13, 0.03, (0, 0, 0.015), 32, bevel=0.008)
+    seeds = [sphere("s", 0.02, (math.cos(i * 1.26) * 0.06, math.sin(i * 1.26) * 0.06, 0.032), (1, 0.7, 0.3), 10, 6) for i in range(5)]
+    join([core] + seeds, "Top_Jalapeno_Inner")
+
+
+def build_Top_Tomato():
+    lathe("Top_Tomato_Main", [(0.0, 0.0), (0.2, 0.0), (0.22, 0.02), (0.215, 0.045), (0.19, 0.05), (0.0, 0.05)], 40, jitter=0.03, seed=8)
+    gel = []
+    for i in range(4):
+        a = i / 4 * math.tau + 0.4
+        gel.append(sphere("g", 0.07, (math.cos(a) * 0.1, math.sin(a) * 0.1, 0.05), (1.25, 0.8, 0.18), 16, 8))
+    join(gel, "Top_Tomato_Gel")
+    seeds = []
+    for i in range(12):
+        a = i / 12 * math.tau
+        seeds.append(sphere("s", 0.014, (math.cos(a) * 0.11, math.sin(a) * 0.11, 0.058), (1, 0.6, 0.35), 8, 5))
+    join(seeds, "Top_Tomato_Seed")
+
+
+def build_Top_Onion():
+    a = torus("a", 0.14, 0.022, (0, 0, 0.022), 48, 10)
+    b = torus("b", 0.095, 0.02, (0.012, -0.006, 0.02), 40, 10)
+    for o in (a, b):
+        o.scale = (1, 0.85, 0.7)
+        select_only([o])
+        bpy.ops.object.transform_apply(scale=True)
+    displace(a, 0.006, 1, 9)
+    join([a, b], "Top_Onion_Main")
+
+
+def build_Top_Olive():
+    o = torus("Top_Olive_Main", 0.085, 0.045, (0, 0, 0.04), 40, 16)
+    o.scale = (1, 0.9, 0.75)
+    select_only([o])
+    bpy.ops.object.transform_apply(scale=True)
+
+
+def build_Top_Ham():
+    pts = [(-0.18, -0.15), (0.05, -0.17), (0.18, -0.12), (0.17, 0.1), (0.04, 0.16), (-0.16, 0.14)]
+    o = outline("Top_Ham_Main", pts, 0.035, 0, 0.012)
+    displace(o, 0.006, 2, 12)
+
+
+def build_Top_Pepper():
+    pts = []
+    for i in range(13):
+        t = i / 12
+        a = (t - 0.5) * 1.6
+        pts.append((math.sin(a) * 0.3, (1 - math.cos(a)) * 0.3, 0.025))
+    o = tube("Top_Pepper_Main", pts, 0.03, 4)
+    o.scale = (1, 1, 0.7)
+    select_only([o])
+    bpy.ops.object.transform_apply(scale=True)
+
+
+def build_Top_Chicken():
+    lumpy("Top_Chicken_Main", 0.12, (1.0, 0.85, 0.55), 0.02, 5, (0, 0, 0.065), 11)
+    # grill marks: two thin seared stripes pressed into the top
+    marks = []
+    for dx in (-0.03, 0.03):
+        m = rounded_box("m", 0.018, 0.13, 0.01, 0.004, 2, (dx, 0, 0.119))
+        m.rotation_euler = (0, 0, 0.35)
+        marks.append(m)
+    join(marks, "Top_Chicken_Sear")
+
+
+def build_Top_Mushroom():
+    # slice through cap + stem: the classic mushroom silhouette
+    # counter-clockwise: dome from right to left, then down the stem
+    cap = [(math.cos(a) * 0.17, 0.02 + math.sin(a) * 0.12) for a in [i / 20 * math.pi for i in range(21)]]
+    stem = [(-0.06, 0.0), (-0.05, -0.1), (-0.035, -0.13), (0.035, -0.13), (0.05, -0.1), (0.06, 0.0)]
+    pts = [(x, y + 0.04) for x, y in cap + stem]
+    o = outline("Top_Mushroom_Main", pts, 0.035, 0, 0.012)
+    displace(o, 0.003, 5, 14)
+    # dark gill band just under the cap, sitting a hair above the slice
+    g = [(0.15 - i * 0.015, 0.06 + 0.006 * math.sin(i * 0.55)) for i in range(21)]
+    g += [(x, y + 0.018) for x, y in reversed(g)]
+    outline("Top_Mushroom_Gill", g, 0.004, 0.034, 0)
+
+
+def build_Top_Beef():
+    lumpy("Top_Beef_Main", 0.085, (1.0, 0.9, 0.7), 0.022, 7, (0, 0, 0.06), 16)
+
+
+def build_Top_Shred():
+    pts = []
+    for i in range(9):
+        t = i / 8
+        pts.append(((t - 0.5) * 0.34, math.sin(t * math.pi * 1.6) * 0.035, 0.02 + math.sin(t * math.pi) * 0.012))
+    o = tube("Top_Shred_Main", pts, 0.022, 3)
+    o.scale = (1, 1.4, 0.7)
+    select_only([o])
+    bpy.ops.object.transform_apply(scale=True)
+
+
+def build_Top_Leaf():
+    def f(u, v):
+        x = (u - 0.5) * 0.42
+        w = 0.15 * math.sin(math.pi * u) ** 0.8
+        y = (v - 0.5) * 2 * w
+        edge = abs(v - 0.5) * 2
+        z = 0.03 + 0.012 * math.sin(u * 23) * edge ** 2 + 0.018 * (1 - edge) ** 2
+        return (x, y, z)
+    sheet("Top_Leaf_Main", f, 24, 10, 0.012)
+    tube("Top_Leaf_Vein", [(lambda p: (p[0], p[1], p[2] + 0.004))(f(u / 6, 0.5)) for u in range(1, 6)], 0.0045, 2)
+
+
+def build_Top_Doner():
+    def f(u, v):
+        x = (u - 0.5) * 0.48
+        y = (v - 0.5) * 0.17
+        z = 0.035 + 0.02 * math.sin(u * 11 + v * 3) + 0.03 * math.sin(math.pi * v)
+        return (x, y, z)
+    o = sheet("Top_Doner_Main", f, 20, 8, 0.03)
+    displace(o, 0.004, 9, 20)
+    def g(u, v):
+        x, y, z = f(u, v)
+        return (x, y, z + 0.017)
+    sheet("Top_Doner_Sear", lambda u, v: (lambda p: (p[0] * 0.9, p[1] * 0.5, p[2]))(g(u, v)), 12, 4, 0.004)
+
+
+def build_Top_Chip():
+    o = rounded_box("Top_Chip_Main", 0.1, 0.1, 0.5, 0.03, 3, (0, 0, 0.25))
+    bend = o.modifiers.new("bend", "SIMPLE_DEFORM")
+    bend.deform_method = "BEND"
+    bend.angle = math.radians(14)
+    bend.deform_axis = "X"
+    apply_mods(o)
+    displace(o, 0.004, 3, 18)
+    o.rotation_euler = (math.radians(90), 0, 0)
+    o.location = (0, 0.25, 0.05)
+    select_only([o])
+    bpy.ops.object.transform_apply(location=True, rotation=True)
+
+
+def build_Top_Drizzle():
+    pts = []
+    for i in range(17):
+        t = i / 16
+        pts.append(((t - 0.5) * 0.5, math.sin(t * math.pi * 4) * 0.05, 0.02))
+    tube("Top_Drizzle_Main", pts, 0.022, 3)
+
+
+def build_Top_Cheese():
+    o = lathe("Top_Cheese_Main", [(0.0, 0.0), (0.14, 0.0), (0.16, 0.012), (0.13, 0.03), (0.0, 0.035)], 32, jitter=0.25, seed=11)
+    displace(o, 0.006, 4, 10)
+
+
+def build_Dough():
+    o = lumpy("Dough_Dough", 0.58, (1.0, 1.0, 0.5), 0.02, 2, (0, 0, 0.29), 4)
+    # flour dusting: thin patches hugging the top of the dome
+    rnd = random.Random(7)
+    dust = []
+    for _ in range(9):
+        a, r = rnd.uniform(0, math.tau), rnd.uniform(0, 0.35)
+        z = 0.29 + 0.29 * math.sqrt(max(0, 1 - (r / 0.58) ** 2)) - 0.004
+        d = sphere("d", rnd.uniform(0.06, 0.13), (math.cos(a) * r, math.sin(a) * r, z), (1, rnd.uniform(0.6, 1), 0.05), 20, 6)
+        dust.append(d)
+    join(dust, "Dough_Flour")
+
+
+TOPPINGS = ["Top_Pepperoni", "Top_Cucumber", "Top_Jalapeno", "Top_Tomato", "Top_Onion", "Top_Olive", "Top_Ham",
+            "Top_Pepper", "Top_Chicken", "Top_Mushroom", "Top_Beef", "Top_Shred", "Top_Leaf", "Top_Doner",
+            "Top_Chip", "Top_Drizzle", "Top_Cheese", "Dough"]
+
 PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
          "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
-         "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench"]
+         "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -796,7 +1120,18 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "Planter_Box": (0.66, 0.3, 0.21), "Planter_Rim": (0.59, 0.55, 0.51), "Planter_Soil": (0.3, 0.2, 0.13),
              "Planter_Shrub": (0.27, 0.59, 0.27), "Parasol_Pole": (0.78, 0.8, 0.82), "Parasol_Canopy": (0.81, 0.16, 0.16),
              "Parasol_Valance": (0.97, 0.96, 0.94), "Parasol_Finial": (0.78, 0.8, 0.82),
-             "Bench_Wood": (0.77, 0.55, 0.36), "Bench_Iron": (0.13, 0.13, 0.14)}
+             "Bench_Wood": (0.77, 0.55, 0.36), "Bench_Iron": (0.13, 0.13, 0.14),
+             "Top_Pepperoni_Main": (0.67, 0.14, 0.12), "Top_Pepperoni_Fat": (0.85, 0.45, 0.4),
+             "Top_Cucumber_Main": (0.75, 0.88, 0.6), "Top_Cucumber_Rim": (0.15, 0.4, 0.15), "Top_Cucumber_Inner": (0.9, 0.95, 0.8),
+             "Top_Jalapeno_Main": (0.2, 0.5, 0.15), "Top_Jalapeno_Inner": (0.75, 0.85, 0.55),
+             "Top_Tomato_Main": (0.85, 0.15, 0.12), "Top_Tomato_Gel": (0.95, 0.4, 0.3), "Top_Tomato_Seed": (0.98, 0.85, 0.5),
+             "Top_Onion_Main": (0.65, 0.35, 0.6), "Top_Olive_Main": (0.1, 0.09, 0.1), "Top_Ham_Main": (0.92, 0.58, 0.58),
+             "Top_Pepper_Main": (0.25, 0.6, 0.18), "Top_Chicken_Main": (0.9, 0.78, 0.58), "Top_Chicken_Sear": (0.7, 0.48, 0.25),
+             "Top_Mushroom_Main": (0.85, 0.77, 0.66), "Top_Mushroom_Gill": (0.55, 0.42, 0.3), "Top_Beef_Main": (0.42, 0.23, 0.15),
+             "Top_Shred_Main": (1.0, 0.67, 0.15), "Top_Leaf_Main": (0.45, 0.78, 0.27), "Top_Leaf_Vein": (0.75, 0.9, 0.55),
+             "Top_Doner_Main": (0.8, 0.55, 0.3), "Top_Doner_Sear": (0.5, 0.28, 0.12), "Top_Chip_Main": (0.98, 0.78, 0.3),
+             "Top_Drizzle_Main": (0.97, 0.96, 0.9), "Top_Cheese_Main": (1.0, 0.9, 0.6),
+             "Dough_Dough": (0.95, 0.88, 0.75), "Dough_Flour": (0.99, 0.97, 0.94)}
 
 
 def render_preview(prop):

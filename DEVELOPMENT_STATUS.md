@@ -46,7 +46,14 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - PizzaBox v2 uploaded (the logo ring was standing upright; now flat). The re-upload isn't re-checked in game yet.
 - **Pass 2 (Studio-verified 2026-11-05):** CounterModule + CounterTop (every kitchen counter is now tiled bevelled cabinet bays + a stretched worktop), dome Oven with arched brick mouth, glass-door Fridge/Freezer, layered MeatCone (still spins), ChipsBasket, Pitta, WrapRoll, KebabPaper. Screenshots checked for the ovens, kebab station, fridges, heat-shelf food and dining.
 - **Orientation fix:** the FBX import put prop fronts on -Z (X mirrored). MeshService now turns every template 180°, so Blender (x, y, z) -> Roblox (x, z, -y) and fronts face +Z. This also fixed dining chairs, which had been facing away from their tables.
-- Still procedural: fryer body, hood, the building shell, window frames, signs, toppings.
+- **Pass 3 + 4 (Studio-verified 2026-11-06, Account 1):** high-poly food and building props.
+  - `pp_props.py` has a quality factor (`PP_QUALITY`, default 2 = high-poly) applied to every primitive, plus organic helpers (noise `displace`, `lumpy`, curve `tube`, `outline`) and a 19k-triangle cap per part.
+  - **Pizza v2** (puffy cornicione, bubbly cheese) and **18 new food meshes**: one `Top_*` mesh per topping (cupped pepperoni with fat flecks, tomato slices with gel + seeds, mushroom slices, olive/onion rings, ham, pepper strips, grilled chicken, beef crumble, cheddar/cabbage shreds, lettuce, doner strips, chips, sauce drizzle, cheese) and a floured **Dough** ball.
+  - `FoodVisuals.scatter` maps each ingredient to its `Top_*` mesh (`TOPPING_MESH`), with random yaw, tilt and ±10% size, and derives every role colour from the ingredient colour. Procedural parts remain the fallback.
+  - Building props are wired in: storefront Awning (11 curved bays), DoorLeaf ×2, WallLamp ×4 (lights on the glow part), kitchen Hood over the ovens, patio Parasols, Bench, Planters and StreetLamps (arm over the road on both curbs).
+  - `MeshLib.role` now takes the text after the **last** underscore, so prop names may contain underscores (`Top_Pepperoni_Fat` → `Fat`).
+  - Verified with screenshots: storefront, three topped pizzas and the dough, the hood over the ovens. All 44 meshes load (about 25 s at server start in Studio).
+- Still procedural: fryer body, the building shell walls, window frames, signs.
 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
@@ -68,7 +75,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
-- 18 Blender props are in. The building shell, signs, hood and toppings are still procedural (TASKS #5).
+- 44 Blender meshes are in. The building walls, window frames and signs are still procedural (TASKS #5). MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
 - No staff or delivery orders yet (see TASKS.md). The day/shift cycle is merged; menu mastery is on `a2/menu-mastery` (PR #3), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)
