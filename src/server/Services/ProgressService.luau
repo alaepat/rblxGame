@@ -120,7 +120,8 @@ function ProgressService.addXP(player: Player, amount: number)
 		profile.xp -= Levels.xpToNext(profile.level)
 		profile.level += 1
 		local reward = Levels.reward(profile.level)
-		profile.money += reward
+		-- through addMoney so it's rounded and counted in stats.earned
+		ProgressService.addMoney(player, reward, "level")
 		local unlocks = Levels.unlocksAt(profile.level)
 		profile.unlockedRecipes = FoodLogic.unlockedRecipes(profile.level, profile.upgrades)
 		levelUpEvent:FireClient(player, {

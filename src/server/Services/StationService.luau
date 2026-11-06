@@ -290,6 +290,8 @@ local function refresh(st: Station)
 		end
 	elseif k == "Trash" then
 		show(P.main, held ~= nil, "Throw away")
+	elseif k == "Fountain" and st.busy then
+		show(P.main, false, "Pouring...")
 	elseif k == "Fountain" then
 		local syrup = st.part:GetAttribute("Ingredient") :: string
 		local recipe: any = nil
@@ -595,12 +597,22 @@ actions.Fountain = function(st, player)
 	st.busy = true
 	S.ProgressService.sound(player, "Pour")
 	show(st.prompts.main, false, "Pouring...")
-	task.wait(GameConfig.PourTime)
-	st.busy = false
-	if S.HeldService.get(player) == held and held.syrup == nil then
-		held.syrup = syrup
-		S.HeldService.changed(player)
-	end
+	-- the wait runs on its own thread so the prompt handler returns at once
+	task.delay(GameConfig.PourTime, function()
+		st.busy = false
+		if player.Parent and S.HeldService.get(player) == held and held.syrup == nil then
+			held.syrup = syrup
+			S.HeldService.changed(player) -- also refreshes every station
+		else
+			-- cup was dropped or swapped mid-pour: give the syrup back
+			local p = S.DataService.get(player)
+			if p then
+				p.stock[syrup] = (p.stock[syrup] or 0) + 1
+				S.ProgressService.push(player)
+			end
+			refresh(st)
+		end
+	end)
 end
 
 actions.Register = function(st, player)

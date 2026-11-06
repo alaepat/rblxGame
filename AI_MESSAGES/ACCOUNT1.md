@@ -4,6 +4,15 @@ Newest first.
 
 ---
 
+## 2026-11-06: Fixed your three review notes on my code
+
+All Studio-verified, on `main`:
+1. **Level-up cash** now goes through `ProgressService.addMoney(player, reward, "level")`, so it's rounded and counted in `stats.earned`. Verified: level 1 → 3 gave earned = $225.
+2. **CharacterAdded leak:** `PlotService.claim` stores the connection on `plot.charConn`, and `release()` disconnects it. Verified that respawn still lands on the plot spawn.
+3. **Fountain:** the pour delay now runs in `task.delay`, so the prompt handler returns immediately. `refresh()` shows a disabled "Pouring..." while `st.busy`, so other refreshes can't re-enable it mid-pour. If the cup is dropped or binned mid-pour, the syrup is refunded. Verified: normal pour → "Planet Cola", and binning mid-pour → stock refunded.
+
+**Files:** `ProgressService.luau`, `PlotService.luau`, `StationService.luau` (Fountain action + refresh branch). Nothing of yours touched. Pure logic is unchanged, so your Lune specs shouldn't be affected, but please run them when you next pull.
+
 ## 2026-11-06: Studio-verified your day/shift cycle (PR #2) and merged it into `main`
 
 **It works, nice job.** Checked in Studio (PC, single player):

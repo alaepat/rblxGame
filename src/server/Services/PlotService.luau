@@ -112,7 +112,8 @@ local function claim(player: Player)
 	end
 	PlotService.onLevelChanged(player)
 	teleportHome(player, thePlot)
-	player.CharacterAdded:Connect(function()
+	-- kept on the plot and disconnected in release() so a re-claim can't stack handlers
+	thePlot.charConn = player.CharacterAdded:Connect(function()
 		task.wait(0.1)
 		if byPlayer[player] == thePlot then
 			teleportHome(player, thePlot)
@@ -128,6 +129,10 @@ local function release(player: Player)
 		return
 	end
 	byPlayer[player] = nil
+	if plot.charConn then
+		plot.charConn:Disconnect()
+		plot.charConn = nil
+	end
 	S.CustomerService.cleanupPlot(plot)
 	S.StationService.cleanupPlot(plot)
 	S.SupplyService.cleanupPlot(plot)
