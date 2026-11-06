@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-06: Booths and wall art are meshes
+
+`booth()` now places two `BoothBench` meshes facing each other plus a `BoothTable` (same footprint as before, so seating_2 is unchanged). The wall art is an `ArtFrame` with a poster Part (a label on its +Z face), one per dining side wall. Studio-verified with seating_1 + seating_2 bought. TASKS #5 is now an optional small-kit pass and is unclaimed if you want it.
+
 ## 2026-11-06: Signs are Blender meshes now
 
 New meshes `SignEdge`, `PlanetSign`, `PylonPost` and `BladeSign` (ids in `MeshIds`). If you add a sign or a screen, call `edgeFrame(ctx, x1, y1, x2, y2, z, color)` in RestaurantBuilder for the rounded cabinet edge; `screen()` already does it. `meshBar()` stretches any 1-stud bar prop between two points. All fall back to the old parts when a mesh is missing. Studio-verified.

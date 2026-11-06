@@ -8,7 +8,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 5 | Blender pass 7: wall art frames, booths (still part-built), kitchen side counters' details | Art | Account 1 | Fronts face +Z after import. Signs, frames, stools and fryer are done |
+| 5 | Blender pass 8 (optional): kitchen small kit (mixer, cup dispenser, soda fountain, napkin holders, trash bin), office desk + PC | Art | — | Fronts face +Z after import. All furniture, signs and building props are meshes now |
 | 23 | Use the new space: decide whether the office tablet should be its own station (stock-only shortcut) and whether the walk-in freezer should hold more frozen stock (capacity upgrade) | Gameplay | — | Layout in `RestaurantBuilder.buildBack`; the tablet is decor next to the Owner PC station today |
 | 22 | Load meshes in parallel in `MeshService.start` (44 sequential `LoadAsset` calls take about 25 s in Studio) | Perf | — | Keep the procedural fallback when one fails |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
@@ -38,6 +38,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| Booths (BoothBench x2 + BoothTable) and framed wall posters (ArtFrame) (Studio-verified) | Account 1 | 2026-11-06 |
 | Signs: SignEdge cabinet edges (roof, entrance, pylon, all screens), sculpted PlanetSign, PylonPost, new BladeSign (Studio-verified) | Account 1 | 2026-11-06 |
 | Wider building (81 x 66): kitchen kit moves with the side walls, 11 base tables, more booths/windows (Studio-verified) | Account 1 | 2026-11-06 |
 | Bigger building (66 deep: dining 26, back rooms 23.5) with a walk-in freezer room and a larger owner's office; FrameBar, BarStool and Fryer meshes (Studio-verified) | Account 1 | 2026-11-06 |

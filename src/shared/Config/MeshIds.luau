@@ -70,4 +70,8 @@ return {
 	PlanetSign = { assetId = 121539226830507, size = Vector3.new(10.196, 8.198, 9.359) },
 	PylonPost = { assetId = 113965566462255, size = Vector3.new(2.6, 13.2, 2.6) },
 	BladeSign = { assetId = 71299373736337, size = Vector3.new(0.5, 3.12, 2.99), center = Vector3.new(0, 0, 1.375) },
+	-- batch 7: booths + wall art
+	BoothBench = { assetId = 90471811687671, size = Vector3.new(5.3, 4.69, 1.915), center = Vector3.new(0, 0, -0.118) },
+	BoothTable = { assetId = 86428205585235, size = Vector3.new(4.86, 3.1, 2.86) },
+	ArtFrame = { assetId = 99521091456533, size = Vector3.new(4.4, 3.6, 0.24) },
 } :: { [string]: MeshInfo }

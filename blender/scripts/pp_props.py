@@ -1015,6 +1015,60 @@ def build_BladeSign():
     rot_apply(torus("BladeSign_Rim", 1.3, 0.07, (0, -1.5, -0.95), 64, 10), 0, math.radians(90), 0)
 
 
+# ---- batch 7: booths + wall art
+
+def build_BoothBench():
+    # One side of a diner booth, 5.2 wide. Front (seat edge) = -Y; the game
+    # places two facing each other with a BoothTable between.
+    W = 5.2
+    shell = [rounded_box("base", W, 1.7, 1.55, 0.06, 4, (0, 0.05, 0.775)),
+             rounded_box("shell", W, 0.28, 3.0, 0.08, 4, (0, 0.82, 3.0))]
+    kick = rounded_box("kick", W - 0.3, 0.2, 0.3, 0.04, 2, (0, -0.72, 0.15))
+    join(shell, "BoothBench_Wood")
+    name(kick, "BoothBench_Kick")
+    seat = rounded_box("BoothBench_Seat", W - 0.2, 1.6, 0.46, 0.17, 6, (0, -0.02, 1.78))
+    for v in seat.data.vertices:  # soft crown on the cushion
+        if v.co.z > 1.9:
+            v.co.z += 0.05 * max(0.0, 1 - (v.co.x / (W / 2)) ** 2) * max(0.0, 1 - (v.co.y / 0.8) ** 2)
+    chans = []
+    n = 6
+    cw = (W - 0.3) / n
+    for i in range(n):
+        x = -W / 2 + 0.15 + cw * (i + 0.5)
+        c = rounded_box("ch", cw - 0.06, 0.36, 2.55, 0.15, 6, (x, 0.55, 3.25))
+        for v in c.data.vertices:  # puffed channel front
+            if v.co.y < 0.5:
+                v.co.y -= 0.06 * max(0.0, 1 - ((v.co.z - 3.25) / 1.3) ** 2)
+        chans.append(c)
+    back = join(chans, "BoothBench_Back")
+    rot_apply(back, math.radians(-7), 0, 0)
+    rounded_box("BoothBench_Cap", W + 0.1, 0.55, 0.18, 0.07, 4, (0, 0.8, 4.6))
+    tube("BoothBench_Piping", [(-W / 2 + 0.12, -0.8, 1.98), (0, -0.81, 1.99), (W / 2 - 0.12, -0.8, 1.98)], 0.035, 3)
+
+
+def build_BoothTable():
+    # Booth table: laminate top with a chrome edge band, pedestal + round foot.
+    top = outline("BoothTable_Top", rounded_rect(4.8, 2.8, 0.35, qv(6, 10)), 0.16, 2.94, 0.04)
+    outline("BoothTable_Edge", rounded_rect(4.86, 2.86, 0.38, qv(6, 10)), 0.09, 2.88, 0.02)
+    base = [cylinder("col", 0.17, 2.7, (0, 0, 1.45), 32),
+            lathe("foot", [(0.0, 0.0), (0.85, 0.0), (0.88, 0.04), (0.8, 0.1), (0.3, 0.18), (0.22, 0.24), (0.0, 0.24)], 48),
+            rounded_box("spider", 1.4, 0.9, 0.08, 0.03, 2, (0, 0, 2.84))]
+    join(base, "BoothTable_Base")
+
+
+def build_ArtFrame():
+    # Moulded picture frame, 4.4 wide x 3.6 tall, 0.24 deep; gold inner lip
+    # and a cream mat board. The poster itself is a Part added in game.
+    # Built standing in the XZ plane, front = -Y.
+    def ring(w, h, d, y, inner_w, inner_h, r):
+        o = rounded_box("f", w, d, h, r, 4, (0, y, 1.8))
+        cut = rounded_box("cut", inner_w, d + 0.4, inner_h, 0.02, 2, (0, y, 1.8))
+        return boolean_diff(o, cut)
+    name(ring(4.4, 3.6, 0.24, 0.0, 3.7, 2.9, 0.06), "ArtFrame_Frame")
+    name(ring(3.78, 2.98, 0.1, -0.06, 3.56, 2.76, 0.03), "ArtFrame_Lip")
+    rounded_box("ArtFrame_Mat", 3.72, 0.04, 2.92, 0.01, 2, (0, 0.08, 1.8))
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1293,7 +1347,8 @@ TOPPINGS = ["Top_Pepperoni", "Top_Cucumber", "Top_Jalapeno", "Top_Tomato", "Top_
 PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
          "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
          "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench",
-         "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign"] + TOPPINGS
+         "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign",
+         "BoothBench", "BoothTable", "ArtFrame"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1351,7 +1406,11 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "SignEdge_Edge": (1.0, 0.77, 0.16), "PlanetSign_Planet": (0.84, 0.16, 0.16), "PlanetSign_Crater": (0.55, 0.08, 0.08),
              "PlanetSign_Ring": (1.0, 0.77, 0.16), "PlanetSign_Band": (1.0, 0.55, 0.1), "PlanetSign_Mount": (0.13, 0.13, 0.14),
              "PylonPost_Post": (0.3, 0.32, 0.35), "PylonPost_Base": (0.6, 0.6, 0.62), "BladeSign_Iron": (0.13, 0.13, 0.14),
-             "BladeSign_Rim": (1.0, 0.77, 0.16)}
+             "BladeSign_Rim": (1.0, 0.77, 0.16), "BoothBench_Wood": (0.43, 0.28, 0.19), "BoothBench_Kick": (0.13, 0.13, 0.14),
+             "BoothBench_Seat": (0.81, 0.16, 0.16), "BoothBench_Back": (0.81, 0.16, 0.16), "BoothBench_Cap": (0.43, 0.28, 0.19),
+             "BoothBench_Piping": (0.95, 0.92, 0.85), "BoothTable_Top": (0.77, 0.55, 0.36), "BoothTable_Edge": (0.85, 0.87, 0.89),
+             "BoothTable_Base": (0.13, 0.13, 0.14), "ArtFrame_Frame": (0.13, 0.13, 0.14), "ArtFrame_Lip": (1.0, 0.77, 0.16),
+             "ArtFrame_Mat": (0.98, 0.95, 0.88)}
 
 
 def render_preview(prop):

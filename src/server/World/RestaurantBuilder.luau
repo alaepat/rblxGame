@@ -160,6 +160,20 @@ end
 local function booth(c: Ctx, name: string, x: number, z: number, yaw: number)
 	local s = B.sub(c, x, z, yaw)
 	local m = B.model(s, name)
+	if MeshLib.has("BoothBench") and MeshLib.has("BoothTable") then
+		-- two channel-tufted benches facing each other across a pedestal table
+		for _, side in { -1, 1 } do
+			local cf = m.origin * CFrame.new(0, 0, side * 2.6) * CFrame.Angles(0, if side > 0 then math.pi else 0, 0)
+			MeshLib.place(m.parent, "BoothBench", cf, {
+				Wood = C.WOOD_DARK, Kick = C.BLACK, Seat = C.RED, Back = C.RED, Cap = C.WOOD_DARK, Piping = C.CREAM,
+			}, { collide = true, materials = { Wood = M.Wood, Kick = M.Metal, Seat = M.Leather, Back = M.Leather, Cap = M.Wood, Piping = M.SmoothPlastic } })
+		end
+		MeshLib.place(m.parent, "BoothTable", m.origin, { Top = C.WOOD, Edge = C.STEEL, Base = C.BLACK },
+			{ collide = true, materials = { Top = M.Wood, Edge = M.Metal, Base = M.Metal } })
+		B.box(m, "Napkins", -0.3, 3.1, -0.15, 0.3, 3.55, 0.15, C.STEEL, M.Metal)
+		B.cyl(m, "Chilli", 0.25, 0.5, 0.55, 3.1, 0.1, C.RED)
+		return
+	end
 	local leather = C.RED
 	for _, side in { -1, 1 } do
 		local zz = side * 2.6
@@ -1120,10 +1134,22 @@ local function buildFront(c: Ctx)
 		end
 	end
 	-- Wall art (framed pizza posters)
-	local art = { { IE - 0.15, 6.5, 21, "🍕\nSLICE OF\nTHE GALAXY" } }
+	local art = {
+		{ IE, 21, -math.pi / 2, "🍕\nSLICE OF\nTHE GALAXY", C.RED },
+		{ IW, 21, math.pi / 2, "🥙\nKEBAB\nORBIT", Color3.fromRGB(230, 120, 30) },
+	}
 	for _, a in art do
-		local frame = B.box(dining, "ArtFrame", a[1] - 0.05, a[2], a[3] - 2.2, a[1] + 0.15, a[2] + 3.6, a[3] + 2.2, C.BLACK)
-		frame.CanQuery = false
+		if MeshLib.has("ArtFrame") then
+			-- moulded frame on the wall facing into the room, with a printed poster inside
+			local rel = CFrame.new(a[1], 6.5, a[2]) * CFrame.Angles(0, a[3], 0) * CFrame.new(0, 0, 0.13)
+			MeshLib.place(dining.parent, "ArtFrame", dining.origin * rel, { Frame = C.BLACK, Lip = C.YELLOW, Mat = C.CREAM },
+				{ materials = { Frame = M.Wood, Lip = M.Metal, Mat = M.SmoothPlastic } })
+			local poster = B.part(dining, "Poster", Vector3.new(3.4, 2.6, 0.04), rel * CFrame.new(0, 1.8, 0), a[5], M.SmoothPlastic, { CanCollide = false, CanQuery = false })
+			B.label(poster, Enum.NormalId.Back, a[4], { color = C.WHITE, bg = a[5], font = Enum.Font.FredokaOne, pad = 14, ppu = 50 })
+		elseif a[1] > 0 then
+			local frame = B.box(dining, "ArtFrame", a[1] - 0.2, 6.5, a[2] - 2.2, a[1], 10.1, a[2] + 2.2, C.BLACK)
+			frame.CanQuery = false
+		end
 	end
 	-- Decor upgrades
 	local plants = B.model(c, "DecorPlants")
