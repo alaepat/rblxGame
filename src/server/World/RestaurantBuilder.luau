@@ -9,7 +9,7 @@
 --   Z  -8 ├───────┬──────────────┬────────────┬───┤
 --         │ Storage + walk-in freezer │ Owner office │ Staff room │
 --   Z -32 └─ back door ───────────────────────────┘   ZB = -22 - BackExtra
---        X -30                                  X 30
+--        X -40                                  X 40   XW/XE = ±(30 + SideExtra)
 --
 -- Interactive parts carry a `Station` attribute (see StationService).
 -- Upgrade content carries `UpgradeId`; placeholders carry `HideWhen`.
@@ -35,6 +35,12 @@ local DF: number = GameConfig.FrontExtra
 local DB: number = GameConfig.BackExtra
 local ZF = 22 + DF -- front wall line
 local ZB = -22 - DB -- back wall line
+-- Width: each side wall moves out by DW. West-wall kitchen kit (ovens, hood,
+-- dough fridge) and east-wall kit (kebab station, spits, fryer) move with it.
+local DW: number = GameConfig.SideExtra
+local XW = -30 - DW -- west wall line
+local XE = 30 + DW -- east wall line
+local IW, IE = XW + 0.5, XE - 0.5 -- inner faces
 
 ------------------------------------------------------------------ props
 
@@ -234,17 +240,17 @@ local function windowFrames(s: Ctx, sf: Ctx, sb: Ctx, winW: { { number } }, winB
 		return
 	end
 	-- storefront: black aluminium, matching the door frames
-	for _, g in { { -28, -17.2 }, { -16.4, -5.6 }, { -4.8, 12 }, { 22.5, 28.5 } } do
-		local yb = if g[1] == 22.5 then 2.6 else 1.4
+	for _, g in { { XW + 2, -29.2 }, { -28, -17.2 }, { -16.4, -5.6 }, { -4.8, 12 }, { 22.5, 28.5 }, { 29.7, XE - 2 } } do
+		local yb = if g[1] >= 22.5 then 2.6 else 1.4
 		frameOpening(sf, g[1], g[2], yb, 10, 22, false, 0, C.BLACK)
 	end
 	-- side + back windows: white frames with a centre mullion
 	for _, w in winW do
-		frameOpening(s, w[1], w[2], w[4], w[3], -30, true, -math.pi / 2, C.WHITE)
-		frameBar(s, Vector3.new(-30, w[4] + FRAME_H, (w[1] + w[2]) / 2), Vector3.new(-30, w[3] - FRAME_H, (w[1] + w[2]) / 2), -math.pi / 2, C.WHITE)
+		frameOpening(s, w[1], w[2], w[4], w[3], XW, true, -math.pi / 2, C.WHITE)
+		frameBar(s, Vector3.new(XW, w[4] + FRAME_H, (w[1] + w[2]) / 2), Vector3.new(XW, w[3] - FRAME_H, (w[1] + w[2]) / 2), -math.pi / 2, C.WHITE)
 	end
-	frameOpening(s, winBackW[1], winBackW[2], winBackW[4], winBackW[3], -30, true, -math.pi / 2, C.WHITE)
-	frameOpening(s, winBackE[1], winBackE[2], winBackE[4], winBackE[3], 30, true, math.pi / 2, C.WHITE)
+	frameOpening(s, winBackW[1], winBackW[2], winBackW[4], winBackW[3], XW, true, -math.pi / 2, C.WHITE)
+	frameOpening(s, winBackE[1], winBackE[2], winBackE[4], winBackE[3], XE, true, math.pi / 2, C.WHITE)
 	for _, w in { { 1.5, 8.5 }, { 17, 25 } } do
 		frameOpening(sb, w[1], w[2], 4, 9, -22, false, math.pi, C.WHITE)
 	end
@@ -260,13 +266,14 @@ local function buildShell(c: Ctx)
 	local winW = { { 10, 18, 10, 2 }, { 24, 32, 10, 2 } } -- dining side windows (z1, z2, top, bottom)
 	local winBackW = { -30, -25, 9, 4 } -- storage room side window (clear of shelving)
 	local winBackE = { -22, -14, 9, 4 } -- staff room side window
+	local swk = B.sub(s, -DW, 0, 0) -- west-wall kitchen kit (hood, chimney)
 	-- Foundation + floors
-	B.box(s, "Foundation", -31, -1.2, ZB - 1, 31, -0.2, ZF + 1, C.STONE, M.Concrete)
-	B.box(s, "KitchenFloor", -29.5, -0.2, -8, 29.5, 0, 6, C.TILE_FLOOR, M.CeramicTiles)
-	B.box(s, "DiningFloor", -29.5, -0.2, 6, 29.5, 0, ZF - 0.5, C.WOOD_FLOOR, M.WoodPlanks)
-	B.box(s, "StorageFloor", -29.5, -0.2, ZB + 0.5, -2, 0, -8, C.CONCRETE, M.Concrete)
+	B.box(s, "Foundation", XW - 1, -1.2, ZB - 1, XE + 1, -0.2, ZF + 1, C.STONE, M.Concrete)
+	B.box(s, "KitchenFloor", IW, -0.2, -8, IE, 0, 6, C.TILE_FLOOR, M.CeramicTiles)
+	B.box(s, "DiningFloor", IW, -0.2, 6, IE, 0, ZF - 0.5, C.WOOD_FLOOR, M.WoodPlanks)
+	B.box(s, "StorageFloor", IW, -0.2, ZB + 0.5, -2, 0, -8, C.CONCRETE, M.Concrete)
 	B.box(s, "OfficeFloor", -2, -0.2, ZB + 0.5, 12, 0, -8, Color3.fromRGB(96, 108, 130), M.Carpet)
-	B.box(s, "StaffFloor", 12, -0.2, ZB + 0.5, 29.5, 0, -8, C.WOOD_FLOOR:Lerp(C.WHITE, 0.15), M.WoodPlanks)
+	B.box(s, "StaffFloor", 12, -0.2, ZB + 0.5, IE, 0, -8, C.WOOD_FLOOR:Lerp(C.WHITE, 0.15), M.WoodPlanks)
 	-- Floor drains (kitchen detail)
 	for _, x in { -14, 10 } do
 		B.box(s, "Drain", x - 0.6, 0, 1.4, x + 0.6, 0.02, 2.6, C.STEEL_DARK, M.DiamondPlate)
@@ -280,57 +287,59 @@ local function buildShell(c: Ctx)
 	-- Front (street) wall
 	local frontOpenings = function()
 		return {
+			{ XW + 2, -29.2, 10, 1.4 },
 			{ -28, -17.2, 10, 1.4 },
 			{ -16.4, -5.6, 10, 1.4 },
 			{ -4.8, 12, 10, 1.4 },
 			{ 13.5, 20.5, 8.6 },
 			{ 22.5, 28.5, 10, 2.6 },
+			{ 29.7, XE - 2, 10, 2.6 },
 		}
 	end
 	exterior("Front", function(y1, y2, col, mat)
-		B.wallX(sf, "FrontWall", 22, -30.5, 30.5, y1, y2, 1, col, mat, if y1 == 0 then frontOpenings() else nil)
+		B.wallX(sf, "FrontWall", 22, XW - 0.5, XE + 0.5, y1, y2, 1, col, mat, if y1 == 0 then frontOpenings() else nil)
 	end)
 	-- Back wall (back door + windows)
 	exterior("Back", function(y1, y2, col, mat)
-		B.wallX(sb, "BackWall", -22, -30.5, 30.5, y1, y2, 1, col, mat, if y1 == 0 then { { -27, -22, 8.4 }, { 1.5, 8.5, 9, 4 }, { 17, 25, 9, 4 } } else nil)
+		B.wallX(sb, "BackWall", -22, XW - 0.5, XE + 0.5, y1, y2, 1, col, mat, if y1 == 0 then { { -27, -22, 8.4 }, { 1.5, 8.5, 9, 4 }, { 17, 25, 9, 4 } } else nil)
 	end)
 	-- West wall x = -30
 	exterior("West", function(y1, y2, col, mat)
-		B.wallZ(s, "WestWall", -30, ZB + 0.5, ZF - 0.5, y1, y2, 1, col, mat, if y1 == 0 then { winW[1], winW[2], winBackW } else nil)
+		B.wallZ(s, "WestWall", XW, ZB + 0.5, ZF - 0.5, y1, y2, 1, col, mat, if y1 == 0 then { winW[1], winW[2], winBackW } else nil)
 	end)
 	-- East wall x = 30 (dining part is a separate model for the extension upgrade)
 	exterior("East", function(y1, y2, col, mat)
-		B.wallZ(s, "EastWall", 30, ZB + 0.5, 7, y1, y2, 1, col, mat, if y1 == 0 then { winBackE } else nil)
+		B.wallZ(s, "EastWall", XE, ZB + 0.5, 7, y1, y2, 1, col, mat, if y1 == 0 then { winBackE } else nil)
 	end)
 	local eastDining = B.model(s, "EastDiningWall")
 	eastDining.parent:SetAttribute("HideWhen", "expansion_1")
 	exterior("EastD", function(y1, y2, col, mat)
-		B.wallZ(eastDining, "EastWall", 30, 7, ZF - 0.5, y1, y2, 1, col, mat, if y1 == 0 then { winW[1], winW[2] } else nil)
+		B.wallZ(eastDining, "EastWall", XE, 7, ZF - 0.5, y1, y2, 1, col, mat, if y1 == 0 then { winW[1], winW[2] } else nil)
 	end)
 	for _, w in winW do
-		B.box(eastDining, "Glass", 29.9, w[4], w[1], 30.1, w[3], w[2], C.GLASS, M.Glass, { Transparency = 0.65, CastShadow = false })
-		B.box(eastDining, "Mullion", 29.8, w[4], (w[1] + w[2]) / 2 - 0.1, 30.2, w[3], (w[1] + w[2]) / 2 + 0.1, C.BLACK, M.Metal)
+		B.box(eastDining, "Glass", XE - 0.1, w[4], w[1], XE + 0.1, w[3], w[2], C.GLASS, M.Glass, { Transparency = 0.65, CastShadow = false })
+		B.box(eastDining, "Mullion", XE - 0.2, w[4], (w[1] + w[2]) / 2 - 0.1, XE + 0.2, w[3], (w[1] + w[2]) / 2 + 0.1, C.BLACK, M.Metal)
 	end
-	B.wallZ(eastDining, "InEastDining", 29.42, 6, ZF - 0.6, 3.6, 13, 0.1, Color3.fromRGB(246, 232, 204), M.Plaster, { winW[1], winW[2] })
+	B.wallZ(eastDining, "InEastDining", IE - 0.08, 6, ZF - 0.6, 3.6, 13, 0.1, Color3.fromRGB(246, 232, 204), M.Plaster, { winW[1], winW[2] })
 
 	-- Corner piers, base plinth and cornice
-	for _, x in { -30.5, 30.5 } do
+	for _, x in { XW - 0.5, XE + 0.5 } do
 		for _, z in { ZB - 0.5, ZF + 0.5 } do
 			B.box(s, "Pier", x - 0.7, 0, z - 0.7, x + 0.7, 14.6, z + 0.7, C.CREAM, M.Plaster)
 		end
 	end
-	B.box(sf, "PlinthF", -31, 0, 22.4, 31, 1.4, 22.8, C.STONE, M.Slate)
-	B.box(sb, "PlinthB", -31, 0, -22.8, 31, 1.4, -22.4, C.STONE, M.Slate)
-	B.box(sf, "CorniceF", -31.2, 14, 22.3, 31.2, 14.7, 23.1, C.WHITE, M.Plaster)
-	B.box(sb, "CorniceB", -31.2, 14, -23.1, 31.2, 14.7, -22.3, C.WHITE, M.Plaster)
-	B.box(s, "CorniceW", -31.1, 14, ZB - 1.1, -30.3, 14.7, ZF + 1.1, C.WHITE, M.Plaster)
-	B.box(s, "CorniceE", 30.3, 14, ZB - 1.1, 31.1, 14.7, ZF + 1.1, C.WHITE, M.Plaster)
-	B.box(sf, "StripeF", -31, 10.8, 22.45, 31, 11.2, 22.65, C.RED, M.SmoothPlastic)
+	B.box(sf, "PlinthF", XW - 1, 0, 22.4, XE + 1, 1.4, 22.8, C.STONE, M.Slate)
+	B.box(sb, "PlinthB", XW - 1, 0, -22.8, XE + 1, 1.4, -22.4, C.STONE, M.Slate)
+	B.box(sf, "CorniceF", XW - 1.2, 14, 22.3, XE + 1.2, 14.7, 23.1, C.WHITE, M.Plaster)
+	B.box(sb, "CorniceB", XW - 1.2, 14, -23.1, XE + 1.2, 14.7, -22.3, C.WHITE, M.Plaster)
+	B.box(s, "CorniceW", XW - 1.1, 14, ZB - 1.1, XW - 0.3, 14.7, ZF + 1.1, C.WHITE, M.Plaster)
+	B.box(s, "CorniceE", XE + 0.3, 14, ZB - 1.1, XE + 1.1, 14.7, ZF + 1.1, C.WHITE, M.Plaster)
+	B.box(sf, "StripeF", XW - 1, 10.8, 22.45, XE + 1, 11.2, 22.65, C.RED, M.SmoothPlastic)
 
 	-- Storefront glass + mullions
-	local glass = { { -28, -17.2 }, { -16.4, -5.6 }, { -4.8, 12 }, { 22.5, 28.5 } }
+	local glass = { { XW + 2, -29.2 }, { -28, -17.2 }, { -16.4, -5.6 }, { -4.8, 12 }, { 22.5, 28.5 }, { 29.7, XE - 2 } }
 	for _, g in glass do
-		local yb = if g[1] == 22.5 then 2.6 else 1.4
+		local yb = if g[1] >= 22.5 then 2.6 else 1.4
 		B.box(sf, "Glass", g[1], yb, 21.9, g[2], 10, 22.1, C.GLASS, M.Glass, { Transparency = 0.65, CastShadow = false })
 		B.box(sf, "SillOut", g[1] - 0.2, yb - 0.2, 21.6, g[2] + 0.2, yb, 22.9, C.WHITE, M.Plaster)
 		local n = math.max(1, math.floor((g[2] - g[1]) / 4))
@@ -341,7 +350,7 @@ local function buildShell(c: Ctx)
 		B.box(sf, "Transom", g[1], 7.4, 21.85, g[2], 7.6, 22.2, C.BLACK, M.Metal)
 	end
 	-- Side windows (west dining + both back rooms)
-	for _, w in { { -30, winW[1] }, { -30, winW[2] }, { -30, winBackW }, { 30, winBackE } } do
+	for _, w in { { XW, winW[1] }, { XW, winW[2] }, { XW, winBackW }, { XE, winBackE } } do
 		local o = w[2]
 		B.box(s, "Glass", w[1] - 0.1, o[4], o[1], w[1] + 0.1, o[3], o[2], C.GLASS, M.Glass, { Transparency = 0.65, CastShadow = false })
 	end
@@ -392,18 +401,18 @@ local function buildShell(c: Ctx)
 	B.label(exit, Enum.NormalId.Back, "EXIT", { color = C.WHITE, font = Enum.Font.GothamBlack })
 
 	-- Ceiling + roof
-	B.box(s, "Ceiling", -29.5, 13, ZB + 0.5, 29.5, 13.4, ZF - 0.5, Color3.fromRGB(236, 234, 230), M.SmoothPlastic)
-	B.box(s, "Roof", -30.5, 13.4, ZB - 0.5, 30.5, 14.2, ZF + 0.5, C.DARK, M.Asphalt)
-	B.box(sf, "Parapet", -31, 14.2, 22.1, 31, 16.2, 22.9, C.CREAM, M.Plaster)
-	B.box(sf, "ParapetCap", -31.2, 16.2, 21.9, 31.2, 16.5, 23.1, C.WHITE, M.Plaster)
+	B.box(s, "Ceiling", IW, 13, ZB + 0.5, IE, 13.4, ZF - 0.5, Color3.fromRGB(236, 234, 230), M.SmoothPlastic)
+	B.box(s, "Roof", XW - 0.5, 13.4, ZB - 0.5, XE + 0.5, 14.2, ZF + 0.5, C.DARK, M.Asphalt)
+	B.box(sf, "Parapet", XW - 1, 14.2, 22.1, XE + 1, 16.2, 22.9, C.CREAM, M.Plaster)
+	B.box(sf, "ParapetCap", XW - 1.2, 16.2, 21.9, XE + 1.2, 16.5, 23.1, C.WHITE, M.Plaster)
 	B.box(s, "HVAC", -12, 14.2, -16, -4, 17, -10, C.STEEL, M.Metal)
 	B.box(s, "HVACGrill", -11.6, 15, -16.1, -4.4, 16.6, -15.95, C.STEEL_DARK, M.DiamondPlate)
-	B.cyl(s, "OvenChimney", 1.6, 5, -27, 14.2, -4.5, C.STEEL_DARK, M.Metal)
+	B.cyl(swk, "OvenChimney", 1.6, 5, -27, 14.2, -4.5, C.STEEL_DARK, M.Metal)
 
 	-- Awning over the storefront (red/white stripes)
 	local aw = B.model(sf, "Awning")
-	local stripes = 22
-	local x1, x2 = -29, 12.5
+	local stripes = 2 * math.floor((12.5 - (XW + 1)) / 3.8 + 0.5)
+	local x1, x2 = XW + 1, 12.5
 	local sw = (x2 - x1) / stripes
 	if MeshLib.has("Awning") then
 		-- curved fabric bays (one red + one white stripe each) with a scalloped valance
@@ -441,7 +450,7 @@ local function buildShell(c: Ctx)
 	local namePanel = B.box(sf, "DoorSign", 13.4, 9.0, 22.55, 20.6, 10.6, 22.75, C.YELLOW)
 	B.label(namePanel, Enum.NormalId.Back, "ENTRANCE", { color = C.RED_DARK, font = Enum.Font.GothamBlack, pad = 6 })
 	-- Wall lanterns
-	for _, x in { -29.5, 12.8, 21.2, 29.5 } do
+	for _, x in { XW + 0.5, 12.8, 21.2, 29.2, XE - 0.5 } do
 		if MeshLib.has("WallLamp") then
 			local parts = MeshLib.place(s.parent, "WallLamp", sf.origin * CFrame.new(x, 8.7, 22.6), {
 				Metal = C.BLACK, Cap = C.BLACK, Cage = C.BLACK, Glow = Color3.fromRGB(255, 214, 140),
@@ -458,35 +467,37 @@ local function buildShell(c: Ctx)
 
 	-- Interior partitions
 	local inner = Color3.fromRGB(236, 232, 224)
-	B.wallX(s, "Partition", -8, -29.5, 29.5, 0, 13, 0.6, inner, M.Plaster, { { -5.6, -2.4, 8.4 }, { 1.5, 6.5, 8.4 }, { 13, 17, 8.4 } })
+	B.wallX(s, "Partition", -8, IW, IE, 0, 13, 0.6, inner, M.Plaster, { { -5.6, -2.4, 8.4 }, { 1.5, 6.5, 8.4 }, { 13, 17, 8.4 } })
 	B.wallZ(s, "Partition", -2, ZB + 0.5, -8.3, 0, 13, 0.6, inner, M.Plaster)
 	B.wallZ(s, "Partition", 12, ZB + 0.5, -8.3, 0, 13, 0.6, inner, M.Plaster)
 	-- Kitchen wall tiles (white, waist-high red stripe)
-	B.box(s, "KTileBack", -29.5, 0, -7.7, 29.5, 8.5, -7.65, C.TILE_WALL, M.CeramicTiles)
-	B.box(s, "KTileStripe", -29.5, 5.6, -7.66, 29.5, 5.9, -7.62, C.RED)
-	B.box(s, "KTileWest", -29.5, 0, -7.7, -29.45, 8.5, 6, C.TILE_WALL, M.CeramicTiles)
-	B.box(s, "KTileEast", 29.45, 0, -7.7, 29.5, 8.5, 6, C.TILE_WALL, M.CeramicTiles)
+	B.box(s, "KTileBack", IW, 0, -7.7, IE, 8.5, -7.65, C.TILE_WALL, M.CeramicTiles)
+	B.box(s, "KTileStripe", IW, 5.6, -7.66, IE, 5.9, -7.62, C.RED)
+	B.box(s, "KTileWest", IW, 0, -7.7, IW + 0.05, 8.5, 6, C.TILE_WALL, M.CeramicTiles)
+	B.box(s, "KTileEast", IE - 0.05, 0, -7.7, IE, 8.5, 6, C.TILE_WALL, M.CeramicTiles)
 	-- Dining walls: dark red wainscot + cream plaster
 	local wcut = { { 10, 18, 3.6, 2 }, { 24, 32, 3.6, 2 } }
-	B.wallZ(s, "Wainscot", -29.45, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
-	B.wallZ(s, "Wainscot", 29.45, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
+	B.wallZ(s, "Wainscot", IW + 0.05, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
+	B.wallZ(s, "Wainscot", IE - 0.05, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
 	for _, r in { { 6, 10 }, { 18, 24 }, { 32, ZF - 0.5 } } do
-		B.box(s, "Rail", -29.5, 3.6, r[1], -29.3, 3.8, r[2], C.WOOD_DARK, M.Wood)
+		B.box(s, "Rail", IW, 3.6, r[1], IW + 0.2, 3.8, r[2], C.WOOD_DARK, M.Wood)
 	end
 
 	-- Interior cladding so no exterior brick shows inside
 	local paint = Color3.fromRGB(240, 236, 228)
 	local warm = Color3.fromRGB(246, 232, 204)
 	-- back rooms: back wall, west + east walls
-	B.wallX(sb, "InBack", -21.45, -29.5, 29.5, 0, 13, 0.1, paint, M.Plaster, { { -27, -22, 8.4 }, { 1.5, 8.5, 9, 4 }, { 17, 25, 9, 4 } })
-	B.wallZ(s, "InWestBack", -29.45, ZB + 0.6, -8.3, 0, 13, 0.1, paint, M.Plaster, { { -30, -25, 9, 4 } })
-	B.wallZ(s, "InEastBack", 29.45, ZB + 0.6, -8.3, 0, 13, 0.1, paint, M.Plaster, { { -22, -14, 9, 4 } })
+	B.wallX(sb, "InBack", -21.45, IW, IE, 0, 13, 0.1, paint, M.Plaster, { { -27, -22, 8.4 }, { 1.5, 8.5, 9, 4 }, { 17, 25, 9, 4 } })
+	B.wallZ(s, "InWestBack", IW + 0.05, ZB + 0.6, -8.3, 0, 13, 0.1, paint, M.Plaster, { { -30, -25, 9, 4 } })
+	B.wallZ(s, "InEastBack", IE - 0.05, ZB + 0.6, -8.3, 0, 13, 0.1, paint, M.Plaster, { { -22, -14, 9, 4 } })
 	-- kitchen: above the tiles
-	B.box(s, "InWestKitchen", -29.45, 8.5, -7.7, -29.4, 13, 6, paint, M.Plaster)
-	B.box(s, "InEastKitchen", 29.4, 8.5, -7.7, 29.45, 13, 6, paint, M.Plaster)
+	B.box(s, "InWestKitchen", IW + 0.05, 8.5, -7.7, IW + 0.1, 13, 6, paint, M.Plaster)
+	B.box(s, "InEastKitchen", IE - 0.1, 8.5, -7.7, IE - 0.05, 13, 6, paint, M.Plaster)
 	-- dining: above the wainscot (west), front wall inner face
-	B.wallZ(s, "InWestDining", -29.42, 6, ZF - 0.6, 3.6, 13, 0.1, warm, M.Plaster, { { 10, 18, 10, 2 }, { 24, 32, 10, 2 } })
-	B.wallX(sf, "InFront", 21.45, -29.4, 29.4, 0, 13, 0.1, warm, M.Plaster, {
+	B.wallZ(s, "InWestDining", IW + 0.08, 6, ZF - 0.6, 3.6, 13, 0.1, warm, M.Plaster, { { 10, 18, 10, 2 }, { 24, 32, 10, 2 } })
+	B.wallX(sf, "InFront", 21.45, IW + 0.1, IE - 0.1, 0, 13, 0.1, warm, M.Plaster, {
+		{ XW + 2, -29.2, 10, 1.4 },
+		{ 29.7, XE - 2, 10, 2.6 },
 		{ -28, -17.2, 10, 1.4 },
 		{ -16.4, -5.6, 10, 1.4 },
 		{ -4.8, 12, 10, 1.4 },
@@ -496,29 +507,29 @@ local function buildShell(c: Ctx)
 
 	-- Ceiling lights
 	for _, z in { -3, 2 } do
-		for _, x in { -22, -11, 0, 11, 22 } do
+		for _, x in { -33, -22, -11, 0, 11, 22, 33 } do
 			ceilingLight(s, x, z)
 		end
 	end
 	for _, z in { 10, 16.5, 23, 29.5 } do
-		for _, x in { -22, -11, 0, 11, 22 } do
+		for _, x in { -33, -22, -11, 0, 11, 22, 33 } do
 			ceilingLight(s, x, z, 3, 3)
 		end
 	end
-	for _, p in { { -16, -14 }, { -22, -24 }, { 4, -14 }, { 4, -25 }, { 21, -14 }, { 21, -25 }, { -8, -26 } } do
+	for _, p in { { -16, -14 }, { -22, -24 }, { -32, -14 }, { -32, -25 }, { 4, -14 }, { 4, -25 }, { 21, -14 }, { 21, -25 }, { 32, -14 }, { 32, -25 }, { -8, -26 } } do
 		ceilingLight(s, p[1], p[2], 4, 2)
 	end
 	-- Kitchen extractor hood over the ovens
 	if MeshLib.has("Hood") then
 		-- canopy hood with baffle filters + strip light; front faces the kitchen (+X).
 		-- Squashed a little in Y so the duct ends inside the ceiling.
-		MeshLib.place(s.parent, "Hood", s.origin * CFrame.new(-26.25, 9.5, -1.6) * CFrame.Angles(0, math.pi / 2, 0), {
+		MeshLib.place(s.parent, "Hood", swk.origin * CFrame.new(-26.25, 9.5, -1.6) * CFrame.Angles(0, math.pi / 2, 0), {
 			Body = C.STEEL, Duct = C.STEEL:Lerp(C.BLACK, 0.08), Filter = C.STEEL_DARK, Light = Color3.fromRGB(255, 244, 220),
 		}, { scale = Vector3.new(1, 0.75, 1), materials = { Body = M.Metal, Duct = M.Metal, Filter = M.DiamondPlate, Light = M.Neon } })
 	else
-		B.box(s, "Hood", -29.5, 9.5, -8, -23, 10.5, 4.8, C.STEEL, M.Metal)
-		B.wedge(s, "HoodSlope", Vector3.new(13, 1.6, 6.5), CFrame.new(-26.25, 11.3, -1.6) * CFrame.Angles(0, math.rad(-90), 0), C.STEEL, M.Metal)
-		B.box(s, "HoodDuct", -28.5, 10.5, -5.5, -26, 13, -3.5, C.STEEL, M.Metal)
+		B.box(swk, "Hood", -29.5, 9.5, -8, -23, 10.5, 4.8, C.STEEL, M.Metal)
+		B.wedge(swk, "HoodSlope", Vector3.new(13, 1.6, 6.5), CFrame.new(-26.25, 11.3, -1.6) * CFrame.Angles(0, math.rad(-90), 0), C.STEEL, M.Metal)
+		B.box(swk, "HoodDuct", -28.5, 10.5, -5.5, -26, 13, -3.5, C.STEEL, M.Metal)
 	end
 end
 
@@ -612,28 +623,39 @@ end
 
 local function buildKitchen(c: Ctx)
 	local k = B.folder(c, "Kitchen")
+	local kw = B.sub(k, -DW, 0, 0) -- along the (moved) west wall
+	local ke = B.sub(k, DW, 0, 0) -- along the (moved) east wall
 
 	-- Ovens (oven 2 is an upgrade)
-	buildOven(k, "Oven1", -4.6, "🔥 Pizza Oven")
-	local o2 = buildOven(B.folder(k, "Oven2Upgrade", "Model"), "Oven2", 1.6, "🔥 Pizza Oven 2")
+	buildOven(kw, "Oven1", -4.6, "🔥 Pizza Oven")
+	local o2 = buildOven(B.folder(kw, "Oven2Upgrade", "Model"), "Oven2", 1.6, "🔥 Pizza Oven 2")
 	o2.parent.Parent:SetAttribute("UpgradeId", "oven_2")
-	local o2Space = B.model(k, "Oven2Placeholder")
+	local o2Space = B.model(kw, "Oven2Placeholder")
 	o2Space.parent:SetAttribute("HideWhen", "oven_2")
 	counter(B.sub(o2Space, -27.8, 1.6, 90), "Bench", 5, 2.6)
 	-- hotter oven trims
-	local heat1 = B.model(k, "OvenHeat1")
+	local heat1 = B.model(kw, "OvenHeat1")
 	heat1.parent:SetAttribute("UpgradeId", "oven_heat_1")
 	for _, z in { -4.6, 1.6 } do
 		B.box(heat1, "BrassTrim", -24.2, 3.4, z - 1.75, -23.95, 5.0, z + 1.75, Color3.fromRGB(230, 170, 60), M.Metal)
 	end
-	local heat2 = B.model(k, "OvenHeat2")
+	local heat2 = B.model(kw, "OvenHeat2")
 	heat2.parent:SetAttribute("UpgradeId", "oven_heat_2")
 	for _, z in { -4.6, 1.6 } do
 		B.box(heat2, "GoldTrim", -23.95, 5.0, z - 1.75, -23.75, 5.3, z + 1.75, Color3.fromRGB(255, 210, 60), M.Neon)
 	end
 
 	-- Dough fridge (drawer unit) with a tray of dough on top
-	local doughCtx = B.sub(k, -21.9, -6.4, 0)
+	-- extra worktop run between the dough fridge and the prep line
+	local run = counter(B.sub(k, -26.3, -6.4, 0), "SideCounter", 7.4, 2.6)
+	B.box(run, "MixerBase", -2.6, COUNTER_H, -0.8, -1.2, COUNTER_H + 0.5, 0.6, C.WHITE)
+	B.box(run, "MixerArm", -2.4, COUNTER_H + 0.5, -0.8, -1.4, COUNTER_H + 2.2, -0.3, C.WHITE)
+	B.box(run, "MixerHead", -2.5, COUNTER_H + 1.8, -0.8, -0.6, COUNTER_H + 2.4, 0.2, C.WHITE)
+	B.cyl(run, "MixerBowl", 1.1, 0.8, -1.1, COUNTER_H, -0.1, C.STEEL, M.Metal)
+	for i = 0, 2 do
+		B.box(run, "FlourSack", 0.6 + i * 0.95, COUNTER_H, -1.0, 1.4 + i * 0.95, COUNTER_H + 1.0, -0.3, Color3.fromRGB(240, 232, 214), M.Fabric, { CanQuery = false })
+	end
+	local doughCtx = B.sub(kw, -21.9, -6.4, 0)
 	local doughUnit = counter(doughCtx, "DoughFridge", 2.6, 2.6, { body = Color3.fromRGB(220, 224, 230) })
 	B.box(doughUnit, "Tray", -1.2, COUNTER_H, -1.0, 1.2, COUNTER_H + 0.12, 1.0, C.STEEL_DARK, M.Metal)
 	for i = 0, 5 do
@@ -725,7 +747,7 @@ local function buildKitchen(c: Ctx)
 	end
 
 	-- Kebab station (upgrade) along the east wall, facing -X
-	local kebabFolder = B.model(k, "KebabStation")
+	local kebabFolder = B.model(ke, "KebabStation")
 	kebabFolder.parent:SetAttribute("UpgradeId", "kebab_station")
 	local ks = B.sub(kebabFolder, 28.2, -1.2, -90)
 	local kc = counter(ks, "KebabCounter", 7.4, 2.6)
@@ -799,7 +821,7 @@ local function buildKitchen(c: Ctx)
 	B.label(kWrapSign, Enum.NormalId.Left, "KEBAB STATION", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 6 })
 
 	-- Placeholder before the kebab station is bought
-	local soon = B.model(k, "KebabComingSoon")
+	local soon = B.model(ke, "KebabComingSoon")
 	soon.parent:SetAttribute("HideWhen", "kebab_station")
 	for _, z in { -6.5, 5 } do
 		B.cyl(soon, "Post", 0.4, 3.4, 24, 0, z, C.YELLOW, M.SmoothPlastic)
@@ -810,7 +832,7 @@ local function buildKitchen(c: Ctx)
 	B.label(sign, Enum.NormalId.Left, "🥙 KEBAB STATION\nUnlocks at Level 5", { color = C.RED_DARK, font = Enum.Font.FredokaOne, pad = 10, bg = C.WHITE })
 
 	-- Fryer (upgrade) between the drinks and the kebab station
-	local fry = B.model(k, "FryerUpgrade")
+	local fry = B.model(ke, "FryerUpgrade")
 	fry.parent:SetAttribute("UpgradeId", "fryer")
 	local fs = B.sub(fry, 21.5, -6.4, 0)
 	local fc
@@ -906,10 +928,10 @@ local function buildFront(c: Ctx)
 			B.box(f, "Cubby", x, 0.4, 5.15, x + 2.0, 3.2, 5.2, C.RED_DARK)
 		end
 	end
-	frontCounter(-29.5, 10)
-	frontCounter(13, 29.5)
+	frontCounter(IW, 10)
+	frontCounter(13, IE)
 	-- logo plates on the counter front
-	for _, x in { -22, 2, 21 } do
+	for _, x in { -32, -22, 2, 21, 32 } do
 		local plate = B.box(f, "LogoPlate", x - 1.2, 0.8, 7.45, x + 1.2, 2.2, 7.55, C.WHITE)
 		B.label(plate, Enum.NormalId.Back, "🪐", { pad = 2 })
 	end
@@ -1010,20 +1032,22 @@ local function buildFront(c: Ctx)
 	-- Dining tables (west side + east side)
 	local dining = B.folder(c, "Dining")
 	-- (keep the door -> lobby -> queue walk, x 6..17 / z 17..ZF, clear of tables)
-	local TABLES = { { -19.5, 11 }, { -19.5, 17.5 }, { 18.5, 11 }, { 25.5, 11 }, { -19.5, 24 }, { -10, 24.5 }, { 25.5, 24 } }
+	local TABLES = { { -19.5, 11 }, { -19.5, 17.5 }, { 18.5, 11 }, { 25.5, 11 }, { -19.5, 24 }, { -10, 24.5 }, { 25.5, 24 },
+		{ -28.5, 11 }, { -28.5, 24 }, { 33, 11 }, { 33, 24 } }
 	for _, t in TABLES do
 		table4(dining, "Table", t[1], t[2], nil)
 	end
 	-- seating upgrades
 	local s1 = B.model(dining, "Seating1")
 	s1.parent:SetAttribute("UpgradeId", "seating_1")
-	for _, t in { { 25.5, 17.5 }, { 11.5, 13.2 }, { 25.5, 30.5 }, { -19.5, 30.5 } } do
+	for _, t in { { 25.5, 17.5 }, { 11.5, 13.2 }, { 25.5, 30.5 }, { -19.5, 30.5 }, { -28.5, 17.5 }, { 33, 17.5 }, { 33, 30.5 } } do
 		table4(s1, "Table", t[1], t[2], nil)
 	end
 	local s2 = B.model(dining, "Seating2")
 	s2.parent:SetAttribute("UpgradeId", "seating_2")
-	booth(s2, "Booth", -26.4, 14.25, 0)
-	booth(s2, "Booth", -26.4, 27.5, 0)
+	booth(s2, "Booth", IW + 3.1, 13.5, 0)
+	booth(s2, "Booth", IW + 3.1, 21, 0)
+	booth(s2, "Booth", IW + 3.1, 28.5, 0)
 	-- window bar with stools along the storefront
 	B.box(dining, "WindowBar", -15.5, 3.4, ZF - 1.8, -2, 3.65, ZF - 0.6, C.WOOD, M.Wood)
 	B.box(dining, "WindowBarLeg", -15.3, 0, ZF - 1.0, -2.2, 3.4, ZF - 0.7, C.WOOD_DARK, M.Wood)
@@ -1038,7 +1062,7 @@ local function buildFront(c: Ctx)
 		end
 	end
 	-- Wall art (framed pizza posters)
-	local art = { { -29.35, 6.5, 21, "🍕\nSLICE OF\nTHE GALAXY" } }
+	local art = { { IE - 0.15, 6.5, 21, "🍕\nSLICE OF\nTHE GALAXY" } }
 	for _, a in art do
 		local frame = B.box(dining, "ArtFrame", a[1] - 0.05, a[2], a[3] - 2.2, a[1] + 0.15, a[2] + 3.6, a[3] + 2.2, C.BLACK)
 		frame.CanQuery = false
@@ -1046,20 +1070,20 @@ local function buildFront(c: Ctx)
 	-- Decor upgrades
 	local plants = B.model(c, "DecorPlants")
 	plants.parent:SetAttribute("UpgradeId", "decor_plants")
-	plant(plants, -28.5, ZF - 1.5)
-	plant(plants, 28.5, ZF - 1.5)
+	plant(plants, IW + 1, ZF - 1.5)
+	plant(plants, IE - 1, ZF - 1.5)
 	plant(plants, 14.2, 8.6, 0.8)
 	plant(plants, 11.5, ZF + 2.5, 1.1)
 	plant(plants, 22, ZF + 2.5, 1.1)
 	-- base plants (always) by the entrance outside
-	plant(B.folder(c, "EntrancePlants"), -29.8, ZF + 2.6, 1)
+	plant(B.folder(c, "EntrancePlants"), XW + 0.2, ZF + 2.6, 1)
 
 	local neon = B.model(c, "DecorNeon")
 	neon.parent:SetAttribute("UpgradeId", "decor_neon")
-	local n1 = B.box(neon, "NeonPizza", -29.4, 6, 6.5, -29.3, 9.5, 9, Color3.fromRGB(255, 200, 40), M.Neon)
+	local n1 = B.box(neon, "NeonPizza", IW + 0.1, 6, 6.5, IW + 0.2, 9.5, 9, Color3.fromRGB(255, 200, 40), M.Neon)
 	B.label(n1, Enum.NormalId.Right, "🍕", { pad = 2, brightness = 3 })
 	B.pointLight(n1, Color3.fromRGB(255, 190, 60), 10, 1.2)
-	local n2 = B.box(neon, "NeonKebab", 29.3, 6, 6.5, 29.4, 9.5, 9, Color3.fromRGB(255, 90, 160), M.Neon)
+	local n2 = B.box(neon, "NeonKebab", IE - 0.2, 6, 6.5, IE - 0.1, 9.5, 9, Color3.fromRGB(255, 90, 160), M.Neon)
 	B.label(n2, Enum.NormalId.Left, "🥙", { pad = 2, brightness = 3 })
 	B.pointLight(n2, Color3.fromRGB(255, 90, 160), 10, 1.2)
 
@@ -1101,8 +1125,8 @@ end
 
 local function buildBack(c: Ctx)
 	-- Back rooms run from the kitchen partition (z = -8) to the back wall
-	-- (inner face ZB + 0.5). Storage x -29.5..-2 (with a walk-in freezer room),
-	-- owner's office x -2..12, staff room x 12..29.5.
+	-- (inner face ZB + 0.5). Storage x IW..-2 (with a walk-in freezer room),
+	-- owner's office x -2..12, staff room x 12..IE.
 	local b = B.folder(c, "BackOfHouse")
 	local zIn = ZB + 0.5
 	-- STORAGE ROOM: dry shelving against the back wall, next to the back door
@@ -1153,7 +1177,7 @@ local function buildBack(c: Ctx)
 		B.station(hit, "Storage", label, { Category = cat })
 	end
 	-- cold fridge against the west wall, facing into the room
-	tallUnit(b, -27.95, -12, 90, "Fridge", "🧊 Fridge (cold)", "cold", "3°C", Color3.fromRGB(180, 220, 255))
+	tallUnit(b, IW + 1.55, -12, 90, "Fridge", "🧊 Fridge (cold)", "cold", "3°C", Color3.fromRGB(180, 220, 255))
 
 	-- WALK-IN FREEZER ROOM (x -14..-2.3, back wall .. z -21): insulated white
 	-- panels, a strip curtain doorway, frosty light; the freezer unit + racks inside
@@ -1184,10 +1208,17 @@ local function buildBack(c: Ctx)
 	-- storage upgrades: extra shelves
 	local st1 = B.model(b, "Storage1")
 	st1.parent:SetAttribute("UpgradeId", "storage_1")
-	shelving(B.sub(st1, -28.2, -19, 90), "ExtraShelves", 7, 2.4, 7)
+	shelving(B.sub(st1, IW + 1.3, -19, 90), "ExtraShelves", 7, 2.4, 7)
 	local st2 = B.model(b, "Storage2")
 	st2.parent:SetAttribute("UpgradeId", "storage_2")
 	shelving(B.sub(st2, -19, -13, 90), "ExtraShelves2", 6, 2.4, 7)
+	-- bulk shelving in the west end of the storage room (decor)
+	local bulk = shelving(B.sub(b, -33, zIn + 1.3, 0), "BulkShelves", 7.6, 2.4, 7)
+	for i = 0, 2 do
+		for j = 0, 2 do
+			B.box(bulk, "Sack", -2.6 + j * 2.6 - 1, 0.48 + i * 2.13, -0.9, -2.6 + j * 2.6 + 1, 0.48 + i * 2.13 + 1.1, 0.9, Color3.fromRGB(236, 226, 205), M.Fabric, { CanQuery = false })
+		end
+	end
 	-- pallet just inside the back door
 	B.box(b, "Pallet", -29, 0, zIn + 0.8, -26.6, 0.4, zIn + 3, C.WOOD, M.WoodPlanks)
 
@@ -1222,7 +1253,7 @@ local function buildBack(c: Ctx)
 	B.box(o, "Rug", 0.5, 0, -22, 9, 0.04, -15, Color3.fromRGB(150, 40, 40), M.Fabric)
 	table4(o, "MeetingTable", 4.6, -17.5, C.WOOD_DARK)
 
-	-- STAFF ROOM (x 12..29.5): lockers, sofa, vending machine, break table
+	-- STAFF ROOM (x 12..IE): lockers, sofa, vending machines, break tables
 	local sr = B.folder(c, "StaffRoom")
 	for i = 0, 4 do
 		local x = 13 + i * 1.6
@@ -1230,12 +1261,15 @@ local function buildBack(c: Ctx)
 		B.box(sr, "Vent", x + 0.3, 5.6, zIn + 1.71, x + 1.2, 6.4, zIn + 1.75, C.STEEL_DARK)
 	end
 	B.box(sr, "LockerBench", 13, 0, zIn + 2.6, 20.8, 1.5, zIn + 3.8, C.WOOD, M.Wood)
-	B.box(sr, "SofaBase", 20, 0, -12, 28.5, 1.6, -9.5, C.RED_DARK, M.Fabric)
-	B.box(sr, "SofaBack", 20, 1.6, -9.9, 28.5, 3.6, -9, C.RED_DARK, M.Fabric)
-	B.box(sr, "CoffeeTable", 22, 0, -15.5, 26.5, 1.4, -13.5, C.WOOD, M.Wood)
-	local vend = B.box(sr, "Vending", 26.6, 0, zIn + 0.1, 29.2, 7.2, zIn + 2.3, C.RED, M.SmoothPlastic)
+	B.box(sr, "SofaBase", 25, 0, -12, 33.5, 1.6, -9.5, C.RED_DARK, M.Fabric)
+	B.box(sr, "SofaBack", 25, 1.6, -9.9, 33.5, 3.6, -9, C.RED_DARK, M.Fabric)
+	B.box(sr, "CoffeeTable", 27, 0, -15.5, 31.5, 1.4, -13.5, C.WOOD, M.Wood)
+	local vend = B.box(sr, "Vending", IE - 2.8, 0, zIn + 0.1, IE - 0.2, 7.2, zIn + 2.3, C.RED, M.SmoothPlastic)
+	local vend2 = B.box(sr, "Snacks", IE - 5.8, 0, zIn + 0.1, IE - 3.2, 7.2, zIn + 2.3, Color3.fromRGB(40, 110, 200), M.SmoothPlastic)
+	B.label(vend2, Enum.NormalId.Back, "🍫 SNACKS", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10 })
 	B.label(vend, Enum.NormalId.Back, "🥤 PLANET\nCOLA", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10 })
 	table4(sr, "BreakTable", 21, -24.5, nil)
+	table4(sr, "BreakTable2", 29, -24.5, nil)
 end
 
 ------------------------------------------------------------------ outside
@@ -1245,21 +1279,21 @@ local function buildOutside(c: Ctx)
 	local of = B.sub(o, 0, DF, 0) -- in front of the storefront
 	local ob = B.sub(o, 0, -DB, 0) -- behind the back wall
 	-- Plot ground: parking lot west, grass strips, delivery yard behind
-	B.box(o, "Lot", -70, -1.4, -45 - DB, 70, -0.2, 32 + DF, C.ASPHALT, M.Asphalt)
-	B.box(of, "SidewalkFront", -70, -1.4, 26, 70, 0.05, 34, C.CONCRETE, M.Concrete)
-	B.box(of, "Curb", -70, -1.4, 33.6, 70, 0.25, 34.2, C.WHITE, M.Concrete)
-	B.box(of, "Apron", -31, -1.4, 22.5, 31, 0.05, 26, C.CONCRETE, M.Pavement)
+	B.box(o, "Lot", -70 - DW, -1.4, -45 - DB, 70 + DW, -0.2, 32 + DF, C.ASPHALT, M.Asphalt)
+	B.box(of, "SidewalkFront", -70 - DW, -1.4, 26, 70 + DW, 0.05, 34, C.CONCRETE, M.Concrete)
+	B.box(of, "Curb", -70 - DW, -1.4, 33.6, 70 + DW, 0.25, 34.2, C.WHITE, M.Concrete)
+	B.box(of, "Apron", XW - 1, -1.4, 22.5, XE + 1, 0.05, 26, C.CONCRETE, M.Pavement)
 	-- parking bays (lines)
 	for i = 0, 6 do
-		local x = -66 + i * 5
+		local x = -66 - DW + i * 5
 		B.box(o, "Line", x - 0.15, -0.2, 2, x + 0.15, -0.17, 18 + DF, C.WHITE)
 	end
-	B.box(o, "Wheelstops", -66, -0.2, 2.5, -36, 0.2, 3.1, C.YELLOW)
+	B.box(o, "Wheelstops", -66 - DW, -0.2, 2.5, -36 - DW, 0.2, 3.1, C.YELLOW)
 	-- grass and trees east
-	B.box(o, "Lawn", 34, -1.4, -40 - DB, 68, -0.05, 24 + DF, C.GRASS, M.Grass)
+	B.box(o, "Lawn", 34 + DW, -1.4, -40 - DB, 68 + DW, -0.05, 24 + DF, C.GRASS, M.Grass)
 	local rng = Random.new(11)
 	for i = 1, 5 do
-		local x, z = rng:NextNumber(38, 64), rng:NextNumber(-34 - DB, 18 + DF)
+		local x, z = rng:NextNumber(38 + DW, 64 + DW), rng:NextNumber(-34 - DB, 18 + DF)
 		B.cyl(o, "Trunk", 1, 5, x, 0, z, C.WOOD_DARK, M.Wood)
 		B.ball(o, "Canopy", Vector3.new(7, 6, 7), x, 7, z, Color3.fromRGB(70, 150, 70):Lerp(Color3.fromRGB(40, 110, 50), rng:NextNumber()), M.LeafyGrass)
 		B.ball(o, "Canopy2", Vector3.new(5, 4.5, 5), x + 1.5, 9, z - 1, Color3.fromRGB(90, 170, 80), M.LeafyGrass)
@@ -1296,7 +1330,7 @@ local function buildOutside(c: Ctx)
 	-- bench by the curb
 	if MeshLib.has("Bench") then
 		-- park bench facing the street (+Z)
-		MeshLib.place(o.parent, "Bench", of.origin * CFrame.new(26, 0, 32.3), { Wood = C.WOOD, Iron = C.BLACK },
+		MeshLib.place(o.parent, "Bench", of.origin * CFrame.new(26 + DW, 0, 32.3), { Wood = C.WOOD, Iron = C.BLACK },
 			{ collide = true, materials = { Wood = M.Wood, Iron = M.Metal } })
 	else
 		B.box(of, "Bench", 23, 1.6, 31.6, 29, 1.9, 33, C.WOOD, M.Wood)
@@ -1317,15 +1351,15 @@ local function buildOutside(c: Ctx)
 		end
 	end
 	-- pylon sign by the road
-	local pylon = B.box(of, "Pylon", -40, 0, 29.5, -38.8, 16, 30.7, C.STEEL_DARK, M.Metal)
+	local pylon = B.box(of, "Pylon", -40 - DW, 0, 29.5, -38.8 - DW, 16, 30.7, C.STEEL_DARK, M.Metal)
 	pylon.CanQuery = false
-	local panel = B.box(of, "PylonSign", -43.5, 13, 29.3, -35.3, 18, 30.9, C.RED)
+	local panel = B.box(of, "PylonSign", -43.5 - DW, 13, 29.3, -35.3 - DW, 18, 30.9, C.RED)
 	B.label(panel, Enum.NormalId.Front, "🪐 PIZZA\nPLANET", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10, brightness = 2 })
 	B.label(panel, Enum.NormalId.Back, "🪐 PIZZA\nPLANET", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10, brightness = 2 })
 	B.pointLight(panel, Color3.fromRGB(255, 120, 100), 16, 1)
 
 	-- Expansion annex (upgrade): extra dining room east of the building
-	local ex = B.model(c, "Expansion")
+	local ex = B.model(B.sub(c, DW, 0, 0), "Expansion") -- annex against the east wall
 	ex.parent:SetAttribute("UpgradeId", "expansion_1")
 	B.box(ex, "ExFloor", 29.5, -0.2, 6, 47, 0, ZF - 0.5, C.WOOD_FLOOR, M.WoodPlanks)
 	B.box(ex, "ExFoundation", 30, -1.2, 5.5, 47.5, -0.2, ZF + 0.5, C.STONE, M.Concrete)
@@ -1349,7 +1383,7 @@ end
 local function buildNodes(c: Ctx)
 	local n = B.folder(c, "Nodes")
 	B.node(n, "PlayerSpawn", 11.5, 0.5, 9.5)
-	B.node(n, "CustomerSpawn", 52, 3, 30 + DF)
+	B.node(n, "CustomerSpawn", 52 + DW, 3, 30 + DF)
 	B.node(n, "DoorOutside", 17, 3, 27 + DF)
 	B.node(n, "DoorInside", 17, 3, 18.5 + DF)
 	B.node(n, "Lobby", 6, 3, 17.5)

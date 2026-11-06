@@ -28,6 +28,7 @@ return {
 	-- than the original 44-stud shell (the street moves out with the front).
 	FrontExtra = 12,
 	BackExtra = 10,
+	SideExtra = 10, -- each side wall moves out this far (building 81 wide instead of 61)
 
 	-- Cooking
 	PizzaBaseCookTime = 14, -- seconds at 1x speed

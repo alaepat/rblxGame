@@ -60,6 +60,11 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
   - **Back rooms** are 23.5 deep: storage with dry shelving by the back door, the cold fridge on the west wall, and a **walk-in freezer room** (insulated panels, strip curtain, frost light, the freezer unit and a frozen rack). The **owner's office** has the PC desk with an "Order stock" tablet, a bookcase, filing, safe, rug and a meeting table. The staff room has lockers with a bench, a sofa, vending and a break table.
   - New Blender meshes: `FrameBar` (window frame profile, stretched along its length so the profile never distorts; 42 per restaurant), `BarStool`, `Fryer` (twin oil wells, splashback, dials, doors).
   - Screenshots checked: storefront, dining room, walk-in freezer, office, fryer.
+- **Wider building (Studio-verified 2026-11-06, Account 1):** `GameConfig.SideExtra = 10` moves both side walls out, so the restaurant is 81 x 66 (was 61 x 44 this morning).
+  - Kitchen: the ovens, hood, chimney and dough fridge moved with the west wall, and a new worktop run (mixer, flour sacks) fills the gap to the prep line. The kebab station, spits, fryer and chips freezer moved with the east wall. Prep line, pass and drinks are unchanged.
+  - Dining: 11 base tables, seating_1 adds 7, seating_2 adds 3 window booths. Two more storefront windows, a longer awning, 5 wall lanterns, 7-wide ceiling light rows.
+  - Back: bulk shelving in the wider storage room, a second vending machine and a second break table in the staff room. The annex, parking, lawn, pylon, bench and customer spawn moved out with the walls.
+  - Verified with every upgrade bought: all stations in place (oven, kebab, fryer, fridge, hood), screenshots of dining and both kitchen ends, and customers walked from the sidewalk into the queue.
 - Still procedural: the building shell walls, signs.
 
 ### Also verified (2026-11-05, third pass)

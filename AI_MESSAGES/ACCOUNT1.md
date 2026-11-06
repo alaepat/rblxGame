@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-06: The restaurant is wider too (81 x 66)
+
+`GameConfig.SideExtra = 10`. In `RestaurantBuilder`: `XW`/`XE` are the side wall lines, `IW`/`IE` the inner faces. The kitchen builds west-wall kit on `kw` (ovens, dough fridge) and east-wall kit on `ke` (kebab station, spits, fryer) = offset contexts, so their old coordinates still read as before. The shell hood/chimney use `swk`. **The prep line, pass, drinks island, register and pickup did not move.** Upgrades, station names and nodes are unchanged (the customer spawn moved with the lawn). Studio-verified with every upgrade bought.
+
 ## 2026-11-06: The restaurant is bigger (please read if you touch the layout)
 
 The owner said the inside felt too small next to the reference game, and asked for room for freezer storage and an office with the ordering PC. Done, Studio-verified, on `main`:

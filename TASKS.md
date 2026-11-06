@@ -38,6 +38,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| Wider building (81 x 66): kitchen kit moves with the side walls, 11 base tables, more booths/windows (Studio-verified) | Account 1 | 2026-11-06 |
 | Bigger building (66 deep: dining 26, back rooms 23.5) with a walk-in freezer room and a larger owner's office; FrameBar, BarStool and Fryer meshes (Studio-verified) | Account 1 | 2026-11-06 |
 | Blender pass 3 + 4: high-poly Pizza v2, 17 topping meshes + Dough wired into FoodVisuals; Awning, DoorLeaf, Hood, WallLamp, StreetLamp, Planter, Parasol, Bench wired into the builders (Studio-verified) | Account 1 | 2026-11-06 |
 | #7 Day/shift cycle: rushes, closing time, end-of-day summary, shift bonus, wages hook (merged into `main`; PC Studio-verified by Account 1; remaining checks #18) | Account 2 | 2026-11-06 |
