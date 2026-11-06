@@ -98,10 +98,28 @@ function DayCycle.phaseAt(minute: number): any?
 	return Config.Phases[1]
 end
 
+-- How much of a rush's extra traffic applies at this level (Config.RushScale).
+function DayCycle.rushScale(level: number?): number
+	local rs = Config.RushScale
+	if not rs or not level then
+		return 1
+	end
+	if level >= rs.FullAtLevel then
+		return 1
+	end
+	local t = math.clamp((level - rs.FromLevel) / math.max(1, rs.FullAtLevel - rs.FromLevel), 0, 1)
+	return rs.MinScale + (1 - rs.MinScale) * t
+end
+
 -- Customer arrival multiplier at a clock minute (1 outside the day).
-function DayCycle.traffic(minute: number): number
+-- With a level, rushes are softened for low levels (see rushScale).
+function DayCycle.traffic(minute: number, level: number?): number
 	local p = DayCycle.phaseAt(minute)
-	return if p then p.traffic or 1 else 1
+	local traffic = if p then p.traffic or 1 else 1
+	if traffic > 1 then
+		traffic = 1 + (traffic - 1) * DayCycle.rushScale(level)
+	end
+	return traffic
 end
 
 -- "12:40 PM" (rounded down to 5 minutes so the clock ticks calmly).
