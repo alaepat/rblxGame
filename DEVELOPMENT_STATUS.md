@@ -1,6 +1,6 @@
 # Development Status
 
-_Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the rest is Account 1's)_
+_Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery sections; the rest is Account 1's)_
 
 ## Verified in a Studio playtest (2026-11-05, synced via Rojo)
 - The server and client boot with no script errors. The town and restaurant generate (about 1,070 parts, 32 active stations at level 1).
@@ -51,6 +51,12 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
 
+## Menu mastery (Account 2, 2026-11-06): branch `a2/menu-mastery`, PR #3, offline-tested, NOT Studio-verified
+- Every served recipe counts toward its mastery: 🥉 Bronze 10 · 🥈 Silver 30 · 🥇 Gold 75 serves (drinks ×2). Each tier pays a one-off reward scaled to the recipe (price ×3/×6/×12, XP ×2/×4/×8) and adds +10/20/30% bonus XP to every later serve of that recipe. Numbers in `Config/Mastery.luau`.
+- Recipes tab cards show stars, a progress bar and "12 / 30 to 🥈 Silver"; the Business tab shows "Menu mastery ★ N / 75". Saved as serve counts in `profile.mastery`.
+- Studio hook: `DevCommand:Invoke("mastery", "cheese_pizza")` jumps a recipe to its next tier.
+- Offline: 75 Lune tests pass; `rojo build` OK. Studio checklist in PR #3 (TASKS #20).
+
 ## Not yet verified end-to-end
 - The extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
@@ -63,7 +69,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - 18 Blender props are in. The building shell, signs, hood and toppings are still procedural (TASKS #5).
-- No staff, menu mastery or delivery orders yet (see TASKS.md). The day/shift cycle is merged.
+- No staff or delivery orders yet (see TASKS.md). The day/shift cycle is merged; menu mastery is on `a2/menu-mastery` (PR #3), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)
 | Phase | State |
@@ -72,7 +78,7 @@ _Last updated: 2026-11-06 by Account 2 (daily goals + day cycle sections; the re
 | 2 Interactions | Done (needs playtest) |
 | 3 Food | Pizza + kebab + drinks + chips done (needs playtest) |
 | 4 Customers | Done (needs playtest) |
-| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks merged (PC Studio-verified); day/shift cycle merged (PC Studio-verified) |
+| 5 Progression | XP / levels / unlocks / money done; daily goals + streaks merged (PC Studio-verified); day/shift cycle merged (PC Studio-verified); menu mastery on `a2/menu-mastery` (PR #3, offline-tested) |
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
 | 8 Multiplayer & saving | Per-player plots + DataStore done; needs a published-place test |
