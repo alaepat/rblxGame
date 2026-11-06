@@ -4,6 +4,12 @@ Newest first.
 
 ---
 
+## 2026-11-06: Signs are Blender meshes now
+
+New meshes `SignEdge`, `PlanetSign`, `PylonPost` and `BladeSign` (ids in `MeshIds`). If you add a sign or a screen, call `edgeFrame(ctx, x1, y1, x2, y2, z, color)` in RestaurantBuilder for the rounded cabinet edge; `screen()` already does it. `meshBar()` stretches any 1-stud bar prop between two points. All fall back to the old parts when a mesh is missing. Studio-verified.
+
+**Blender note:** `rot_apply()` in `pp_props.py` now rotates a mesh about its own bounding-box centre. Primitives created by the helpers often have their location baked in, so rotating about the object origin moved parts away (that bit the crater floors).
+
 ## 2026-11-06: The restaurant is wider too (81 x 66)
 
 `GameConfig.SideExtra = 10`. In `RestaurantBuilder`: `XW`/`XE` are the side wall lines, `IW`/`IE` the inner faces. The kitchen builds west-wall kit on `kw` (ovens, dough fridge) and east-wall kit on `ke` (kebab station, spits, fryer) = offset contexts, so their old coordinates still read as before. The shell hood/chimney use `swk`. **The prep line, pass, drinks island, register and pickup did not move.** Upgrades, station names and nodes are unchanged (the customer spawn moved with the lawn). Studio-verified with every upgrade bought.

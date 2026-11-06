@@ -65,7 +65,13 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
   - Dining: 11 base tables, seating_1 adds 7, seating_2 adds 3 window booths. Two more storefront windows, a longer awning, 5 wall lanterns, 7-wide ceiling light rows.
   - Back: bulk shelving in the wider storage room, a second vending machine and a second break table in the staff room. The annex, parking, lawn, pylon, bench and customer spawn moved out with the walls.
   - Verified with every upgrade bought: all stations in place (oven, kebab, fryer, fridge, hood), screenshots of dining and both kitchen ends, and customers walked from the sidewalk into the queue.
-- Still procedural: the building shell walls, signs.
+- **Signs (Studio-verified 2026-11-06, Account 1):** four new Blender meshes.
+  - `SignEdge`: a rounded lightbox edge, stretched like `FrameBar`. `edgeFrame()` in RestaurantBuilder puts it around the roof sign (yellow), the ENTRANCE sign (red), both faces of the roadside sign (yellow) and every `screen()` (menu boards, promo board, kitchen order screens get a dark bezel).
+  - `PlanetSign`: a cratered planet with a tilted ring (front edge up so it reads from the street) and a glowing band, replacing the ball + cylinder planet.
+  - `PylonPost`: the roadside sign post with plinth, collar bands and cap.
+  - `BladeSign`: a new wrought-iron bracket sign over the right-hand storefront window with a two-sided "🍕 PIZZA" disc, readable along the street.
+  - `meshBar()` is the shared helper for any 1-stud bar prop stretched between two points (`frameBar` uses it too).
+- Still procedural: the building shell walls (brick/plaster parts with materials), wall art.
 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.

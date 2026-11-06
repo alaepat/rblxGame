@@ -856,9 +856,16 @@ def build_Bench():
 # ---- batch 5: window frames, bar stool, fryer
 
 def rot_apply(o, rx=0.0, ry=0.0, rz=0.0):
-    o.rotation_euler = (rx, ry, rz)
-    select_only([o])
-    bpy.ops.object.transform_apply(rotation=True)
+    """Rotate a mesh about its own bounding-box centre (primitives may already
+    have their location baked in, so the object origin is not reliable)."""
+    from mathutils import Euler, Matrix
+    vs = [v.co for v in o.data.vertices]
+    lo = Vector((min(v.x for v in vs), min(v.y for v in vs), min(v.z for v in vs)))
+    hi = Vector((max(v.x for v in vs), max(v.y for v in vs), max(v.z for v in vs)))
+    c = (lo + hi) / 2
+    m = Matrix.Translation(c) @ Euler((rx, ry, rz)).to_matrix().to_4x4() @ Matrix.Translation(-c)
+    o.data.transform(m)
+    o.data.update()
     return o
 
 
@@ -925,6 +932,87 @@ def build_Fryer():
         for y in (-D / 2 + 0.2, D / 2 - 0.2):
             hang.append(cylinder("leg", 0.07, 0.26, (x, y, 0.13), 16))
     join(hang, "Fryer_Hanger")
+
+
+# ---- batch 6: signs
+
+def rounded_rect(w, h, r, n=6):
+    """(x, y) outline of a w x h rectangle centred at 0 with corner radius r."""
+    pts = []
+    for cx, cy, a0 in ((w / 2 - r, h / 2 - r, 0), (-w / 2 + r, h / 2 - r, 90), (-w / 2 + r, -h / 2 + r, 180), (w / 2 - r, -h / 2 + r, 270)):
+        for i in range(n + 1):
+            a = math.radians(a0 + 90 * i / n)
+            pts.append((cx + math.cos(a) * r, cy + math.sin(a) * r))
+    return pts
+
+
+def build_SignEdge():
+    # 1-stud length of a lightbox cabinet return: rounded rectangle section,
+    # 0.4 tall x 0.5 deep, flat ends (stretched along X in game).
+    sec = rounded_rect(0.4, 0.5, 0.12, qv(5, 8))  # (height, depth) around 0
+    o = outline("SignEdge_Edge", [(-(h + 0.2), d) for h, d in sec], 1.0, -0.5, 0.0)
+    rot_apply(o, 0, math.radians(90), 0)
+
+
+def build_PlanetSign():
+    # Rooftop planet: cratered sphere and a tilted flat ring with bands. ~10.5 wide.
+    R = 3.5
+    p = sphere("PlanetSign_Planet", R, (0, 0, R + 1.2), (1, 1, 1), 64, 32)
+    craters = []
+    rnd = random.Random(21)
+    for (az, el, cr) in ((-0.5, 0.35, 0.9), (0.45, -0.25, 0.65), (0.1, 0.7, 0.5), (-0.2, -0.55, 0.55), (0.8, 0.2, 0.45)):
+        # direction mostly toward the front (-Y)
+        d = Vector((math.sin(az) * math.cos(el), -math.cos(az) * math.cos(el), math.sin(el)))
+        c = Vector((0, 0, R + 1.2)) + d * (R + cr * 0.45)
+        cut = sphere("cut", cr, tuple(c), (1, 1, 1), 24, 12)
+        boolean_diff(p, cut)
+        floor = sphere("cf", cr * 0.92, tuple(Vector((0, 0, R + 1.2)) + d * (R - cr * 0.12)), (1, 1, 0.35), 24, 8)
+        e = d.to_track_quat("Z", "Y").to_euler()
+        craters.append(rot_apply(floor, e.x, e.y, e.z))
+    displace(p, 0.05, 3, 1.3)
+    join(craters, "PlanetSign_Crater")
+    ring = lathe("ring", [(4.3, -0.07), (5.25, -0.05), (5.3, 0.0), (5.25, 0.05), (4.3, 0.07), (4.25, 0.0)], 96)
+    band = lathe("band", [(4.7, -0.085), (4.85, -0.085), (4.85, 0.085), (4.7, 0.085)], 96)
+    for o in (ring, band):
+        o.location = (0, 0, R + 1.2)
+        o.rotation_euler = (math.radians(-28), math.radians(-18), 0)  # front edge up: faces the street below
+        select_only([o])
+        bpy.ops.object.transform_apply(location=True, rotation=True)
+    name(ring, "PlanetSign_Ring")
+    name(band, "PlanetSign_Band")
+    # mounting stalk down to the roof
+    cylinder("PlanetSign_Mount", 0.3, 1.6, (0, 0.5, 0.8), 24, bevel=0.05)
+
+
+def build_PylonPost():
+    # Roadside sign post: plinth, tall rounded column, cap plate under the panel.
+    rounded_box("PylonPost_Base", 2.6, 2.6, 0.9, 0.18, 5, (0, 0, 0.45))
+    rounded_box("PylonPost_Post", 1.2, 1.2, 12.3, 0.25, 6, (0, 0, 0.9 + 6.15))
+    for z in (3.0, 6.5, 10.0):  # raised collar bands
+        rounded_box("PylonPost_Base", 1.32, 1.32, 0.22, 0.08, 4, (0, 0, z))
+    rounded_box("PylonPost_Base", 1.7, 1.7, 0.3, 0.08, 4, (0, 0, 13.0))
+    join([o for o in bpy.data.objects if o.name.startswith("PylonPost_Base")], "PylonPost_Base")
+
+
+def build_BladeSign():
+    # Wrought-iron projecting sign for beside the door: wall plate, scrolled
+    # bracket arm out along -Y, a round sign hanging on two rings. The sign face
+    # (a flat disc added in game for the label) sits inside the Rim.
+    iron = [rounded_box("plate", 0.5, 0.12, 1.6, 0.04, 3, (0, 0.06, 0))]
+    iron.append(tube("arm", [(0, 0, 0.6), (0, -1.2, 0.62), (0, -2.6, 0.6)], 0.06, 3))
+    iron.append(tube("brace", [(0, 0, -0.6), (0, -0.6, -0.1), (0, -1.4, 0.45), (0, -1.9, 0.6)], 0.045, 3))
+    sc = []
+    for i in range(25):  # scroll curl under the arm
+        t = i / 24 * 1.6 * math.tau
+        r = 0.34 * (1 - i / 30)
+        sc.append((0, -1.0 + math.cos(t) * r, 0.3 + math.sin(t) * r))
+    iron.append(tube("scroll", sc, 0.03, 3))
+    iron.append(sphere("knob", 0.11, (0, -2.65, 0.6), (1, 1, 1), 16, 8))
+    for y in (-0.9, -2.1):
+        iron.append(rot_apply(torus("hook", 0.1, 0.025, (0, y, 0.48), 16, 6), 0, math.radians(90), 0))
+    join(iron, "BladeSign_Iron")
+    # rim lies in the YZ plane (sign faces +-X, readable from the street)
+    rot_apply(torus("BladeSign_Rim", 1.3, 0.07, (0, -1.5, -0.95), 64, 10), 0, math.radians(90), 0)
 
 
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
@@ -1205,7 +1293,7 @@ TOPPINGS = ["Top_Pepperoni", "Top_Cucumber", "Top_Jalapeno", "Top_Tomato", "Top_
 PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
          "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
          "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench",
-         "FrameBar", "BarStool", "Fryer"] + TOPPINGS
+         "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1259,7 +1347,11 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "FrameBar_Frame": (0.13, 0.13, 0.14), "BarStool_Seat": (0.81, 0.16, 0.16), "BarStool_Welt": (0.55, 0.1, 0.1),
              "BarStool_Chrome": (0.85, 0.87, 0.89), "BarStool_Base": (0.13, 0.13, 0.14), "Fryer_Body": (0.78, 0.8, 0.82),
              "Fryer_Well": (0.3, 0.3, 0.32), "Fryer_Oil": (0.9, 0.67, 0.18), "Fryer_Panel": (0.66, 0.68, 0.7),
-             "Fryer_Knob": (0.1, 0.1, 0.1), "Fryer_Splash": (0.78, 0.8, 0.82), "Fryer_Hanger": (0.45, 0.47, 0.5)}
+             "Fryer_Knob": (0.1, 0.1, 0.1), "Fryer_Splash": (0.78, 0.8, 0.82), "Fryer_Hanger": (0.45, 0.47, 0.5),
+             "SignEdge_Edge": (1.0, 0.77, 0.16), "PlanetSign_Planet": (0.84, 0.16, 0.16), "PlanetSign_Crater": (0.55, 0.08, 0.08),
+             "PlanetSign_Ring": (1.0, 0.77, 0.16), "PlanetSign_Band": (1.0, 0.55, 0.1), "PlanetSign_Mount": (0.13, 0.13, 0.14),
+             "PylonPost_Post": (0.3, 0.32, 0.35), "PylonPost_Base": (0.6, 0.6, 0.62), "BladeSign_Iron": (0.13, 0.13, 0.14),
+             "BladeSign_Rim": (1.0, 0.77, 0.16)}
 
 
 def render_preview(prop):

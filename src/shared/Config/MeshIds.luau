@@ -65,4 +65,9 @@ return {
 	FrameBar = { assetId = 89175684090099, size = Vector3.new(1.0, 0.3, 0.4) },
 	BarStool = { assetId = 137521490169364, size = Vector3.new(1.328, 2.96, 1.328) },
 	Fryer = { assetId = 124254580901423, size = Vector3.new(3.2, 4.45, 2.75), center = Vector3.new(0, 0, 0.075) },
+	-- batch 6: signs (SignEdge is stretched along X only, like FrameBar)
+	SignEdge = { assetId = 132715593896789, size = Vector3.new(1.0, 0.4, 0.5) },
+	PlanetSign = { assetId = 121539226830507, size = Vector3.new(10.196, 8.198, 9.359) },
+	PylonPost = { assetId = 113965566462255, size = Vector3.new(2.6, 13.2, 2.6) },
+	BladeSign = { assetId = 71299373736337, size = Vector3.new(0.5, 3.12, 2.99), center = Vector3.new(0, 0, 1.375) },
 } :: { [string]: MeshInfo }

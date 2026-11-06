@@ -193,9 +193,41 @@ local function ceilingLight(c: Ctx, x: number, z: number, w: number?, d: number?
 	return p
 end
 
+-- A Blender bar prop (FrameBar / SignEdge: constant profile, 1 stud long)
+-- stretched between two points. `yaw` turns the bar's face (+Z) to point
+-- away from the wall: 0 = +Z, pi = -Z, -pi/2 = -X, pi/2 = +X.
+local function meshBar(c: Ctx, prop: string, h: number, a: Vector3, b: Vector3, yaw: number, color: Color3, mat: Enum.Material)
+	local d = b - a
+	local len = d.Magnitude
+	if len < 0.05 then
+		return
+	end
+	local vertical = math.abs(d.Y) > math.abs(d.X) + math.abs(d.Z)
+	local rot = CFrame.Angles(0, yaw, 0) * (if vertical then CFrame.Angles(0, 0, math.pi / 2) else CFrame.new())
+	local cf = c.origin * CFrame.new((a + b) / 2) * rot * CFrame.new(0, -h / 2, 0)
+	MeshLib.place(c.parent, prop, cf, { [if prop == "SignEdge" then "Edge" else "Frame"] = color }, { scale = Vector3.new(len, 1, 1), materials = { Edge = mat, Frame = mat }, shadow = false })
+end
+
+-- Rounded cabinet edge around a rectangle x1..x2 / y1..y2 in the plane z
+-- (signs, menu boards, screens). Returns false when the mesh is missing.
+local EDGE_H = 0.4
+local function edgeFrame(c: Ctx, x1: number, y1: number, x2: number, y2: number, z: number, color: Color3, mat: Enum.Material?): boolean
+	if not MeshLib.has("SignEdge") then
+		return false
+	end
+	local m = mat or M.SmoothPlastic
+	local h = EDGE_H / 2
+	meshBar(c, "SignEdge", EDGE_H, Vector3.new(x1 - EDGE_H, y2 + h, z), Vector3.new(x2 + EDGE_H, y2 + h, z), 0, color, m)
+	meshBar(c, "SignEdge", EDGE_H, Vector3.new(x1 - EDGE_H, y1 - h, z), Vector3.new(x2 + EDGE_H, y1 - h, z), 0, color, m)
+	meshBar(c, "SignEdge", EDGE_H, Vector3.new(x1 - h, y1, z), Vector3.new(x1 - h, y2, z), 0, color, m)
+	meshBar(c, "SignEdge", EDGE_H, Vector3.new(x2 + h, y1, z), Vector3.new(x2 + h, y2, z), 0, color, m)
+	return true
+end
+
 local function screen(c: Ctx, name: string, x1: number, y1: number, x2: number, y2: number, z: number, faceZ: number): Part
 	-- A hanging flat screen. faceZ = 1 faces +Z, -1 faces -Z.
 	local frame = B.box(c, name .. "Frame", x1 - 0.15, y1 - 0.15, z - 0.2, x2 + 0.15, y2 + 0.15, z + 0.2, C.BLACK)
+	edgeFrame(c, x1 - 0.15, y1 - 0.15, x2 + 0.15, y2 + 0.15, z, Color3.fromRGB(34, 34, 38), M.Metal)
 	local scr = B.box(c, name, x1, y1, z - 0.22 * (faceZ > 0 and -1 or 1) - 0.02, x2, y2, z - 0.22 * (faceZ > 0 and -1 or 1) + 0.02, Color3.fromRGB(10, 10, 14))
 	scr.CanQuery = false
 	frame.CanQuery = false
@@ -211,15 +243,7 @@ end
 -- bar's face (+Z) to the wall's outside: 0 = +Z, pi = -Z, -pi/2 = -X, pi/2 = +X.
 local FRAME_H = 0.3
 local function frameBar(c: Ctx, a: Vector3, b: Vector3, yaw: number, color: Color3)
-	local d = b - a
-	local len = d.Magnitude
-	if len < 0.05 then
-		return
-	end
-	local vertical = math.abs(d.Y) > math.abs(d.X) + math.abs(d.Z)
-	local rot = CFrame.Angles(0, yaw, 0) * (if vertical then CFrame.Angles(0, 0, math.pi / 2) else CFrame.new())
-	local cf = c.origin * CFrame.new((a + b) / 2) * rot * CFrame.new(0, -FRAME_H / 2, 0)
-	MeshLib.place(c.parent, "FrameBar", cf, { Frame = color }, { scale = Vector3.new(len, 1, 1), materials = { Frame = M.Metal }, shadow = false })
+	meshBar(c, "FrameBar", FRAME_H, a, b, yaw, color, M.Metal)
 end
 
 -- Perimeter frame for a window opening. Front/back walls: x1..x2 at plane z.
@@ -436,19 +460,53 @@ local function buildShell(c: Ctx)
 	-- Rooftop sign: PIZZA PLANET with a planet logo
 	local signM = B.model(sf, "RoofSign")
 	local board = B.box(signM, "Board", -16, 16.5, 21.6, 14, 21.5, 22.4, C.RED, M.SmoothPlastic)
-	B.box(signM, "BoardTrim", -16.3, 16.3, 21.5, 14.3, 21.7, 22.3, C.YELLOW, M.SmoothPlastic)
+	if not edgeFrame(signM, -16, 16.5, 14, 21.5, 22, C.YELLOW) then
+		B.box(signM, "BoardTrim", -16.3, 16.3, 21.5, 14.3, 21.7, 22.3, C.YELLOW, M.SmoothPlastic)
+	end
 	B.label(board, Enum.NormalId.Back, "PIZZA PLANET", { guiName = "SignText", color = C.WHITE, font = Enum.Font.FredokaOne, ppu = 30, pad = 18, brightness = 2.5, light = 0 })
-	local planet = B.ball(signM, "Planet", Vector3.new(7, 7, 7), 19, 19.5, 22, C.RED, M.SmoothPlastic)
-	B.part(signM, "Ring", Vector3.new(0.3, 10.5, 10.5), CFrame.new(19, 19.5, 22) * CFrame.Angles(math.rad(-12), 0, math.rad(72)), C.YELLOW, M.Neon, { Shape = Enum.PartType.Cylinder })
-	B.ball(signM, "Crater", Vector3.new(1.4, 1.4, 0.6), 17.6, 20.8, 25.3, C.RED_DARK, M.SmoothPlastic)
-	B.ball(signM, "Crater", Vector3.new(1, 1, 0.5), 20.5, 18.4, 25.4, C.RED_DARK, M.SmoothPlastic)
-	B.pointLight(planet, Color3.fromRGB(255, 120, 90), 18, 1.2)
+	if MeshLib.has("PlanetSign") then
+		-- sculpted cratered planet + banded ring (planet centre 4.7 above the mesh base)
+		local parts = MeshLib.place(signM.parent, "PlanetSign", signM.origin * CFrame.new(19, 19.5 - 4.7, 22), {
+			Planet = C.RED, Crater = C.RED_DARK, Ring = C.YELLOW, Band = Color3.fromRGB(255, 150, 40), Mount = C.BLACK,
+		}, { materials = { Planet = M.SmoothPlastic, Crater = M.SmoothPlastic, Ring = M.SmoothPlastic, Band = M.Neon, Mount = M.Metal } })
+		if parts.Planet then
+			B.pointLight(parts.Planet, Color3.fromRGB(255, 120, 90), 18, 1.2)
+		end
+	else
+		local planet = B.ball(signM, "Planet", Vector3.new(7, 7, 7), 19, 19.5, 22, C.RED, M.SmoothPlastic)
+		B.part(signM, "Ring", Vector3.new(0.3, 10.5, 10.5), CFrame.new(19, 19.5, 22) * CFrame.Angles(math.rad(-12), 0, math.rad(72)), C.YELLOW, M.Neon, { Shape = Enum.PartType.Cylinder })
+		B.ball(signM, "Crater", Vector3.new(1.4, 1.4, 0.6), 17.6, 20.8, 25.3, C.RED_DARK, M.SmoothPlastic)
+		B.ball(signM, "Crater", Vector3.new(1, 1, 0.5), 20.5, 18.4, 25.4, C.RED_DARK, M.SmoothPlastic)
+		B.pointLight(planet, Color3.fromRGB(255, 120, 90), 18, 1.2)
+	end
 	for _, x in { -12, 0, 10 } do
 		B.box(signM, "Post", x - 0.2, 14.2, 21.9, x + 0.2, 16.6, 22.1, C.BLACK, M.Metal)
 	end
 	-- Facade name panel above door
 	local namePanel = B.box(sf, "DoorSign", 13.4, 9.0, 22.55, 20.6, 10.6, 22.75, C.YELLOW)
 	B.label(namePanel, Enum.NormalId.Back, "ENTRANCE", { color = C.RED_DARK, font = Enum.Font.GothamBlack, pad = 6 })
+	edgeFrame(sf, 13.4, 9.0, 20.6, 10.6, 22.65, C.RED)
+	if MeshLib.has("BladeSign") then
+		-- wrought-iron bracket sign over the right-hand window, readable along the street
+		local parts = MeshLib.place(sf.parent, "BladeSign", sf.origin * CFrame.new(25.5, 10.3, 22.5), { Iron = C.BLACK, Rim = C.YELLOW },
+			{ materials = { Iron = M.Metal, Rim = M.Metal } })
+		if parts.Rim then
+			local disc = Instance.new("Part")
+			disc.Name = "BladeDisc"
+			disc.Shape = Enum.PartType.Cylinder
+			disc.Size = Vector3.new(0.12, 2.55, 2.55)
+			disc.CFrame = CFrame.new(parts.Rim.Position) * (sf.origin - sf.origin.Position)
+			disc.Color = C.RED
+			disc.Material = M.SmoothPlastic
+			disc.Anchored = true
+			disc.CanCollide = false
+			disc.CanQuery = false
+			disc.Parent = sf.parent
+			for _, face in { Enum.NormalId.Left, Enum.NormalId.Right } do
+				B.label(disc, face, "🍕\nPIZZA", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 14, brightness = 1.5 })
+			end
+		end
+	end
 	-- Wall lanterns
 	for _, x in { XW + 0.5, 12.8, 21.2, 29.2, XE - 0.5 } do
 		if MeshLib.has("WallLamp") then
@@ -1351,9 +1409,17 @@ local function buildOutside(c: Ctx)
 		end
 	end
 	-- pylon sign by the road
-	local pylon = B.box(of, "Pylon", -40 - DW, 0, 29.5, -38.8 - DW, 16, 30.7, C.STEEL_DARK, M.Metal)
-	pylon.CanQuery = false
+	if MeshLib.has("PylonPost") then
+		MeshLib.place(o.parent, "PylonPost", of.origin * CFrame.new(-39.4 - DW, 0, 30.1), { Post = C.STEEL_DARK, Base = C.STEEL },
+			{ collide = true, materials = { Post = M.Metal, Base = M.Metal } })
+	else
+		local pylon = B.box(of, "Pylon", -40 - DW, 0, 29.5, -38.8 - DW, 16, 30.7, C.STEEL_DARK, M.Metal)
+		pylon.CanQuery = false
+	end
 	local panel = B.box(of, "PylonSign", -43.5 - DW, 13, 29.3, -35.3 - DW, 18, 30.9, C.RED)
+	for _, z in { 29.45, 30.75 } do
+		edgeFrame(of, -43.5 - DW, 13, -35.3 - DW, 18, z, C.YELLOW)
+	end
 	B.label(panel, Enum.NormalId.Front, "🪐 PIZZA\nPLANET", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10, brightness = 2 })
 	B.label(panel, Enum.NormalId.Back, "🪐 PIZZA\nPLANET", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10, brightness = 2 })
 	B.pointLight(panel, Color3.fromRGB(255, 120, 100), 16, 1)
