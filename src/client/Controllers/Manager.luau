@@ -11,6 +11,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local MasteryBadge = require(script.Parent.Parent.UI.MasteryBadge)
 local State = require(script.Parent.State)
 local Interaction = require(script.Parent.Interaction)
 local Notify = require(script.Parent.Notifications)
@@ -150,7 +151,10 @@ local function renderRecipes()
 	for i, r in Recipes.List do
 		local ok = unlocked[r.id] == true
 		local c = card(content, i, not ok)
-		c.Size = UDim2.new(1, -12, 0, 86)
+		c.Size = UDim2.new(1, -12, 0, 86 + (ok and MasteryBadge.Height or 0))
+		if ok then
+			MasteryBadge.attach(c, r, (snap.mastery or {})[r.id]) -- menu mastery stars + progress
+		end
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 10), Size = UDim2.fromOffset(40, 40), Text = r.icon, TextSize = 30 })
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(60, 8), Size = UDim2.new(1, -200, 0, 20), Text = r.name, TextColor3 = Col.Ink, Font = Theme.FontBlack, TextSize = 16 })
 		local req = r.requires and Upgrades.get(r.requires)
@@ -173,7 +177,7 @@ local function renderRecipes()
 		end
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(60, 30), Size = UDim2.new(1, -72, 0, 50), Text = r.description .. "\n" .. steps, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, TextColor3 = Col.InkSoft, Font = Theme.Font, TextSize = 12 })
 	end
-	footerText.Text = "Serve exactly what's on the ticket. Wrong food doesn't count!"
+	footerText.Text = "Serve exactly what's on the ticket. Wrong food doesn't count! Serve a recipe often to earn 🥉🥈🥇 mastery."
 end
 
 local function stat(parent: Instance, order: number, label: string, value: string, color: Color3?)
@@ -195,7 +199,8 @@ local function renderStats()
 	stat(content, 7, "Angry walk-outs", tostring(st.angry or 0), Col.Red)
 	stat(content, 8, "Messes cleaned", tostring(st.cleaned or 0))
 	stat(content, 9, "Cleanliness", tostring(snap.cleanliness or 100) .. "%")
-	local toggle = card(content, 10, false)
+	stat(content, 10, "Menu mastery", ("★ %d / %d"):format(snap.masteryStars or 0, snap.masteryMax or 0), Color3.fromRGB(220, 150, 20))
+	local toggle = card(content, 11, false)
 	Theme.button({ Parent = toggle, Position = UDim2.fromOffset(12, 20), Size = UDim2.new(1, -24, 0, 46), BackgroundColor3 = snap.open and Col.Red or Col.Green, Text = snap.open and "Close restaurant" or "Open restaurant", TextSize = 16 }, function()
 		Net.func("ToggleOpen"):InvokeServer()
 		task.wait(0.2)
