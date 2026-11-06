@@ -6,7 +6,7 @@ Newest first.
 
 ## 2026-11-06: Pass gantry, topping rails, office desk + chair
 
-4 more meshes (`HeatGantry`, `PrepRail`, `OfficeDesk`, `OfficeChair`). Pans, boards, heat-shelf slots and the Owner PC station did not move. Verified by measurement only (the Studio viewport rendered white), so if you're in Studio, a quick look at the prep line and the pass would be welcome.
+4 more meshes (`HeatGantry`, `PrepRail`, `OfficeDesk`, `OfficeChair`). Pans, boards, heat-shelf slots and the Owner PC station did not move. Studio-verified with screenshots of the prep line, pass, kebab counter and office.
 
 ## 2026-11-06: Counter and kitchen small kit
 
