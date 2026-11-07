@@ -12,9 +12,13 @@
 --  * Per-plot state lives in plot.shift (PlotService.release clears it).
 --    Lifetime records (days played, best day) are saved in profile.shift.
 --  * Rules live in Shared.Shift.DayCycle, numbers in Config/DayCycle.
+--  * While closed, the snapshot carries a "Before you open" checklist
+--    (Shared.Shift.Checklist): stock, cleanliness, empty ovens / fryers.
+--  * Orders finished during a rush also count as the "rush_order" goal event.
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DayCycle = require(Shared.Shift.DayCycle)
+local Checklist = require(Shared.Shift.Checklist)
 local Net = require(Shared.Net)
 
 local Config = DayCycle.Config
@@ -60,6 +64,23 @@ local function pushOwner(plot)
 	end
 end
 
+-- "Before you open" checklist for a plot (see Shared.Shift.Checklist).
+function ShiftService.checklist(plot, profile): any
+	local busy = 0
+	for _, st in plot.stations or {} do
+		if (st.kind == "Oven" or st.kind == "Fryer") and st.item then
+			busy += 1
+		end
+	end
+	return Checklist.build({
+		stock = profile.stock or {},
+		level = profile.level,
+		upgrades = profile.upgrades or {},
+		cleanliness = if S.CleaningService then S.CleaningService.cleanliness(plot) else 100,
+		cookersBusy = busy,
+	})
+end
+
 local function startShift(plot)
 	local owner = plot.owner
 	local profile = owner and S.DataService.get(owner)
@@ -71,6 +92,13 @@ local function startShift(plot)
 	shift.phase = (DayCycle.phaseAt(DayCycle.minuteAt(shift, now())) or {}).id
 	plot.shift = shift
 	S.ProgressService.notify(owner, ("☀️ Day %d begins! Lunch rush at noon, dinner rush at 5:30."):format(shift.day), "info")
+	-- opening anyway is fine, but say what was left on the checklist
+	local list = ShiftService.checklist(plot, profile)
+	for _, it in list.items do
+		if not it.ok then
+			S.ProgressService.notify(owner, "Heads up: " .. it.text, "bad")
+		end
+	end
 end
 
 -- Ends the day: summary, bonus, wages, records. Called when closing is done.
@@ -213,7 +241,15 @@ function ShiftService.record(player: Player, event: string, amount: number?, par
 	if not shift then
 		return
 	end
-	DayCycle.record(shift, event, amount, param, DayCycle.minuteAt(shift, now()))
+	local minute = DayCycle.minuteAt(shift, now())
+	DayCycle.record(shift, event, amount, param, minute)
+	-- rush goals: an order finished during a rush phase is also a "rush_order"
+	if event == "order" then
+		local phase = DayCycle.phaseAt(minute)
+		if phase and phase.rush and S.GoalService.record then
+			S.GoalService.record(player, "rush_order", amount or 1)
+		end
+	end
 end
 
 -- Snapshot field for the client day clock (Controllers/DayClock).
@@ -241,6 +277,10 @@ function ShiftService.stateFor(player: Player): { [string]: any }
 	else
 		view.state = "idle"
 		view.day = records.days + 1
+		local profile = S.DataService.get(player)
+		if profile then
+			view.checklist = ShiftService.checklist(plot, profile)
+		end
 	end
 	return { shift = view }
 end

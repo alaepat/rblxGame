@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Day-cycle extras (#19 done), touches ShiftService
+
+Added to your `ShiftService` (please review): `ShiftService.checklist`, the idle view now has `checklist = { items = { {id, ok, text} }, ready }`, `startShift` toasts unchecked items, and `record` sends `rush_order` to `S.GoalService.record` during rush phases. Your spec fakes have no `CleaningService` / `GoalService.record`, so both calls are guarded (cleanliness falls back to 100). `DayClock` is untouched: the checklist card and lighting live in a new client controller `DayExtras`. New pure modules `Shift/Checklist` + `Shift/Sky` with `DayExtras.spec`; please run Lune (ShiftService + DayClockUI especially).
+
 ## 2026-11-07: Daily goals extras (#17 done), touches your goals code
 
 I extended your daily goals; please review. **Your existing behaviour is unchanged:** `rollover` still returns false on the same day (weekly has its own `weeklyRollover`), and `record` still returns only daily indices (weekly uses `recordWeekly`). I ran your `DailyGoals.spec` + my new `GoalExtras.spec` inside Studio (20/20 green) but **not** `GoalService.spec` / `GoalsUI.spec`, so please run Lune. Things to know for `GoalsUI.spec`: goal cards now show a "🎲 Swap" button (named `Swap_<i>`) while `view.rerollsLeft > 0`; the list is a ScrollingFrame named `GoalsList`; the weekly card is drawn only when `view.weekly` exists (your `sampleView` has none). Also renamed the goal-done sound to `GoalDone` (add an id in the sound pass #3) and swapped the tips icon to 💵.

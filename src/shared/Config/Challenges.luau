@@ -26,6 +26,7 @@
 --   serve_recipe   one item served, param = recipe id
 --   clean          rubbish picked up / counter wiped
 --   bake_perfect   pizza taken out of the oven while "cooked" (not raw, not burnt)
+--   rush_order     an order completed during a rush phase (ShiftService)
 
 export type Template = {
 	id: string,
@@ -62,6 +63,8 @@ local templates: { Template } = {
 		minLevel = 2, base = 5, perLevel = 1.5, step = 1, weight = 2, difficulty = 1.1 },
 	{ id = "recipe", event = "serve_recipe", text = "Serve %s × %s", icon = "⭐",
 		minLevel = 2, base = 2, perLevel = 0.2, step = 1, weight = 3, difficulty = 1.1 },
+	{ id = "rush", event = "rush_order", text = "Serve %s orders during a rush hour", icon = "🔥",
+		minLevel = 2, base = 3, perLevel = 0.35, step = 1, weight = 2, difficulty = 1.25 },
 	{ id = "kebabs", event = "serve_kind", param = "kebab", text = "Serve %s kebabs, wraps or boxes", icon = "🥙",
 		minLevel = 6, requires = "kebab_station", base = 3, perLevel = 0.3, step = 1, weight = 3, difficulty = 1.1 },
 }
@@ -98,7 +101,7 @@ return {
 	-- reward = daily goal reward x RewardMultiplier. Unclaimed finished weekly
 	-- rewards are paid automatically when the week rolls over.
 	Weekly = {
-		Ids = { "orders", "earn", "pizzas", "happy", "bake", "clean", "tips" },
+		Ids = { "orders", "earn", "pizzas", "happy", "bake", "clean", "tips", "rush" },
 		TargetMultiplier = 7,
 		RewardMultiplier = 5,
 	},

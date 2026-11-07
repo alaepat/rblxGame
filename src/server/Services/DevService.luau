@@ -10,12 +10,14 @@
 --   ServerStorage.DevCommand:Invoke("goals")            -- finish every daily goal
 --   ServerStorage.DevCommand:Invoke("goals", "reset")   -- roll a fresh set of goals
 --   ServerStorage.DevCommand:Invoke("goals", "weekly")  -- finish the weekly challenge
+--   ServerStorage.DevCommand:Invoke("goals", "rush")    -- goal 1 becomes a goal of that template (any Challenges id)
 --   ServerStorage.DevCommand:Invoke("day", 12)          -- jump the shift clock to 12:00 (lunch rush)
 --   ServerStorage.DevCommand:Invoke("day", "close")     -- jump to closing time
 --   ServerStorage.DevCommand:Invoke("day", "end")       -- end the day now (summary)
 --   ServerStorage.DevCommand:Invoke("queue")            -- front customer's wish + open orders (for test bots)
 --   ServerStorage.DevCommand:Invoke("traffic")          -- current customer-traffic multiplier (rush x level)
 --   ServerStorage.DevCommand:Invoke("theme", "space")   -- buy (cost applies) + switch dining theme
+--   ServerStorage.DevCommand:Invoke("event", "order")   -- record one game event (as if an order finished)
 --   ServerStorage.DevCommand:Invoke("mastery", "cheese_pizza") -- jump a recipe to its next mastery tier
 --   ServerStorage.DevCommand:Invoke("mastery")          -- list mastery serve counts
 -- Never active in live servers.
@@ -90,6 +92,17 @@ local function run(cmd: string, arg: any): any
 		S.ProgressService.addMoney(player, -profile.money + 5)
 		return "money " .. profile.money
 	elseif cmd == "goals" then
+		local Challenges = require(Shared.Config.Challenges)
+		if type(arg) == "string" and Challenges.ById[arg] then
+			-- put a goal of this template in slot 1 (test a specific goal type)
+			local DailyGoals = require(Shared.Goals.DailyGoals)
+			S.GoalService.ensure(player)
+			local t = Challenges.ById[arg]
+			local reward = DailyGoals.goalReward(profile.level, t.difficulty)
+			profile.daily.goals[1] = { id = t.id, param = t.param, target = DailyGoals.target(t, profile.level), progress = 0, cash = reward.cash, xp = reward.xp, claimed = false }
+			S.ProgressService.push(player)
+			return "goal 1 is now " .. DailyGoals.describe(profile.daily.goals[1])
+		end
 		if arg == "weekly" then
 			S.GoalService.ensure(player)
 			local w = profile.daily.weekly and profile.daily.weekly.goal
@@ -154,6 +167,10 @@ local function run(cmd: string, arg: any): any
 			return "usage: day <hour> | close | end"
 		end
 		return S.ShiftService.devJump(plot, hour)
+	elseif cmd == "event" then
+		-- feed a game event through GoalService (goals, day stats, rush goals)
+		S.GoalService.record(player, tostring(arg), 1)
+		return "recorded " .. tostring(arg)
 	elseif cmd == "theme" then
 		local ok, msg = S.ThemeService.choose(player, arg)
 		return (ok and "ok: " or "fail: ") .. msg
