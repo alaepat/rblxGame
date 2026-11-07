@@ -97,6 +97,43 @@ local function waitForSummary(card: Instance)
 	end)
 end
 
+-- Several level-ups in a row (a big serve, mastery rewards, a shift bonus)
+-- become ONE popup: highest level, rewards added up, all unlocks listed.
+local LEVEL_AUTO_CLOSE = 12 -- seconds; the popup never sits on screen forever
+local levelToken = 0
+
+local function concat(a: { any }?, b: { any }?): { any }
+	local out = table.clone(a or {})
+	for _, v in b or {} do
+		table.insert(out, v)
+	end
+	return out
+end
+
+local function mergeLevels(a: any, b: any): any
+	local ua, ub = a.unlocks or {}, b.unlocks or {}
+	return {
+		level = math.max(a.level or 0, b.level or 0),
+		fromLevel = math.min(a.fromLevel or a.level or 0, b.fromLevel or b.level or 0),
+		reward = (a.reward or 0) + (b.reward or 0),
+		xpNext = if (b.level or 0) >= (a.level or 0) then b.xpNext else a.xpNext,
+		unlocks = {
+			recipes = concat(ua.recipes, ub.recipes),
+			ingredients = concat(ua.ingredients, ub.ingredients),
+			upgrades = concat(ua.upgrades, ub.upgrades),
+			note = ub.note or ua.note,
+		},
+	}
+end
+
+local function closeLevel()
+	levelToken += 1
+	levelWindow.Visible = false
+	showingLevel = false
+	currentLevel = nil
+	showNextLevel()
+end
+
 function showNextLevel()
 	if showingLevel or #levelQueue == 0 then
 		return
@@ -108,6 +145,8 @@ function showNextLevel()
 	showingLevel = true
 	local p = table.remove(levelQueue, 1)
 	currentLevel = p
+	levelToken += 1
+	local token = levelToken
 	for _, ch in levelWindow:GetChildren() do
 		if not ch:IsA("UICorner") and not ch:IsA("UISizeConstraint") then
 			ch:Destroy()
@@ -118,7 +157,11 @@ function showNextLevel()
 	T("UIGradient", { Parent = banner, Color = ColorSequence.new(Color3.fromRGB(150, 90, 240), Color3.fromRGB(240, 80, 120)), Rotation = 20 })
 	Theme.text({ Parent = banner, Position = UDim2.fromOffset(0, 12), Size = UDim2.new(1, 0, 0, 24), Text = "LEVEL UP!", Font = Theme.FontBlack, TextSize = 22, TextXAlignment = Enum.TextXAlignment.Center })
 	Theme.text({ Parent = banner, Position = UDim2.fromOffset(0, 38), Size = UDim2.new(1, 0, 0, 60), Text = tostring(p.level), Font = Theme.FontFun, TextSize = 60, TextXAlignment = Enum.TextXAlignment.Center })
-	Theme.text({ Parent = banner, Position = UDim2.fromOffset(0, 96), Size = UDim2.new(1, 0, 0, 18), Text = "Next level in " .. tostring(p.xpNext) .. " XP", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.fromRGB(240, 230, 255) })
+	local sub = "Next level in " .. tostring(p.xpNext) .. " XP"
+	if p.fromLevel and p.fromLevel < p.level then
+		sub = ("Levels %d → %d  ·  "):format(p.fromLevel, p.level) .. sub
+	end
+	Theme.text({ Parent = banner, Position = UDim2.fromOffset(0, 96), Size = UDim2.new(1, 0, 0, 18), Text = sub, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.fromRGB(240, 230, 255) })
 	local body = T("ScrollingFrame", { Parent = levelWindow, Position = UDim2.fromOffset(16, 132), Size = UDim2.new(1, -32, 1, -200), BackgroundTransparency = 1, ScrollBarThickness = 4, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, BorderSizePixel = 0 }, { Theme.list(Enum.FillDirection.Vertical, 6) })
 	local n = 0
 	n += 1
@@ -149,19 +192,32 @@ function showNextLevel()
 		unlockRow(body, n, "⭐", p.unlocks.note, "MILESTONE", Col.Purple)
 	end
 	Theme.button({ Parent = levelWindow, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -16), Size = UDim2.new(1, -32, 0, 44), BackgroundColor3 = Col.Green, Text = "Awesome!", TextSize = 18 }, function()
-		levelWindow.Visible = false
-		showingLevel = false
-		currentLevel = nil
-		showNextLevel()
+		closeLevel()
 	end)
-	levelWindow.Size = UDim2.fromOffset(380, 300)
+	if not levelWindow.Visible then
+		levelWindow.Size = UDim2.fromOffset(380, 300)
+		TweenService:Create(levelWindow, TweenInfo.new(0.35, Enum.EasingStyle.Back), { Size = UDim2.fromOffset(420, 460) }):Play()
+	end
 	levelWindow.Visible = true
-	TweenService:Create(levelWindow, TweenInfo.new(0.35, Enum.EasingStyle.Back), { Size = UDim2.fromOffset(420, 460) }):Play()
 	Sounds.play("LevelUp")
+	task.delay(LEVEL_AUTO_CLOSE, function()
+		if levelToken == token and showingLevel then
+			closeLevel()
+		end
+	end)
 end
 
 function Notifications.levelUp(payload: any)
-	table.insert(levelQueue, payload)
+	if showingLevel and currentLevel then
+		-- already celebrating: fold the new level into the open popup
+		local merged = mergeLevels(currentLevel, payload)
+		showingLevel = false
+		table.insert(levelQueue, 1, merged)
+	elseif #levelQueue > 0 then
+		levelQueue[#levelQueue] = mergeLevels(levelQueue[#levelQueue], payload)
+	else
+		table.insert(levelQueue, payload)
+	end
 	showNextLevel()
 end
 
