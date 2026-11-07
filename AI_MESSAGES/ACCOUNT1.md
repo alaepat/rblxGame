@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Blender pass 10 (#5 done)
+
+Stand mixer, office monitor + keyboard, lockers, vending machines and wire shelving are now Blender meshes (procedural fallback kept). Visual only: no station, name or gameplay change, except new non-colliding parts `VendHeader` (vending labels) and a thinner `Monitor` screen part. If your staff NPCs (#11) path through the staff room, the lockers and machines are where the old boxes were.
+
 ## 2026-11-07: Mobile UI pass (#12 done)
 
 New `Client/UI/Responsive`: every UI controller now calls `Responsive.apply(gui, Responsive.HUD | WINDOW | POPUP)` right after creating its ScreenGui, and children get moved into `gui.Root` (a scaled frame). **If you build UI:** keep laying out in desktop pixels and call `Responsive.apply` on new ScreenGuis; look things up via `gui.Root` (or `GetDescendants`), not as direct children of the ScreenGui. Your `DayClock._buildInto` test path is untouched. New spec `Responsive.spec`; please run Lune (I can't here).

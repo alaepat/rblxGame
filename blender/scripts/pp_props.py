@@ -1717,6 +1717,179 @@ TOPPINGS = ["Top_Pepperoni", "Top_Cucumber", "Top_Jalapeno", "Top_Tomato", "Top_
             "Top_Pepper", "Top_Chicken", "Top_Mushroom", "Top_Beef", "Top_Shred", "Top_Leaf", "Top_Doner",
             "Top_Chip", "Top_Drizzle", "Top_Cheese", "Dough"]
 
+# ---- batch 14 (pass 10): stand mixer, office PC, lockers, vending, wire shelving
+
+def build_StandMixer():
+    # Commercial planetary mixer, 1.3 wide x 1.6 deep x 2.35 tall. Column at
+    # the back, head reaching forward over a steel bowl. Front = -Y.
+    # Roles: Body (enamel), Bowl (steel), Trim (chrome), Knob.
+    body = [rounded_box("base", 1.3, 1.55, 0.22, 0.09, 5, (0, -0.05, 0.11)),
+            rounded_box("column", 0.56, 0.52, 1.75, 0.18, 6, (0, 0.47, 1.1)),
+            rounded_box("head", 0.74, 1.5, 0.56, 0.24, 6, (0, -0.05, 2.06))]
+    for sx in (-1, 1):  # bowl yoke arms
+        body.append(tube("arm", [(sx * 0.3, 0.42, 1.0), (sx * 0.6, 0.05, 1.0), (sx * 0.57, -0.35, 1.0)], 0.06, 3))
+    join(body, "StandMixer_Body")
+    lathe("StandMixer_Bowl", [(0.0, 0.24), (0.3, 0.24), (0.43, 0.34), (0.5, 0.58), (0.52, 1.1), (0.57, 1.14),
+                              (0.55, 1.17), (0.49, 1.12), (0.47, 0.6), (0.4, 0.4), (0.28, 0.3), (0.0, 0.3)], 48, (0, -0.2, 0))
+    trim = [rounded_box("band", 0.77, 1.53, 0.07, 0.03, 3, (0, -0.05, 1.83)),
+            cylinder("hub", 0.11, 0.2, (0, -0.2, 1.7), 32, bevel=0.03),
+            cylinder("shaft", 0.035, 0.2, (0, -0.2, 1.52), 16),
+            tube("beater", [(0, -0.2, 1.45), (-0.24, -0.2, 1.3), (-0.3, -0.2, 0.85), (-0.12, -0.2, 0.42), (0, -0.2, 0.38),
+                            (0.12, -0.2, 0.42), (0.3, -0.2, 0.85), (0.24, -0.2, 1.3), (0, -0.2, 1.45)], 0.03, 3)]
+    for sx in (-1, 1):  # bowl clips
+        trim.append(cylinder("clip", 0.07, 0.1, (sx * 0.57, -0.38, 1.0), 16, bevel=0.02))
+    join(trim, "StandMixer_Trim")
+    knobs = [rot_apply(cylinder("knob", 0.1, 0.09, (0.33, 0.47, 1.55), 24, bevel=0.02), 0, math.radians(90), 0),
+             tube("lever", [(0.38, 0.1, 2.0), (0.48, 0.0, 2.05), (0.5, -0.12, 2.1)], 0.03, 3),
+             sphere("tip", 0.055, (0.5, -0.14, 2.1))]
+    join(knobs, "StandMixer_Knob")
+
+
+def build_Monitor():
+    # Office monitor on a stand: 4.0 x 2.4 panel, bottom edge 0.8 above the
+    # desk, base plate on the desk (z = 0). Screen faces -Y.
+    # Roles: Bezel, Screen, Stand, Led.
+    bezel = rounded_box("bezel", 4.0, 0.14, 2.4, 0.06, 4, (0, 0, 2.0))
+    boolean_diff(bezel, rounded_box("cut", 3.82, 0.1, 2.18, 0.02, 2, (0, -0.07, 2.05)))
+    back = rounded_box("back", 2.5, 0.34, 1.5, 0.16, 5, (0, 0.2, 2.0))
+    join([bezel, back], "Monitor_Bezel")
+    rounded_box("Monitor_Screen", 3.82, 0.02, 2.18, 0.01, 1, (0, -0.035, 2.05))
+    neck = rounded_box("neck", 0.36, 0.12, 1.45, 0.05, 3, (0, 0.42, 1.05))
+    neck = rot_apply(neck, math.radians(-8), 0, 0)
+    base = rounded_box("base", 1.5, 0.95, 0.06, 0.03, 3, (0, 0.2, 0.03))
+    join([neck, base], "Monitor_Stand")
+    sphere("Monitor_Led", 0.025, (1.85, -0.075, 0.88), (1, 0.6, 1), 12, 6)
+
+
+def build_Keyboard():
+    # Low-profile keyboard 2.4 x 0.72 with 5 rows of keycaps, plus a mouse
+    # 1.75 to the right. Front (space bar) = -Y. Roles: Case, Keys, Mouse.
+    rounded_box("Keyboard_Case", 2.4, 0.72, 0.08, 0.04, 3, (0, 0, 0.04))
+    keys = []
+    for row in range(5):
+        y = 0.26 - row * 0.13
+        if row == 4:
+            for x, w in ((-0.95, 0.3), (-0.6, 0.18), (0.0, 0.9), (0.6, 0.18), (0.95, 0.3)):
+                keys.append(rounded_box("k", w - 0.02, 0.11, 0.05, 0.02, 1, (x, y, 0.105)))
+            continue
+        for col in range(14):
+            x = -1.07 + col * 0.165 + (0.04 if row % 2 else 0)
+            keys.append(rounded_box("k", 0.145, 0.11, 0.05, 0.02, 1, (x, y, 0.105)))
+    join(keys, "Keyboard_Keys")
+    mouse = sphere("m", 0.16, (1.75, 0.05, 0.0), (0.8, 1.35, 0.55), 32, 16)
+    for v in mouse.data.vertices:  # flat underside
+        v.co.z = max(v.co.z, 0.0)
+    join([mouse], "Keyboard_Mouse")
+
+
+def build_Locker():
+    # Steel staff locker 1.5 x 1.5 x 7.0 with a pressed door, louvre vents,
+    # lever handle and a number plate. Front = -Y.
+    # Roles: Body, Door, Vent, Handle, Plate, Kick.
+    rounded_box("Locker_Body", 1.5, 1.45, 6.75, 0.04, 3, (0, 0.025, 0.25 + 6.75 / 2))
+    rounded_box("Locker_Kick", 1.42, 1.35, 0.25, 0.02, 2, (0, 0.05, 0.125))
+    door = [rounded_box("door", 1.38, 0.05, 6.55, 0.03, 3, (0, -0.72, 3.6))]
+    for z in (2.2, 3.6, 4.9):  # pressed stiffening ribs
+        door.append(rounded_box("rib", 1.0, 0.03, 0.06, 0.015, 2, (0, -0.755, z)))
+    join(door, "Locker_Door")
+    vents = []
+    for z0 in (0.75, 5.75):
+        for i in range(6):
+            v = rounded_box("louvre", 0.9, 0.035, 0.07, 0.015, 2, (0, -0.76, z0 + i * 0.11))
+            vents.append(rot_apply(v, math.radians(35), 0, 0))
+    join(vents, "Locker_Vent")
+    handle = [rounded_box("plate", 0.14, 0.03, 0.62, 0.03, 3, (0.5, -0.76, 3.6)),
+              rounded_box("lever", 0.07, 0.1, 0.4, 0.03, 3, (0.5, -0.81, 3.5)),
+              cylinder("lock", 0.045, 0.04, (0.5, -0.78, 3.95), 16)]
+    handle[2] = rot_apply(handle[2], math.radians(90), 0, 0)
+    join(handle, "Locker_Handle")
+    rounded_box("Locker_Plate", 0.42, 0.025, 0.22, 0.02, 2, (0, -0.76, 6.6))
+
+
+def build_Vending():
+    # Glass-front vending machine 2.6 wide x 2.2 deep x 7.2 tall: product
+    # spirals behind the glass, keypad column on the right, pickup flap,
+    # header panel at the top (game puts its label there). Front = -Y.
+    # Roles: Body, Kick, Header, Glass, Inside, Coil, CanA, BagB, Panel,
+    # Keys, Screen, Flap, Trim.
+    W, D = 2.6, 2.2
+    body = rounded_box("Vending_Body", W, D, 6.9, 0.08, 4, (0, 0, 0.3 + 3.45))
+    boolean_diff(body, rounded_box("cut", 1.78, 1.2, 4.62, 0.04, 2, (-0.32, -D / 2, 4.0)))
+    rounded_box("Vending_Kick", W - 0.1, D - 0.1, 0.3, 0.03, 2, (0, 0, 0.15))
+    rounded_box("Vending_Header", W - 0.1, 0.08, 0.66, 0.05, 3, (0, -D / 2 - 0.02, 6.78))
+    rounded_box("Vending_Glass", 1.74, 0.04, 4.56, 0.02, 2, (-0.32, -D / 2 + 0.06, 4.0))
+    rounded_box("Vending_Inside", 1.74, 0.04, 4.56, 0.02, 2, (-0.32, -0.45, 4.0))
+    coils, cans, bags = [], [], []
+    for r in range(5):
+        z = 2.0 + r * 0.88
+        coils.append(rounded_box("tray", 1.72, 0.62, 0.04, 0.015, 2, (-0.32, -0.78, z)))
+        for c in range(5):
+            x = -0.98 + c * 0.33
+            for k in range(4):  # spiral turns as wire rings (a true helix is far over the tri budget)
+                ring = torus("coil", 0.12, 0.012, (x, -1.0 + k * 0.15, z + 0.14), 8, 3)
+                coils.append(rot_apply(ring, math.radians(90) + 0.12, 0, 0))
+            for y in (-0.95, -0.72):
+                if r % 2 == 0:
+                    cans.append(cylinder("can", 0.1, 0.34, (x, y, z + 0.21), 24, bevel=0.02))
+                else:
+                    bags.append(rounded_box("bag", 0.27, 0.07, 0.44, 0.035, 2, (x, y, z + 0.26)))
+    join(coils, "Vending_Coil")
+    join(cans, "Vending_CanA")
+    join(bags, "Vending_BagB")
+    rounded_box("Vending_Panel", 0.62, 0.05, 2.6, 0.04, 3, (0.92, -D / 2 - 0.02, 4.3))
+    keys = []
+    for i in range(4):
+        for j in range(3):
+            keys.append(rounded_box("key", 0.13, 0.04, 0.11, 0.02, 1, (0.77 + j * 0.15, -D / 2 - 0.06, 4.6 - i * 0.16)))
+    join(keys, "Vending_Keys")
+    rounded_box("Vending_Screen", 0.46, 0.03, 0.26, 0.02, 1, (0.92, -D / 2 - 0.055, 5.2))
+    trim = [rounded_box("slot", 0.1, 0.04, 0.26, 0.02, 1, (0.85, -D / 2 - 0.06, 3.85)),
+            rounded_box("bill", 0.4, 0.05, 0.12, 0.02, 1, (0.92, -D / 2 - 0.06, 3.5)),
+            rounded_box("lock", 0.14, 0.06, 0.4, 0.04, 2, (1.12, -D / 2 - 0.02, 2.6))]
+    join(trim, "Vending_Trim")
+    rounded_box("Vending_Flap", 1.6, 0.08, 0.55, 0.04, 3, (-0.32, -D / 2 - 0.02, 1.0))
+
+
+def build_WireShelf():
+    # Chrome wire shelving 7.6 x 2.4 x 7.0 (stretched per use): grooved
+    # posts, 4 wire decks (tops at 0.48 + i * 2.133, where the game stacks
+    # stock), rim tubes, cross wires. Front = -Y. Roles: Post, Wire, Foot.
+    W, D = 7.6, 2.4
+    posts, feet, wires = [], [], []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * (W / 2 - 0.07), sy * (D / 2 - 0.07)
+            prof = [(0.0, 0.08)] + [(0.07, 0.08 + i * 0.2) for i in range(35)] + [(0.0, 7.0)]
+            posts.append(lathe("post", prof, 16, (x, y, 0), ridges=0.12))
+            feet.append(cylinder("foot", 0.1, 0.08, (x, y, 0.04), 24, bevel=0.02))
+    for i in range(4):
+        top = 0.48 + i * 2.133
+        z = top - 0.03
+        for zz in (z, z - 0.16):
+            wires.append(tube("rim", [(-W / 2 + 0.07, -D / 2 + 0.07, zz), (W / 2 - 0.07, -D / 2 + 0.07, zz)], 0.025, 2))
+            wires.append(tube("rim", [(-W / 2 + 0.07, D / 2 - 0.07, zz), (W / 2 - 0.07, D / 2 - 0.07, zz)], 0.025, 2))
+        for sx in (-1, 1):
+            wires.append(tube("rim", [(sx * (W / 2 - 0.07), -D / 2 + 0.07, z), (sx * (W / 2 - 0.07), D / 2 - 0.07, z)], 0.025, 2))
+        for sy in (-1, 1):  # zig-zag truss between the two rims, front and back
+            pts = []
+            for k in range(20):
+                pts.append((-W / 2 + 0.07 + k * (W - 0.14) / 19, sy * (D / 2 - 0.07), z - (0.16 if k % 2 else 0.0)))
+            t = tube("truss", pts, 0.012, 2)
+            wires.append(t)
+        for k in range(11):  # deck wires along the length
+            y = -D / 2 + 0.17 + k * (D - 0.34) / 10
+            wires.append(rot_apply(cylinder("w", 0.012, W - 0.14, (0, y, z + 0.015), 8), 0, math.radians(90), 0))
+        for k in range(15):  # cross supports
+            x = -W / 2 + 0.3 + k * (W - 0.6) / 14
+            wires.append(rot_apply(cylinder("w", 0.016, D - 0.14, (x, 0, z - 0.005), 8), math.radians(90), 0, 0))
+        for sx in (-1, 1):
+            for sy in (-1, 1):  # split-sleeve collars
+                feet.append(cylinder("collar", 0.11, 0.18, (sx * (W / 2 - 0.07), sy * (D / 2 - 0.07), z - 0.08), 20, r2=0.085))
+    join(posts, "WireShelf_Post")
+    join(wires, "WireShelf_Wire")
+    join(feet, "WireShelf_Foot")
+
+
 PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox", "Bottle",
          "CounterModule", "CounterTop", "Oven", "Fridge", "MeatCone", "ChipsBasket", "Pitta", "WrapRoll", "KebabPaper",
          "Awning", "DoorLeaf", "Hood", "WallLamp", "StreetLamp", "Planter", "Parasol", "Bench",
@@ -1724,7 +1897,8 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "BoothBench", "BoothTable", "ArtFrame",
          "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter",
          "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair", "Carton",
-         "BreadCrate", "WrapBag", "SoftServe", "SundaeCup", "Calzone"] + TOPPINGS
+         "BreadCrate", "WrapBag", "SoftServe", "SundaeCup", "Calzone",
+         "StandMixer", "Monitor", "Keyboard", "Locker", "Vending", "WireShelf"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1808,6 +1982,21 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "SundaeCup_Swirl": (0.98, 0.93, 0.82), "SundaeCup_Drizzle1": (0.35, 0.2, 0.12), "SundaeCup_Drizzle2": (0.85, 0.15, 0.2),
              "SundaeCup_Sprinkles": (0.9, 0.4, 0.7), "SundaeCup_Crumble": (0.55, 0.38, 0.22), "SundaeCup_Spoon": (0.85, 0.87, 0.89),
              "Calzone_Crust": (0.88, 0.65, 0.36), "Calzone_Crimp": (0.8, 0.55, 0.28), "Calzone_Slit": (0.75, 0.15, 0.1)}
+
+
+OVERRIDES.update({
+    "StandMixer_Body": (0.95, 0.94, 0.92), "StandMixer_Bowl": (0.78, 0.8, 0.82), "StandMixer_Trim": (0.85, 0.87, 0.89),
+    "StandMixer_Knob": (0.13, 0.13, 0.14), "Monitor_Bezel": (0.08, 0.08, 0.09), "Monitor_Screen": (0.27, 0.35, 0.82),
+    "Monitor_Stand": (0.25, 0.25, 0.27), "Monitor_Led": (0.3, 0.9, 0.4), "Keyboard_Case": (0.12, 0.12, 0.13),
+    "Keyboard_Keys": (0.2, 0.2, 0.22), "Keyboard_Mouse": (0.12, 0.12, 0.13), "Locker_Body": (0.24, 0.47, 0.78),
+    "Locker_Door": (0.27, 0.53, 0.84), "Locker_Vent": (0.2, 0.4, 0.68), "Locker_Handle": (0.85, 0.87, 0.89),
+    "Locker_Plate": (0.95, 0.95, 0.9), "Locker_Kick": (0.13, 0.13, 0.14), "Vending_Body": (0.81, 0.16, 0.16),
+    "Vending_Kick": (0.13, 0.13, 0.14), "Vending_Header": (0.95, 0.95, 0.95), "Vending_Glass": (0.75, 0.88, 0.97),
+    "Vending_Inside": (0.95, 0.95, 0.9), "Vending_Coil": (0.85, 0.87, 0.89), "Vending_CanA": (0.85, 0.15, 0.15),
+    "Vending_BagB": (1.0, 0.75, 0.15), "Vending_Panel": (0.13, 0.13, 0.14), "Vending_Keys": (0.78, 0.8, 0.82),
+    "Vending_Screen": (0.3, 0.9, 0.4), "Vending_Flap": (0.13, 0.13, 0.14), "Vending_Trim": (0.85, 0.87, 0.89),
+    "WireShelf_Post": (0.85, 0.87, 0.89), "WireShelf_Wire": (0.85, 0.87, 0.89), "WireShelf_Foot": (0.13, 0.13, 0.14),
+})
 
 
 def render_preview(prop):

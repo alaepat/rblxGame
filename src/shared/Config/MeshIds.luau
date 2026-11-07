@@ -97,4 +97,11 @@ return {
 	SundaeCup = { assetId = 137499676391994, size = Vector3.new(0.721, 1.239, 0.714) },
 	-- batch 13: calzone (origin on the fold line, curved edge towards +Z)
 	Calzone = { assetId = 128754487870002, size = Vector3.new(2.356, 0.512, 1.223), center = Vector3.new(0, 0, 0.567) },
+	-- batch 14 (pass 10): kitchen mixer, office PC, staff room, storage shelving
+	StandMixer = { assetId = 104913132271731, size = Vector3.new(1.3, 2.34, 1.555), center = Vector3.new(0, 0, 0.047) },
+	Monitor = { assetId = 137601431295893, size = Vector3.new(4.0, 3.2, 0.95), center = Vector3.new(0, 0, -0.2) },
+	Keyboard = { assetId = 81009746108487, size = Vector3.new(3.078, 0.13, 0.72), center = Vector3.new(0.339, 0, 0) },
+	Locker = { assetId = 102404744610128, size = Vector3.new(1.5, 7.0, 1.61), center = Vector3.new(0, 0, 0.055) },
+	Vending = { assetId = 110669175529056, size = Vector3.new(2.6, 7.2, 2.285), center = Vector3.new(0, 0, 0.042) },
+	WireShelf = { assetId = 70570355088227, size = Vector3.new(7.68, 7.0, 2.48) },
 } :: { [string]: MeshInfo }

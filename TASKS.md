@@ -7,7 +7,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 5 | Blender pass 10 (optional): stand mixer, PC monitor, lockers/vending, storage shelving | Art | — | Fronts face +Z after import. Pass, rails and office desk/chair are done. |
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
 | 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | **Account 2** | Wages are ready: return hired staff from `ShiftService.staffOf` and the day summary charges `Config/DayCycle.Wages` (PR #2) |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
@@ -30,6 +29,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| #5 Blender pass 10: StandMixer (kitchen side counter), office Monitor + Keyboard/mouse (OS label kept on a thin screen panel), staff Locker ×5, glass-front Vending ×2 (cola + snacks, products behind glass, keypad), chrome WireShelf for every storage/freezer/upgrade shelving unit (stretched per unit) (Studio-verified) | Account 1 | 2026-11-07 |
 | #12 Mobile/tablet UI pass: `Client/UI/Responsive` scales every ScreenGui (Root frame + UIScale, desktop stays 1), PC/POS windows fill the screen when scaled, finger-sized prompt rows on touch, `Responsive.spec`; previewed at 844×390 with `workspace:SetAttribute("PP_EmulateScreen", …)` (Studio-verified; a real device / Studio device-emulator check is still open in #15, #18, #27) | Account 1 | 2026-11-07 |
 | #13 Interior themes: office PC "🎨 Decor" tab, 5 dining themes (Classic free; Retro Diner 4 $600, Tuscan Trattoria 7 $1,000, Space Station 10 $1,600, Gold & Marble 14 $3,000) restyling floor, panels, walls, tables, chairs, booth/stool seats incl. the annex; `Config/Themes` + `ThemeService`, saved as `profile.theme(s)` (Studio-verified) | Account 1 | 2026-11-07 |
 | #10 done: garlic bread (garlic butter tub on each prep board, level 17) and calzones (Fold prompt F on the prep board, level 18; Blender Calzone mesh) (Studio-verified) | Account 1 | 2026-11-07 |

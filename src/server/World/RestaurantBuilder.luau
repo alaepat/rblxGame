@@ -779,10 +779,16 @@ local function buildKitchen(c: Ctx)
 	-- Dough fridge (drawer unit) with a tray of dough on top
 	-- extra worktop run between the dough fridge and the prep line
 	local run = counter(B.sub(k, -26.3, -6.4, 0), "SideCounter", 7.4, 2.6)
-	B.box(run, "MixerBase", -2.6, COUNTER_H, -0.8, -1.2, COUNTER_H + 0.5, 0.6, C.WHITE)
-	B.box(run, "MixerArm", -2.4, COUNTER_H + 0.5, -0.8, -1.4, COUNTER_H + 2.2, -0.3, C.WHITE)
-	B.box(run, "MixerHead", -2.5, COUNTER_H + 1.8, -0.8, -0.6, COUNTER_H + 2.4, 0.2, C.WHITE)
-	B.cyl(run, "MixerBowl", 1.1, 0.8, -1.1, COUNTER_H, -0.1, C.STEEL, M.Metal)
+	if MeshLib.has("StandMixer") then
+		MeshLib.place(run.parent, "StandMixer", run.origin * CFrame.new(-1.9, COUNTER_H, -0.25), {
+			Body = Color3.fromRGB(242, 240, 234), Bowl = C.STEEL, Trim = C.STEEL:Lerp(C.WHITE, 0.3), Knob = C.BLACK,
+		}, { collide = true, materials = { Body = M.SmoothPlastic, Bowl = M.Metal, Trim = M.Metal, Knob = M.SmoothPlastic } })
+	else
+		B.box(run, "MixerBase", -2.6, COUNTER_H, -0.8, -1.2, COUNTER_H + 0.5, 0.6, C.WHITE)
+		B.box(run, "MixerArm", -2.4, COUNTER_H + 0.5, -0.8, -1.4, COUNTER_H + 2.2, -0.3, C.WHITE)
+		B.box(run, "MixerHead", -2.5, COUNTER_H + 1.8, -0.8, -0.6, COUNTER_H + 2.4, 0.2, C.WHITE)
+		B.cyl(run, "MixerBowl", 1.1, 0.8, -1.1, COUNTER_H, -0.1, C.STEEL, M.Metal)
+	end
 	for i = 0, 2 do
 		B.box(run, "FlourSack", 0.6 + i * 0.95, COUNTER_H, -1.0, 1.4 + i * 0.95, COUNTER_H + 1.0, -0.3, Color3.fromRGB(240, 232, 214), M.Fabric, { CanQuery = false })
 	end
@@ -1349,6 +1355,15 @@ end
 
 local function shelving(c: Ctx, name: string, w: number, d: number, h: number): Ctx
 	local m = B.model(c, name)
+	if MeshLib.has("WireShelf") then
+		-- chrome wire shelving, stretched to this unit; decks sit where stock is stacked
+		MeshLib.place(m.parent, "WireShelf", m.origin, { Post = C.STEEL, Wire = C.STEEL:Lerp(C.WHITE, 0.2), Foot = C.BLACK }, {
+			scale = Vector3.new(w / 7.6, h / 7, d / 2.4),
+			collide = true,
+			materials = { Post = M.Metal, Wire = M.Metal, Foot = M.SmoothPlastic },
+		})
+		return m
+	end
 	for _, x in { -w / 2, w / 2 } do
 		for _, z in { -d / 2, d / 2 } do
 			B.box(m, "Upright", x - 0.08, 0, z - 0.08, x + 0.08, h, z + 0.08, C.STEEL, M.Metal)
@@ -1484,11 +1499,27 @@ local function buildBack(c: Ctx)
 		B.box(o, "Desk", 1, 0, dz, 8.5, 2.9, dz + 3.2, C.WOOD, M.Wood)
 		B.box(o, "DeskTop", 0.8, 2.9, dz - 0.2, 8.7, 3.1, dz + 3.4, C.WOOD_DARK, M.Wood)
 	end
-	B.box(o, "MonitorStand", 4.4, 3.1, dz + 1, 4.8, 3.9, dz + 1.4, C.BLACK)
-	local mon = B.box(o, "Monitor", 2.6, 3.9, dz + 0.9, 6.6, 6.3, dz + 1.1, C.BLACK)
-	B.label(mon, Enum.NormalId.Back, "🪐 Pizza Planet OS", { color = C.WHITE, bg = Color3.fromRGB(70, 90, 210), font = Enum.Font.FredokaOne, pad = 12, brightness = 1.5 })
-	B.box(o, "Keyboard", 3.4, 3.1, dz + 2, 5.8, 3.2, dz + 2.7, C.DARK)
-	B.box(o, "Mouse", 6.2, 3.1, dz + 2.1, 6.5, 3.22, dz + 2.5, C.DARK)
+	local OS_BLUE = Color3.fromRGB(70, 90, 210)
+	if MeshLib.has("Monitor") then
+		MeshLib.place(o.parent, "Monitor", o.origin * CFrame.new(4.6, 3.1, dz + 1.0), {
+			Bezel = C.BLACK, Screen = OS_BLUE, Stand = C.STEEL_DARK, Led = Color3.fromRGB(80, 230, 110),
+		}, { collide = true, materials = { Bezel = M.SmoothPlastic, Screen = M.Glass, Stand = M.Metal, Led = M.Neon } })
+		-- thin screen panel inside the bezel carries the "OS" picture
+		local mon = B.box(o, "Monitor", 2.7, 4.07, dz + 1.06, 6.5, 6.23, dz + 1.08, OS_BLUE, M.SmoothPlastic, { CanCollide = false })
+		B.label(mon, Enum.NormalId.Back, "🪐 Pizza Planet OS", { color = C.WHITE, bg = OS_BLUE, font = Enum.Font.FredokaOne, pad = 12, brightness = 1.5 })
+	else
+		B.box(o, "MonitorStand", 4.4, 3.1, dz + 1, 4.8, 3.9, dz + 1.4, C.BLACK)
+		local mon = B.box(o, "Monitor", 2.6, 3.9, dz + 0.9, 6.6, 6.3, dz + 1.1, C.BLACK)
+		B.label(mon, Enum.NormalId.Back, "🪐 Pizza Planet OS", { color = C.WHITE, bg = OS_BLUE, font = Enum.Font.FredokaOne, pad = 12, brightness = 1.5 })
+	end
+	if MeshLib.has("Keyboard") then
+		MeshLib.place(o.parent, "Keyboard", o.origin * CFrame.new(4.6, 3.1, dz + 2.35), {
+			Case = C.BLACK, Keys = Color3.fromRGB(48, 48, 54), Mouse = C.BLACK,
+		}, { materials = { Case = M.SmoothPlastic, Keys = M.SmoothPlastic, Mouse = M.SmoothPlastic } })
+	else
+		B.box(o, "Keyboard", 3.4, 3.1, dz + 2, 5.8, 3.2, dz + 2.7, C.DARK)
+		B.box(o, "Mouse", 6.2, 3.1, dz + 2.1, 6.5, 3.22, dz + 2.5, C.DARK)
+	end
 	-- supplier tablet on a stand: same Pizza Planet OS (order stock, upgrades)
 	B.box(o, "TabletStand", 7.25, 3.1, dz + 1.6, 7.55, 3.5, dz + 1.9, C.STEEL_DARK, M.Metal)
 	local tab = B.part(o, "Tablet", Vector3.new(1.5, 1.05, 0.08), CFrame.new(7.4, 3.85, dz + 1.85) * CFrame.Angles(math.rad(-20), 0, 0), C.BLACK)
@@ -1523,17 +1554,50 @@ local function buildBack(c: Ctx)
 	local sr = B.folder(c, "StaffRoom")
 	for i = 0, 4 do
 		local x = 13 + i * 1.6
-		B.box(sr, "Locker", x, 0, zIn + 0.2, x + 1.5, 7, zIn + 1.7, if i % 2 == 0 then Color3.fromRGB(60, 120, 200) else Color3.fromRGB(70, 135, 215), M.Metal)
-		B.box(sr, "Vent", x + 0.3, 5.6, zIn + 1.71, x + 1.2, 6.4, zIn + 1.75, C.STEEL_DARK)
+		local tint = if i % 2 == 0 then Color3.fromRGB(60, 120, 200) else Color3.fromRGB(70, 135, 215)
+		if MeshLib.has("Locker") then
+			MeshLib.place(sr.parent, "Locker", sr.origin * CFrame.new(x + 0.75, 0, zIn + 0.95), {
+				Body = tint:Lerp(C.BLACK, 0.12), Door = tint, Vent = tint:Lerp(C.BLACK, 0.25), Handle = C.STEEL,
+				Plate = Color3.fromRGB(240, 238, 228), Kick = C.BLACK,
+			}, { collide = true, materials = { Body = M.Metal, Door = M.Metal, Vent = M.Metal, Handle = M.Metal, Plate = M.SmoothPlastic, Kick = M.SmoothPlastic } })
+		else
+			B.box(sr, "Locker", x, 0, zIn + 0.2, x + 1.5, 7, zIn + 1.7, tint, M.Metal)
+			B.box(sr, "Vent", x + 0.3, 5.6, zIn + 1.71, x + 1.2, 6.4, zIn + 1.75, C.STEEL_DARK)
+		end
 	end
 	B.box(sr, "LockerBench", 13, 0, zIn + 2.6, 20.8, 1.5, zIn + 3.8, C.WOOD, M.Wood)
 	B.box(sr, "SofaBase", 25, 0, -12, 33.5, 1.6, -9.5, C.RED_DARK, M.Fabric)
 	B.box(sr, "SofaBack", 25, 1.6, -9.9, 33.5, 3.6, -9, C.RED_DARK, M.Fabric)
 	B.box(sr, "CoffeeTable", 27, 0, -15.5, 31.5, 1.4, -13.5, C.WOOD, M.Wood)
-	local vend = B.box(sr, "Vending", IE - 2.8, 0, zIn + 0.1, IE - 0.2, 7.2, zIn + 2.3, C.RED, M.SmoothPlastic)
-	local vend2 = B.box(sr, "Snacks", IE - 5.8, 0, zIn + 0.1, IE - 3.2, 7.2, zIn + 2.3, Color3.fromRGB(40, 110, 200), M.SmoothPlastic)
-	B.label(vend2, Enum.NormalId.Back, "🍫 SNACKS", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10 })
-	B.label(vend, Enum.NormalId.Back, "🥤 PLANET\nCOLA", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10 })
+	if MeshLib.has("Vending") then
+		-- glass-front machines: cola (red, cans up front) and snacks (blue, bags)
+		local function machine(cx: number, body: Color3, canA: Color3, bagB: Color3, label: string)
+			local parts = MeshLib.place(sr.parent, "Vending", sr.origin * CFrame.new(cx, 0, zIn + 1.2), {
+				Body = body, Kick = C.BLACK, Header = body:Lerp(C.BLACK, 0.35), Glass = Color3.fromRGB(200, 225, 240),
+				Inside = Color3.fromRGB(250, 248, 240), Coil = C.STEEL, CanA = canA, BagB = bagB, Panel = C.BLACK,
+				Keys = C.STEEL:Lerp(C.WHITE, 0.4), Screen = Color3.fromRGB(80, 230, 110), Flap = C.BLACK, Trim = C.STEEL,
+			}, {
+				collide = true,
+				materials = { Body = M.SmoothPlastic, Glass = M.Glass, Inside = M.Neon, Coil = M.Metal, CanA = M.Metal, Screen = M.Neon, Trim = M.Metal },
+			})
+			if parts.Glass then
+				parts.Glass.Transparency = 0.65
+			end
+			if parts.Inside then
+				parts.Inside.Transparency = 0.2
+			end
+			-- label panel over the mesh header (header front is 1.16 in front of the centre)
+			local head = B.box(sr, "VendHeader", cx - 1.2, 6.5, zIn + 1.2 + 1.15, cx + 1.2, 7.06, zIn + 1.2 + 1.17, body:Lerp(C.BLACK, 0.35), M.SmoothPlastic, { CanCollide = false })
+			B.label(head, Enum.NormalId.Back, label, { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 4 })
+		end
+		machine(IE - 1.5, C.RED, C.RED, Color3.fromRGB(255, 190, 40), "🥤 PLANET COLA")
+		machine(IE - 4.5, Color3.fromRGB(40, 110, 200), Color3.fromRGB(240, 120, 40), Color3.fromRGB(130, 70, 200), "🍫 SNACKS")
+	else
+		local vend = B.box(sr, "Vending", IE - 2.8, 0, zIn + 0.1, IE - 0.2, 7.2, zIn + 2.3, C.RED, M.SmoothPlastic)
+		local vend2 = B.box(sr, "Snacks", IE - 5.8, 0, zIn + 0.1, IE - 3.2, 7.2, zIn + 2.3, Color3.fromRGB(40, 110, 200), M.SmoothPlastic)
+		B.label(vend2, Enum.NormalId.Back, "🍫 SNACKS", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10 })
+		B.label(vend, Enum.NormalId.Back, "🥤 PLANET\nCOLA", { color = C.WHITE, font = Enum.Font.FredokaOne, pad = 10 })
+	end
 	table4(sr, "BreakTable", 21, -24.5, nil)
 	table4(sr, "BreakTable2", 29, -24.5, nil)
 end
