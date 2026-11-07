@@ -210,6 +210,21 @@ local function hangArt(c: Ctx, x: number, z: number, yaw: number, text: string, 
 	B.label(poster, Enum.NormalId.Back, text, { color = C.WHITE, bg = color, font = Enum.Font.FredokaOne, pad = 14, ppu = 50 })
 end
 
+-- A cardboard carton filling the box x1..x2 / y1..y2 / z1..z2 (shelf stock).
+-- Falls back to a plain box when the mesh is missing.
+local CARTON_SIZE = Vector3.new(2.054, 1.31, 1.557)
+local function carton(c: Ctx, name: string, x1: number, y1: number, z1: number, x2: number, y2: number, z2: number, color: Color3, yaw: number?)
+	if not MeshLib.has("Carton") then
+		return B.box(c, name, x1, y1, z1, x2, y2, z2, color, M.Cardboard, { CanQuery = false })
+	end
+	local size = Vector3.new(x2 - x1, y2 - y1, z2 - z1)
+	local cf = c.origin * CFrame.new((x1 + x2) / 2, y1, (z1 + z2) / 2) * CFrame.Angles(0, yaw or 0, 0)
+	MeshLib.place(c.parent, "Carton", cf, {
+		Box = color, Rib = color:Lerp(Color3.new(0, 0, 0), 0.12), Tape = color:Lerp(Color3.fromRGB(214, 176, 120), 0.6), Label = Color3.fromRGB(250, 248, 240),
+	}, { scale = Vector3.new(size.X / CARTON_SIZE.X, size.Y / CARTON_SIZE.Y, size.Z / CARTON_SIZE.Z), materials = { Box = M.Cardboard, Rib = M.Cardboard, Tape = M.SmoothPlastic, Label = M.SmoothPlastic } })
+	return nil
+end
+
 local function plant(c: Ctx, x: number, z: number, scale: number?)
 	local s = scale or 1
 	local m = B.model(c, "Plant")
@@ -1323,7 +1338,7 @@ local function buildBack(c: Ctx)
 			local y = 0.48 + i * 2.13
 			local x = -2.6 + j * 2.6
 			if rng:NextNumber() < 0.85 then
-				B.box(dry, "Stock", x - 0.9, y, -0.9, x + 0.9, y + rng:NextNumber(0.8, 1.4), 0.9, Color3.fromRGB(196, 150, 100):Lerp(C.WHITE, rng:NextNumber(0, 0.25)), M.Cardboard, { CanQuery = false })
+				carton(dry, "Stock", x - 0.9, y, -0.9, x + 0.9, y + rng:NextNumber(0.8, 1.4), 0.9, Color3.fromRGB(196, 150, 100):Lerp(C.WHITE, rng:NextNumber(0, 0.25)), rng:NextNumber(-0.06, 0.06))
 			end
 		end
 	end
@@ -1387,7 +1402,7 @@ local function buildBack(c: Ctx)
 	for i = 0, 2 do
 		for j = 0, 2 do
 			local y = 0.48 + i * 2.13
-			B.box(rack, "Frozen", -2.6 + j * 2.4 - 0.85, y, -0.8, -2.6 + j * 2.4 + 0.85, y + 0.9, 0.8, Color3.fromRGB(220, 235, 250):Lerp(C.WHITE, (i + j) % 2 * 0.3), M.SmoothPlastic, { CanQuery = false })
+			carton(rack, "Frozen", -2.6 + j * 2.4 - 0.85, y, -0.8, -2.6 + j * 2.4 + 0.85, y + 0.9, 0.8, Color3.fromRGB(225, 236, 245):Lerp(C.WHITE, (i + j) % 2 * 0.4), (i * 3 + j) % 3 * 0.04 - 0.04)
 		end
 	end
 
@@ -1398,7 +1413,7 @@ local function buildBack(c: Ctx)
 	for i = 0, 2 do
 		for j = 0, 1 do
 			local y = 0.48 + i * 2.13
-			B.box(rack2, "Frozen", -2.2 + j * 2.6 - 0.95, y, -0.8, -2.2 + j * 2.6 + 0.95, y + 1.0, 0.8, Color3.fromRGB(250, 236, 190):Lerp(Color3.fromRGB(215, 160, 90), (i + j) % 2 * 0.6), M.Cardboard, { CanQuery = false })
+			carton(rack2, "Frozen", -2.2 + j * 2.6 - 0.95, y, -0.8, -2.2 + j * 2.6 + 0.95, y + 1.0, 0.8, Color3.fromRGB(250, 236, 190):Lerp(Color3.fromRGB(215, 160, 90), (i + j) % 2 * 0.6), (i + j) % 2 * 0.05 - 0.025)
 		end
 	end
 

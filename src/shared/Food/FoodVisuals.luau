@@ -518,6 +518,22 @@ local CATEGORY_COLORS = {
 local function buildSupply(item: Item): Model
 	local m = newModel("SupplyBox")
 	local ing = Ingredients.get(item.ingredient)
+	if MeshLib.has("Carton") then
+		-- taped shipping carton with a printed label (category colour on the label band)
+		local catColor = ing and CATEGORY_COLORS[ing.category] or Color3.new(1, 1, 1)
+		MeshLib.place(m, "Carton", CFrame.new(), {
+			Box = Color3.fromRGB(196, 150, 100), Rib = Color3.fromRGB(170, 128, 82), Tape = Color3.fromRGB(214, 176, 120), Label = Color3.fromRGB(250, 248, 240),
+		}, { materials = { Box = Enum.Material.Cardboard, Rib = Enum.Material.Cardboard, Tape = Enum.Material.SmoothPlastic, Label = Enum.Material.SmoothPlastic } })
+		-- invisible hit box: SupplyService puts the pick-up prompt on "Box"
+		local hit = newPart(m, "Box", Vector3.new(2, 1.3, 1.5), CFrame.new(0, 0.65, 0), Color3.new(1, 1, 1))
+		hit.Transparency = 1
+		local labelPart = newPart(m, "LabelPrint", Vector3.new(1.06, 0.58, 0.01), CFrame.new(0, 0.65, 0.787), Color3.new(1, 1, 1))
+		labelPart.Transparency = 1
+		labelGui(labelPart, Enum.NormalId.Back, (ing and ing.icon or "📦") .. " " .. (ing and ing.name or "?"), "×" .. tostring(item.amount) .. "  " .. string.upper(ing and ing.category or ""))
+		local band = newPart(m, "CategoryBand", Vector3.new(1.06, 0.1, 0.012), CFrame.new(0, 0.9, 0.788), catColor)
+		band.Material = Enum.Material.SmoothPlastic
+		return m
+	end
 	local box = newPart(m, "Box", Vector3.new(2, 1.3, 1.5), CFrame.new(0, 0.65, 0), Color3.fromRGB(196, 150, 100), Enum.Material.Cardboard)
 	newPart(m, "Tape", Vector3.new(0.3, 1.32, 1.52), CFrame.new(0, 0.65, 0), Color3.fromRGB(220, 190, 140))
 	newPart(m, "Stripe", Vector3.new(2.02, 0.2, 1.52), CFrame.new(0, 0.2, 0), ing and CATEGORY_COLORS[ing.category] or Color3.new(1, 1, 1))

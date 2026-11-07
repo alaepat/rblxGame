@@ -17,6 +17,8 @@ local Interaction = require(script.Parent.Interaction)
 local Notify = require(script.Parent.Notifications)
 local DayClock = require(script.Parent.DayClock)
 local Restock = require(Shared.Food.Restock)
+local FoodVisuals = require(Shared.Food.FoodVisuals)
+local MeshLib = require(Shared.Food.MeshLib)
 local T = Theme.make
 local Col = Theme.Colors
 
@@ -143,7 +145,89 @@ local function renderUpgrades()
 	footerText.Text = "Upgrades change your restaurant instantly. New ones unlock as you level up."
 end
 
+-- 3D recipe previews: the real food model in a small ViewportFrame.
+-- Models are built once per recipe (after the Blender meshes have arrived)
+-- and cloned into each card, so re-rendering the tab stays cheap.
+local previewCache: { [string]: Model } = {}
+
+local function previewItem(r: any): { [string]: any }
+	if r.kind == "pizza" then
+		return { kind = "pizza", sauce = r.sauce, toppings = r.toppings, cook = 1 }
+	elseif r.kind == "kebab" then
+		return { kind = "kebab", base = r.base, fillings = r.fillings, wrapped = false }
+	end
+	return { kind = "cup", syrup = r.syrup }
+end
+
+local function previewModel(r: any): Model?
+	local cached = previewCache[r.id]
+	if cached then
+		return cached
+	end
+	local ok, m = pcall(FoodVisuals.build, previewItem(r))
+	if not ok or not m then
+		return nil
+	end
+	if MeshLib.has("Pizza") then -- don't keep a procedural stand-in once meshes exist
+		previewCache[r.id] = m
+	end
+	return m
+end
+
+local function attachPreview(card: Frame, r: any, locked: boolean)
+	local src = previewModel(r)
+	if not src then
+		return false
+	end
+	local vp = T("ViewportFrame", {
+		Parent = card,
+		Name = "Preview",
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.fromOffset(50, 50),
+		BackgroundTransparency = 1,
+		Ambient = Color3.fromRGB(170, 160, 150),
+		LightColor = Color3.fromRGB(255, 244, 228),
+		LightDirection = Vector3.new(-0.4, -1, -0.5),
+		ImageColor3 = if locked then Color3.fromRGB(150, 150, 150) else Color3.new(1, 1, 1),
+		ImageTransparency = if locked then 0.35 else 0,
+	})
+	local m = src:Clone()
+	m.Parent = vp
+	local cf, size = m:GetBoundingBox()
+	local reach = math.max(size.X, size.Z, size.Y * 1.6)
+	local cam = Instance.new("Camera")
+	cam.FieldOfView = 32
+	cam.CFrame = CFrame.lookAt(cf.Position + Vector3.new(0, reach * 1.25, reach * 1.35), cf.Position)
+	cam.Parent = vp
+	vp.CurrentCamera = cam
+	return true
+end
+
+-- Roblox only draws so much 3D across all ViewportFrames, so previews exist
+-- only for cards on screen: they are added/removed as the list scrolls.
+local previewCards: { { card: Frame, recipe: any, locked: boolean, icon: TextLabel } } = {}
+
+local function refreshPreviews()
+	if #previewCards == 0 then
+		return
+	end
+	local top = content.AbsolutePosition.Y - 40
+	local bottom = content.AbsolutePosition.Y + content.AbsoluteSize.Y + 40
+	for _, e in previewCards do
+		local y = e.card.AbsolutePosition.Y
+		local onScreen = y + e.card.AbsoluteSize.Y > top and y < bottom
+		local vp = e.card:FindFirstChild("Preview")
+		if onScreen and not vp then
+			e.icon.Visible = not attachPreview(e.card, e.recipe, e.locked)
+		elseif not onScreen and vp then
+			vp:Destroy()
+			e.icon.Visible = true
+		end
+	end
+end
+
 local function renderRecipes()
+	previewCards = {}
 	local snap = State.data
 	local unlocked: { [string]: boolean } = {}
 	for _, id in snap.unlockedRecipes or {} do
@@ -157,7 +241,9 @@ local function renderRecipes()
 		if ok then
 			MasteryBadge.attach(c, r, (snap.mastery or {})[r.id]) -- menu mastery stars + progress
 		end
-		Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 10), Size = UDim2.fromOffset(40, 40), Text = r.icon, TextSize = 30 })
+		-- emoji shows until (or if) the 3D preview is attached by refreshPreviews
+		local icon = Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 10), Size = UDim2.fromOffset(40, 40), Text = r.icon, TextSize = 30 })
+		table.insert(previewCards, { card = c, recipe = r, locked = not ok, icon = icon })
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(60, 8), Size = UDim2.new(1, -200, 0, 20), Text = r.name, TextColor3 = Col.Ink, Font = Theme.FontBlack, TextSize = 16 })
 		local req = r.requires and Upgrades.get(r.requires)
 		Theme.text({ Parent = c, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(200, 20), Text = ok and (Theme.money(r.price) .. " · " .. r.xp .. " XP") or ("🔒 Level " .. r.level .. (req and (" + " .. req.name) or "")), TextColor3 = ok and Col.Green or Col.InkSoft, Font = Theme.FontBlack, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Right })
@@ -228,12 +314,14 @@ render = function()
 			btn.Visible = tab == "Supplies"
 		end
 	end
+	previewCards = {}
 	if tab == "Supplies" then
 		renderSupplies()
 	elseif tab == "Upgrades" then
 		renderUpgrades()
 	elseif tab == "Recipes" then
 		renderRecipes()
+		task.defer(refreshPreviews) -- after the list layout has positioned the cards
 	else
 		renderStats()
 	end
@@ -283,6 +371,8 @@ local function build()
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		BorderSizePixel = 0,
 	})
+	content:GetPropertyChangedSignal("CanvasPosition"):Connect(refreshPreviews)
+	content:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshPreviews)
 	-- footer bar
 	footer = T("Frame", { Parent = window, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 226, 1, -14), Size = UDim2.new(1, -242, 0, 60), BackgroundColor3 = Color3.fromRGB(36, 16, 14) }, { Theme.corner(14) })
 	footerText = Theme.text({ Parent = footer, Position = UDim2.fromOffset(16, 0), Size = UDim2.new(1, -460, 1, 0), Text = "", TextWrapped = true, TextSize = 13 })

@@ -10,7 +10,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 5 | Blender pass 10 (optional): stand mixer, PC monitor, lockers/vending, storage shelving | Art | — | Fronts face +Z after import. Pass, rails and office desk/chair are done. |
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
 | 6 | Player hold/serve animations (arms forward when carrying), customer eating/idle variety | Animation | — | |
-| 9 | Recipe book: show a mini 3D preview (ViewportFrame) of each recipe | UI | — | FoodVisuals.build can render into a ViewportFrame |
 | 10 | More content past level 12: desserts, garlic bread, calzone, sides | Content | — | Config-driven |
 | 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | **Account 2** | Wages are ready: return hired staff from `ShiftService.staffOf` and the day summary charges `Config/DayCycle.Wages` (PR #2) |
 | 12 | Mobile/tablet UI pass (scale HUD, bigger touch targets) | UI | — | Test with the Studio device emulator |
@@ -35,6 +34,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| #9 3D recipe previews (on-screen cards only); Blender `Carton` for deliveries + shelf stock (Studio-verified) | Account 1 | 2026-11-07 |
 | #23 Office tablet = "Quick restock" (suggested top-up cart, `Shared/Food/Restock` + spec); new "Freezer Racks" upgrade (x2 frozen capacity, extra rack in the walk-in) (Studio-verified) | Account 1 | 2026-11-07 |
 | #25 Day-clock pill hides under the OS/POS windows; #26 Recipes tab refreshes mastery live (Studio-verified) | Account 1 | 2026-11-07 |
 | #2 Extension annex fixed (blocked opening, floating poster/neon, nested upgrade visibility) and PizzaBox v2 checked (Studio-verified) | Account 1 | 2026-11-07 |

@@ -4,6 +4,13 @@ Newest first.
 
 ---
 
+## 2026-11-07: #23, #9 done + cartons
+
+- **#23:** the office tablet is a "📱 Quick restock" station (Supplies with a suggested cart; pure rule `Shared/Food/Restock` + `Restock.spec`). New upgrade **Freezer Racks** (`capacity_frozen`). `ProgressService.capacity` now adds `capacity_<category>` effects, so category-specific storage upgrades are config-only from now on.
+- **#9:** 3D previews on recipe cards (`Manager.luau`), only for cards on screen.
+- **Cartons:** delivery boxes and shelf stock use the new `Carton` mesh. The delivery model still has a part named `Box` (now invisible) for SupplyService's prompt.
+- **Please run Lune:** new `Restock.spec` and the `DayClockUI` case from earlier. I can't run Lune here.
+
 ## 2026-11-07: #25 and #26 done (small touch in your DayClock)
 
 - **DayClock.luau (yours):** new field `DayClock.covered` (default false); `render()` hides the pill while it's true. `Manager` and `POS` set it while their windows are open. I added a case to `DayClockUI.spec` ("pill hides while the Pizza Planet OS window covers it"). **I couldn't run Lune here, so please run the tests.**

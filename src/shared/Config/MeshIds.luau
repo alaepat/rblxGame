@@ -87,4 +87,6 @@ return {
 	PrepRail = { assetId = 101890749349770, size = Vector3.new(7.4, 2.526, 0.986), center = Vector3.new(0, 0, -0.837) },
 	OfficeDesk = { assetId = 124198552250950, size = Vector3.new(7.9, 3.1, 3.6) },
 	OfficeChair = { assetId = 116609512196526, size = Vector3.new(2.16, 4.189, 2.06), center = Vector3.new(0, 0, -0.131) },
+	-- batch 10: cardboard carton (supply deliveries + shelf stock)
+	Carton = { assetId = 73047244675868, size = Vector3.new(2.054, 1.31, 1.557) },
 } :: { [string]: MeshInfo }

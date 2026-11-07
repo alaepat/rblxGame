@@ -1238,6 +1238,46 @@ def build_OfficeChair():
     join(pads, "OfficeChair_Seat")
 
 
+# ---- batch 10: cardboard carton
+
+def build_Carton():
+    # Shipping carton 2.0 x 1.5 deep x 1.3 tall (stretched per use in game).
+    # Front (label) = -Y. Roles: Box (cardboard), Tape, Label (printed panel).
+    W, D, H = 2.0, 1.5, 1.3
+    box = rounded_box("Carton_Box", W, D, H, 0.035, 3, (0, 0, H / 2))
+    sub = box.modifiers.new("sub", "SUBSURF")
+    sub.subdivision_type = "SIMPLE"
+    sub.levels = 3
+    apply_mods(box)
+    for v in box.data.vertices:
+        x, y, z = v.co.x / (W / 2), v.co.y / (D / 2), (v.co.z - H / 2) / (H / 2)
+        # walls bulge a little where nothing supports them
+        if abs(y) > 0.97:
+            v.co.y += math.copysign(0.025, y) * max(0.0, 1 - x * x) * max(0.0, 1 - z * z)
+        if abs(x) > 0.97:
+            v.co.x += math.copysign(0.02, x) * max(0.0, 1 - y * y) * max(0.0, 1 - z * z)
+        # top flaps sag slightly towards the seam
+        if z > 0.97:
+            v.co.z -= 0.018 * max(0.0, 1 - abs(y)) * max(0.0, 1 - x * x)
+    # the seam where the two top flaps meet (a shallow groove across X)
+    seam = rounded_box("cut", W + 0.2, 0.025, 0.03, 0.005, 1, (0, 0, H))
+    boolean_diff(box, seam)
+    # corrugated edge visible on the flap ends: fine ribs along the top edges
+    ribs = []
+    for side in (-1, 1):
+        for i in range(24):
+            y = -D / 2 + 0.08 + i * (D - 0.16) / 23
+            ribs.append(cylinder("rib", 0.006, 0.012, (side * (W / 2 + 0.004), y, H - 0.02), 6))
+    join(ribs, "Carton_Rib")
+    # packing tape: over the seam and down both ends
+    tape = [rounded_box("t", W + 0.02, 0.24, 0.006, 0.002, 1, (0, 0, H + 0.004))]
+    for side in (-1, 1):
+        tape.append(rounded_box("t", 0.006, 0.24, 0.42, 0.002, 1, (side * (W / 2 + 0.024), 0, H - 0.2)))
+    join(tape, "Carton_Tape")
+    # printed label panel on the front face
+    rounded_box("Carton_Label", 1.1, 0.008, 0.62, 0.02, 2, (0, -D / 2 - 0.028, H * 0.5))
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1519,7 +1559,7 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign",
          "BoothBench", "BoothTable", "ArtFrame",
          "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter",
-         "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair"] + TOPPINGS
+         "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair", "Carton"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1593,7 +1633,9 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "HeatGantry_Glow": (1.0, 0.55, 0.25), "PrepRail_Steel": (0.78, 0.8, 0.82), "PrepRail_Light": (1.0, 0.95, 0.85),
              "PrepRail_Glass": (0.8, 0.9, 0.95), "OfficeDesk_Top": (0.36, 0.24, 0.16), "OfficeDesk_Body": (0.77, 0.55, 0.36),
              "OfficeDesk_Drawer": (0.72, 0.5, 0.32), "OfficeDesk_Handle": (0.85, 0.87, 0.89), "OfficeChair_Frame": (0.13, 0.13, 0.14),
-             "OfficeChair_Wheel": (0.1, 0.1, 0.1), "OfficeChair_Seat": (0.2, 0.2, 0.22)}
+             "OfficeChair_Wheel": (0.1, 0.1, 0.1), "OfficeChair_Seat": (0.2, 0.2, 0.22),
+             "Carton_Box": (0.77, 0.59, 0.39), "Carton_Rib": (0.66, 0.5, 0.32), "Carton_Tape": (0.82, 0.68, 0.48),
+             "Carton_Label": (0.97, 0.96, 0.92)}
 
 
 def render_preview(prop):
