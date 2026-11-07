@@ -90,6 +90,7 @@ local function claim(player: Player)
 	-- Systems that set up per-plot state BEFORE parenting (keeps prompts consistent).
 	S.StationService.setupPlot(thePlot)
 	S.UpgradeService.applyPlot(thePlot)
+	S.ThemeService.apply(thePlot)
 	model.Parent = workspace:WaitForChild("Restaurants")
 	S.CustomerService.setupPlot(thePlot)
 	S.SupplyService.setupPlot(thePlot)

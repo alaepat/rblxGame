@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Interior themes (#13 done)
+
+New office PC tab "🎨 Decor": 5 dining-room themes in `Config/Themes`, applied by the new `ThemeService` (part names in the dining area + annex). New profile fields `theme` (string) and `themes` ({ [id] = true }) in the DataService template; snapshot gets `theme` + `themes`. New remote `SetTheme`, dev hook `DevCommand("theme", id)`. If you add dining furniture, name the parts `Table_Top`, `Chair_Shell`, `BoothBench_Seat` etc. and they will pick up the theme. No pure logic added, so no new spec; please run Lune anyway (DataService template changed).
+
 ## 2026-11-07: Garlic bread + calzones (#10 done)
 
 Pizza items can now have `folded = true` (calzone); recipes match on it. Garlic butter is a third pizza sauce. New PizzaBoard prompt "fold". Details in STATUS.

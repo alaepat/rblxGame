@@ -7,6 +7,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
 local Upgrades = require(Shared.Config.Upgrades)
+local Themes = require(Shared.Config.Themes)
 local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 
@@ -37,6 +38,7 @@ local TABS = {
 	{ "Supplies", "🛒 Supplies" },
 	{ "Upgrades", "⚡ Upgrades" },
 	{ "Recipes", "📖 Recipes" },
+	{ "Decor", "🎨 Decor" },
 	{ "Stats", "📈 Business" },
 }
 
@@ -143,6 +145,47 @@ local function renderUpgrades()
 		end
 	end
 	footerText.Text = "Upgrades change your restaurant instantly. New ones unlock as you level up."
+end
+
+-- Dining-room themes: buy once, switch any time (server: ThemeService).
+local SWATCH_ROLES = { "Floor", "Wainscot", "Wall", "TableTop", "Chair", "Seat" }
+
+local function renderDecor()
+	local snap = State.data
+	local level = snap.level or 1
+	local owned = snap.themes or { classic = true }
+	local active = snap.theme or Themes.Default
+	T("UIGridLayout", { Parent = content, CellSize = UDim2.fromOffset(268, 176), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder })
+	for i, t in Themes.List do
+		local isOwned = owned[t.id] == true
+		local locked = not isOwned and level < t.level
+		local c = card(content, i, locked)
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 8), Size = UDim2.fromOffset(34, 34), Text = t.icon, TextSize = 26 })
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(52, 12), Size = UDim2.new(1, -64, 0, 18), Text = t.name, TextColor3 = Col.Ink, Font = Theme.FontBlack, TextSize = 15 })
+		-- colour swatches: floor, panels, walls, tables, chairs, seats
+		for j, role in SWATCH_ROLES do
+			local look = t.roles[role]
+			if look then
+				T("Frame", { Parent = c, Position = UDim2.fromOffset(12 + (j - 1) * 40, 46), Size = UDim2.fromOffset(34, 22), BackgroundColor3 = look.color }, { Theme.corner(6), Theme.stroke(Col.Line, 1) })
+			end
+		end
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 74), Size = UDim2.new(1, -24, 0, 50), Text = t.description, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, TextColor3 = Col.InkSoft, Font = Theme.Font, TextSize = 13 })
+		if active == t.id then
+			Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 134), Size = UDim2.new(1, -24, 0, 30), Text = "✓ IN USE", TextColor3 = Col.Green, Font = Theme.FontBlack, TextSize = 15 })
+		elseif locked then
+			Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 134), Size = UDim2.new(1, -24, 0, 30), Text = "🔒 Level " .. t.level, TextColor3 = Col.InkSoft, Font = Theme.FontBlack, TextSize = 14 })
+		else
+			local label = if isOwned then "Use this theme" else "Buy  " .. Theme.money(t.cost)
+			local affordable = isOwned or (snap.money or 0) >= t.cost
+			Theme.button({ Parent = c, Name = "Theme_" .. t.id, Position = UDim2.new(0, 12, 0, 132), Size = UDim2.new(1, -24, 0, 32), BackgroundColor3 = affordable and Col.Green or Color3.fromRGB(180, 180, 180), Text = label, TextSize = 15 }, function()
+				local ok, msg = Net.func("SetTheme"):InvokeServer(t.id)
+				Notify.toast(msg, ok and "good" or "bad")
+				task.wait(0.2)
+				render()
+			end)
+		end
+	end
+	footerText.Text = "Themes restyle the dining room: floor, wall panels, walls, tables, chairs and seats. Buy once, switch any time."
 end
 
 -- 3D recipe previews: the real food model in a small ViewportFrame.
@@ -333,6 +376,8 @@ render = function()
 		renderSupplies()
 	elseif tab == "Upgrades" then
 		renderUpgrades()
+	elseif tab == "Decor" then
+		renderDecor()
 	elseif tab == "Recipes" then
 		renderRecipes()
 		task.defer(refreshPreviews) -- after the list layout has positioned the cards

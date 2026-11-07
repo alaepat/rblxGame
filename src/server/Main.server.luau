@@ -9,6 +9,7 @@ local ORDER = {
 	"MeshService", -- loads Blender meshes before anything builds models
 	"ProgressService",
 	"UpgradeService",
+	"ThemeService", -- dining-room themes (decor shop)
 	"GoalService", -- daily goals + streaks
 	"ShiftService", -- day / shift cycle, rushes, end-of-day summary
 	"MasteryService", -- menu mastery: per-recipe serve counts, bronze/silver/gold

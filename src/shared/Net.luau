@@ -22,7 +22,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local EVENTS = { "State", "Notify", "LevelUp", "OpenPOS", "OpenManager", "Sound", "DaySummary" }
-local FUNCTIONS = { "SubmitOrder", "CancelPOS", "BuyUpgrade", "OrderSupplies", "EmergencyDelivery", "ToggleOpen", "ClaimGoal" }
+local FUNCTIONS = { "SubmitOrder", "CancelPOS", "BuyUpgrade", "OrderSupplies", "EmergencyDelivery", "ToggleOpen", "ClaimGoal", "SetTheme" }
 
 local Net = {}
 

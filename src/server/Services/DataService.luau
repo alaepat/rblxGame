@@ -30,6 +30,8 @@ export type Profile = {
 	orderCounter: number,
 	stats: { [string]: number },
 	lastEmergency: number,
+	theme: string,
+	themes: { [string]: boolean },
 	version: number,
 }
 
@@ -68,6 +70,8 @@ local function template(): Profile
 		orderCounter = 0,
 		stats = { served = 0, earned = 0, angry = 0, pizzas = 0, kebabs = 0, cleaned = 0 },
 		lastEmergency = 0,
+		theme = "classic",
+		themes = { classic = true },
 		version = GameConfig.DataVersion,
 	}
 end

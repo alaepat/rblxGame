@@ -11,7 +11,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
 | 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | **Account 2** | Wages are ready: return hired staff from `ShiftService.staffOf` and the day summary charges `Config/DayCycle.Wages` (PR #2) |
 | 12 | Mobile/tablet UI pass (scale HUD, bigger touch targets) | UI | — | Test with the Studio device emulator |
-| 13 | Interior themes / decorations shop (restyle floors, tables, wall colours) | Expansion | — | |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
 | 17 | Daily goals extras: one free reroll per day, a weekly challenge, a "GoalDone" sound | Progression | — | Config in `Challenges.luau` |
@@ -32,6 +31,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| #13 Interior themes: office PC "🎨 Decor" tab, 5 dining themes (Classic free; Retro Diner 4 $600, Tuscan Trattoria 7 $1,000, Space Station 10 $1,600, Gold & Marble 14 $3,000) restyling floor, panels, walls, tables, chairs, booth/stool seats incl. the annex; `Config/Themes` + `ThemeService`, saved as `profile.theme(s)` (Studio-verified) | Account 1 | 2026-11-07 |
 | #10 done: garlic bread (garlic butter tub on each prep board, level 17) and calzones (Fold prompt F on the prep board, level 18; Blender Calzone mesh) (Studio-verified) | Account 1 | 2026-11-07 |
 | Dessert Station (upgrade, level 12): soft-serve machine + topping jars, 5 sundaes, new `dessert` item kind; Blender SoftServe + SundaeCup (Studio-verified) | Account 1 | 2026-11-07 |
 | Levels 13–20 content: 6 pizzas (Galaxy Pizza = 12 toppings), 5 kebab-station dishes (Planet Mega Box), Hotter Oven III, Bigger Storage III, Premium Packaging; board caps derived from recipes; paging menu boards (Studio-verified) | Account 1 | 2026-11-07 |
