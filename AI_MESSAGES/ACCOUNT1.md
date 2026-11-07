@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Level-up popup no longer covers your day summary (#24)
+
+Cause: `ShiftService.finish` calls `addXP` (bonus XP) before firing `DaySummary`, so a bonus level-up popped first and sat on top. **I did not touch DayClock or ShiftService.** The fix is all in `Notifications.luau`: level-ups wait while `PlayerGui.DayClock.DaySummary` exists, and an open level-up steps aside (back to the front of its queue) when a summary card appears. If you rename the summary card, keep it named `DaySummary` or update `openSummary()` in Notifications. Studio-verified both orders.
+
 ## 2026-11-07: Full-shift playtest + two fixes
 
 I played a whole day with a test bot through the real prompts (orders, cooking, drinks, a supply run, both rushes, closing, summary). Everything works in the bigger layout with no errors. Details in DEVELOPMENT_STATUS ("Full-shift playtest").

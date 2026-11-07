@@ -73,12 +73,41 @@ local function unlockRow(parent: Instance, order: number, icon: string, text: st
 	Theme.text({ Parent = t, Size = UDim2.fromScale(1, 1), Text = tag, Font = Theme.FontBlack, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Center })
 end
 
-local function showNextLevel()
+-- The end-of-day summary card (DayClock) and the level-up window must never
+-- stack: the summary goes first, level-ups wait until it is closed.
+local currentLevel: any = nil
+local waitingOnSummary = false
+
+local function openSummary(): Instance?
+	local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
+	local dc = pg and pg:FindFirstChild("DayClock")
+	return dc and dc:FindFirstChild("DaySummary")
+end
+
+local showNextLevel: () -> ()
+
+local function waitForSummary(card: Instance)
+	if waitingOnSummary then
+		return
+	end
+	waitingOnSummary = true
+	card.Destroying:Once(function()
+		waitingOnSummary = false
+		task.defer(showNextLevel) -- re-checks: a new summary may have replaced this one
+	end)
+end
+
+function showNextLevel()
 	if showingLevel or #levelQueue == 0 then
 		return
 	end
+	local card = openSummary()
+	if card then
+		return waitForSummary(card)
+	end
 	showingLevel = true
 	local p = table.remove(levelQueue, 1)
+	currentLevel = p
 	for _, ch in levelWindow:GetChildren() do
 		if not ch:IsA("UICorner") and not ch:IsA("UISizeConstraint") then
 			ch:Destroy()
@@ -122,6 +151,7 @@ local function showNextLevel()
 	Theme.button({ Parent = levelWindow, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -16), Size = UDim2.new(1, -32, 0, 44), BackgroundColor3 = Col.Green, Text = "Awesome!", TextSize = 18 }, function()
 		levelWindow.Visible = false
 		showingLevel = false
+		currentLevel = nil
 		showNextLevel()
 	end)
 	levelWindow.Size = UDim2.fromOffset(380, 300)
@@ -156,6 +186,22 @@ function Notifications.start()
 		Notifications.toast(text, kind)
 	end)
 	Net.event("LevelUp").OnClientEvent:Connect(Notifications.levelUp)
+	-- A summary card opening over a level-up: put the level-up back at the
+	-- front of the queue and show it again once the summary is closed.
+	gui.Parent.DescendantAdded:Connect(function(d)
+		if d.Name ~= "DaySummary" or not d:IsA("GuiObject") then
+			return
+		end
+		if showingLevel and currentLevel then
+			table.insert(levelQueue, 1, currentLevel)
+			currentLevel = nil
+			showingLevel = false
+			levelWindow.Visible = false
+		end
+		if #levelQueue > 0 then
+			waitForSummary(d)
+		end
+	end)
 end
 
 return Notifications
