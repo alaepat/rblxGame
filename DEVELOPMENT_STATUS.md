@@ -87,7 +87,11 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - Studio hook: `DevCommand:Invoke("mastery", "cheese_pizza")` jumps a recipe to its next tier.
 - Offline: 75 Lune tests pass; `rojo build` OK.
 - **Studio (PC) verified 2026-11-07, Account 1:** no errors; Recipes cards show grey stars + "0 / 10 to 🥉 Bronze" (drinks "0 / 20"), locked cards unchanged, nothing overlaps the description; a real served Tomato Pizza + Orbit Orange counted (1 / 10, 1 / 20); `("mastery","cheese_pizza")` ×3 paid bronze (+$24, +20 XP toast) → silver → gold ("🥇 Mastered! +30% XP per serve", gold ★★★ RichText stars, no boxes), a 4th call says "already gold"; Business tab shows "Menu mastery ★ 3 / 75".
-- Not verified: phone-emulator layout, `profile.mastery` saving (DataStore off in Studio). Minor: an open Recipes tab doesn't refresh when a tier is reached (it does on reopen).
+- Not verified: phone-emulator layout, `profile.mastery` saving (DataStore off in Studio). The open Recipes tab now refreshes live (#26).
+
+## UI fixes #25 + #26 (Account 1, 2026-11-07): Studio-verified
+- The day-clock pill no longer covers the top-left of the Pizza Planet OS window or the POS order screen: `DayClock.covered` hides it, set by `Manager.open`/`close` and `POS.open`/`close`. Verified: hidden while open, back after Log off / Leave.
+- The Recipes tab redraws the mastery rows live when a count changes (serves, new tiers) and keeps its scroll position. Verified: bronze reached with the tab open → "10 / 30 to 🥈 Silver" without reopening.
 
 ## Extension annex + PizzaBox v2 (TASKS #2, Account 1, 2026-11-07): Studio-verified
 - **Annex bugs fixed** (they came from moving the east wall out): the east wall's wood panelling stayed in the opening after buying the Dining Room Extension and blocked the way in, and the east poster and neon sign floated in mid-air. The panelling now belongs to the wall section the annex removes; the east poster and neon sign hide with `HideWhen = expansion_1`. The annex got its own panelling, a cream back wall, a framed "PLANET PIZZERIA" poster and a neon sign that needs Neon Wall Signs too.

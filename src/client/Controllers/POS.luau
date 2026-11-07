@@ -9,6 +9,7 @@ local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
 local Interaction = require(script.Parent.Interaction)
+local DayClock = require(script.Parent.DayClock)
 local Notify = require(script.Parent.Notifications)
 local T = Theme.make
 local Col = Theme.Colors
@@ -32,6 +33,7 @@ local KIND_TABS = { { "all", "All" }, { "pizza", "üçï Pizzas" }, { "kebab", "ü
 local function close(cancel: boolean)
 	window.Visible = false
 	Interaction.blocked = false
+	DayClock.covered = false
 	if cancel then
 		task.spawn(function()
 			Net.func("CancelPOS"):InvokeServer()
@@ -173,6 +175,7 @@ function POS.open(payload: any)
 	refreshCart()
 	window.Visible = true
 	Interaction.blocked = true
+	DayClock.covered = true -- the day-clock pill would sit over the window's corner
 end
 
 function POS.start()

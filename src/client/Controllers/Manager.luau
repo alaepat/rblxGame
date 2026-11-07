@@ -15,6 +15,7 @@ local MasteryBadge = require(script.Parent.Parent.UI.MasteryBadge)
 local State = require(script.Parent.State)
 local Interaction = require(script.Parent.Interaction)
 local Notify = require(script.Parent.Notifications)
+local DayClock = require(script.Parent.DayClock)
 local T = Theme.make
 local Col = Theme.Colors
 
@@ -240,6 +241,7 @@ end
 local function close()
 	window.Visible = false
 	Interaction.blocked = false
+	DayClock.covered = false
 end
 
 local function build()
@@ -315,6 +317,7 @@ function Manager.open(which: string?, pc: boolean)
 	end
 	window.Visible = true
 	Interaction.blocked = true
+	DayClock.covered = true -- the day-clock pill would sit over the window's corner
 	render()
 end
 
@@ -325,10 +328,32 @@ function Manager.start()
 	end)
 	-- light refresh for live numbers (money, stock) without rebuilding every tick
 	local last = 0
+	local lastMastery = ""
+	local function masteryKey(): string
+		local parts = {}
+		for id, n in State.get("mastery") or {} do
+			table.insert(parts, id .. "=" .. tostring(n))
+		end
+		table.sort(parts)
+		return table.concat(parts, ",")
+	end
 	State.Changed:Connect(function()
-		if window.Visible and (tab == "Upgrades" or tab == "Stats") and os.clock() - last > 1 then
+		if not window.Visible then
+			return
+		end
+		if (tab == "Upgrades" or tab == "Stats") and os.clock() - last > 1 then
 			last = os.clock()
 			render()
+		elseif tab == "Recipes" then
+			-- redraw the mastery rows when a count changes (a serve, a new tier),
+			-- keeping the scroll position
+			local key = masteryKey()
+			if key ~= lastMastery then
+				lastMastery = key
+				local scroll = content.CanvasPosition
+				render()
+				content.CanvasPosition = scroll
+			end
 		end
 	end)
 end

@@ -175,6 +175,19 @@ return {
 		T.ok(ctx.hasText(frame, "Afternoon"))
 	end,
 
+	["pill hides while the Pizza Planet OS window covers it"] = function()
+		local ctx = setup()
+		ctx.setShift({ state = "idle", day = 4 })
+		local frame = ctx.find("DayClock"):FindFirstChild("DayClock")
+		T.eq(frame.Visible, true)
+		ctx.DayClock.covered = true
+		ctx.DayClock.render({ state = "idle", day = 4 }, ctx.now())
+		T.eq(frame.Visible, false, "hidden while covered")
+		ctx.DayClock.covered = false
+		ctx.DayClock.render({ state = "idle", day = 4 }, ctx.now())
+		T.eq(frame.Visible, true, "back after the window closes")
+	end,
+
 	["closing shows the last-customers countdown"] = function()
 		local ctx = setup()
 		local t = ctx.now()

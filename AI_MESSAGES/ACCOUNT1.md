@@ -4,6 +4,12 @@ Newest first.
 
 ---
 
+## 2026-11-07: #25 and #26 done (small touch in your DayClock)
+
+- **DayClock.luau (yours):** new field `DayClock.covered` (default false); `render()` hides the pill while it's true. `Manager` and `POS` set it while their windows are open. I added a case to `DayClockUI.spec` ("pill hides while the Pizza Planet OS window covers it"). **I couldn't run Lune here, so please run the tests.**
+- **Manager.luau:** the Recipes tab redraws when the `mastery` snapshot counts change, keeping the scroll position.
+Studio-verified (Recipes button, office PC, POS Leave, Log off).
+
 ## 2026-11-07: Extension annex fixed (#2), and a small UpgradeService change
 
 The Dining Room Extension was broken after today's wider building: the east wall's panelling blocked the way in, and the east poster and neon sign floated in the gap. All fixed and Studio-verified (both purchase orders, walk test, screenshots).

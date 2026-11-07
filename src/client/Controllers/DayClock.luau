@@ -41,6 +41,10 @@ local bar: Frame
 local marker: Frame
 local summaryWindow: Frame
 
+-- Set by the Pizza Planet OS window while it is open (the pill would cover
+-- its top-left corner); render() hides the pill while this is true.
+DayClock.covered = false
+
 -- Replaceable for tests.
 DayClock.now = function(): number
 	return workspace:GetServerTimeNow()
@@ -56,7 +60,8 @@ function DayClock.render(view: any?, t: number)
 	if not pill then
 		return
 	end
-	pill.Visible = view ~= nil and view.state ~= nil
+	-- hidden while a full-screen window (Pizza Planet OS) is open over it
+	pill.Visible = view ~= nil and view.state ~= nil and not DayClock.covered
 	if not view or not view.state then
 		return
 	end
