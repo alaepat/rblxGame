@@ -23,6 +23,15 @@ return {
 	},
 	-- During a rush, arrivals can be closer together than GameConfig.MinSpawnInterval.
 	RushMinSpawnInterval = 4.5,
+	-- Rushes grow with level so new players aren't swamped: the extra traffic
+	-- of a rush (traffic - 1) is multiplied by a scale that rises from MinScale
+	-- at FromLevel to 1 at FullAtLevel. At level 1 the dinner rush is about
+	-- x1.35 instead of x2. Quiet phases (traffic below 1) are never scaled.
+	RushScale = {
+		FromLevel = 1,
+		MinScale = 0.35,
+		FullAtLevel = 8,
+	},
 
 	-- Real seconds after closing time to serve the last customers before the
 	-- day ends anyway (customers still inside keep their orders).

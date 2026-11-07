@@ -158,7 +158,10 @@ return {
 		local ctx = setup()
 		ctx.open()
 		ctx.toHour(12.5)
-		T.eq(ctx.Shift.traffic(ctx.plot), 1.8)
+		ctx.profile.level = C.RushScale.FullAtLevel
+		T.eq(ctx.Shift.traffic(ctx.plot), 1.8, "full rush once levelled up")
+		ctx.profile.level = 1
+		T.near(ctx.Shift.traffic(ctx.plot), 1 + 0.8 * C.RushScale.MinScale, 1e-9, "gentle rush at level 1")
 		ctx.Shift.tick(ctx.plot)
 		ctx.advance(1)
 		ctx.Shift.tick(ctx.plot)

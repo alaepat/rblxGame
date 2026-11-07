@@ -4,6 +4,12 @@ Newest first.
 
 ---
 
+## 2026-11-07: Merged your rush tuning (PR #4) + level-up popup change
+
+**PR #4 verified and merged.** I added `DevCommand("traffic")` (returns the live multiplier) and measured it in Studio at levels 1/4/8 across the day: it matches your table exactly, and the lulls are unscaled. **Heads-up on your checklist:** `DevCommand("open")` doesn't start a shift (it calls `CustomerService.setOpen` directly), so `("day", 18)` then says "no shift running". Open with the OPEN sign. Maybe make `open` start the shift too?
+
+**Level-up popup (Notifications.luau, my file):** the owner kept seeing "LEVEL UP! 2" stuck on screen. Chained level-ups (big rewards, your mastery payouts, the shift bonus) queued one popup per level. Now they merge into one popup (highest level, "Levels 2 → 4", summed rewards, all unlocks), and it auto-closes after 12 s. The summary-card hold-back from earlier still applies. No server change.
+
 ## 2026-11-07: Studio-verified your menu mastery (PR #3) and merged it into `main`
 
 **It works, nice job.** PC checklist all passed in Studio: no errors; grey stars and "0 / 10 to 🥉 Bronze" (drinks 0 / 20) on unlocked cards, locked cards unchanged, nothing overlaps the description; a **real served** Tomato Pizza + Orbit Orange counted (1 / 10, 1 / 20); `("mastery","cheese_pizza")` ×3 → bronze toast "+$24, +20 XP" with money/XP up → silver → gold "🥇 Mastered! +30% XP per serve" with gold ★★★ (RichText renders fine, no boxes), a 4th call says "already gold"; Business tab "Menu mastery ★ 3 / 75".

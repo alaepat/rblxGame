@@ -80,6 +80,7 @@ Goals are deterministic per (day, userId, level, upgrades), so the same player g
 
 Numbers: `Config/DayCycle.luau` (open/close hours, `SecondsPerHour`, phases with `traffic` and `rush`, closing grace, bonus formula, wages per staff role, grade thresholds). Rules: `Shared/Shift/DayCycle.luau`. Server: `ShiftService`. Client: `Controllers/DayClock.luau` (the clock pill top-left above the order list, with a timeline bar showing rushes in orange, and the end-of-day summary card).
 
+- Rushes scale with level (`Config.RushScale`): at level 1 only 35% of a rush's extra traffic applies (dinner ×1.35 instead of ×2), rising to full strength at level 8. Quiet phases are never scaled.
 - Each restaurant runs its own day. The shift stores `startedAt` in `workspace:GetServerTimeNow()` time; the client works out the clock from that, so it ticks smoothly without extra snapshots.
 - Closing early by hand also ends the day (summary when the last customers leave). Reopening before closing time continues the same day; reopening after closing time ends it and starts the next.
 - A day only counts (day number, bonus, summary) once at least one order was served. If the player leaves mid-shift, that day is dropped.

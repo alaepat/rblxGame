@@ -13,6 +13,7 @@
 --   ServerStorage.DevCommand:Invoke("day", "close")     -- jump to closing time
 --   ServerStorage.DevCommand:Invoke("day", "end")       -- end the day now (summary)
 --   ServerStorage.DevCommand:Invoke("queue")            -- front customer's wish + open orders (for test bots)
+--   ServerStorage.DevCommand:Invoke("traffic")          -- current customer-traffic multiplier (rush x level)
 --   ServerStorage.DevCommand:Invoke("mastery", "cheese_pizza") -- jump a recipe to its next mastery tier
 --   ServerStorage.DevCommand:Invoke("mastery")          -- list mastery serve counts
 -- Never active in live servers.
@@ -141,6 +142,8 @@ local function run(cmd: string, arg: any): any
 			return "usage: day <hour> | close | end"
 		end
 		return S.ShiftService.devJump(plot, hour)
+	elseif cmd == "traffic" then
+		return ("traffic x%.2f at level %d"):format(S.ShiftService.traffic(plot), profile.level)
 	elseif cmd == "queue" then
 		-- what the customer at the register wants, and every open order
 		local front = S.CustomerService.frontCustomer(plot)

@@ -22,7 +22,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
 | 17 | Daily goals extras: one free reroll per day, a weekly challenge, a "GoalDone" sound | Progression | — | Config in `Challenges.luau` |
-| 18 | Remaining day-cycle checks: phone-emulator layout of the clock pill + summary card, `profile.shift` saving with DataStore on, whether the dinner rush (×2) is too much at low levels | QA | — | PC flow Studio-verified + merged 2026-11-06 by Account 1. **Account 2** is scaling rushes by level (branch `a2/rush-tuning`) |
+| 18 | Remaining day-cycle checks: phone-emulator layout of the clock pill + summary card, `profile.shift` saving with DataStore on, whether the dinner rush (×2) is too much at low levels | QA | — | PC flow Studio-verified + merged 2026-11-06 by Account 1. Rush scaling by level (PR #4) merged 2026-11-07 |
 | 21 | Mastery extras: a mastery tab in the office PC with all recipes at a glance, a "master 3 recipes" daily goal, a small price bonus on gold recipes | Progression | — | Builds on #16. Counts are in the snapshot as `mastery` |
 | 19 | Day-cycle extras: a "Before you open" checklist (stock, clean, oven on), daily goals tied to rushes ("serve 5 orders in the lunch rush"), day/night lighting that follows the clock | Gameplay | — | Builds on #7. Rush orders are already counted in `DayCycle.record` |
 
@@ -39,6 +39,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| PR #4 rush tuning Studio-verified (multipliers measured live) and merged; level-up popup merges chained level-ups and auto-closes; `DevCommand("traffic")` | Account 1 | 2026-11-07 |
 | #20 Studio-verified menu mastery (PR #3) on PC and merged into `main` (remaining checks #27) | Account 1 | 2026-11-07 |
 | #24 Level-up popup waits for the day-summary card (Studio-verified) | Account 1 | 2026-11-07 |
 | Full-shift playtest; fixed zero-stock unlocks (free starter box per newly unlocked ingredient) and the "1 orders" HUD text; `DevCommand("queue")` test hook | Account 1 | 2026-11-07 |

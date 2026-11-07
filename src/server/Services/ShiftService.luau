@@ -202,7 +202,8 @@ function ShiftService.traffic(plot): number
 	if not shift or shift.state ~= "open" then
 		return 1
 	end
-	return DayCycle.traffic(DayCycle.minuteAt(shift, now()))
+	local profile = plot.owner and S.DataService.get(plot.owner)
+	return DayCycle.traffic(DayCycle.minuteAt(shift, now()), profile and profile.level)
 end
 
 -- Fed by GoalService.onEvent with every recorded game event.

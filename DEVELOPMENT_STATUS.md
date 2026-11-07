@@ -89,6 +89,13 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - **Studio (PC) verified 2026-11-07, Account 1:** no errors; Recipes cards show grey stars + "0 / 10 to 🥉 Bronze" (drinks "0 / 20"), locked cards unchanged, nothing overlaps the description; a real served Tomato Pizza + Orbit Orange counted (1 / 10, 1 / 20); `("mastery","cheese_pizza")` ×3 paid bronze (+$24, +20 XP toast) → silver → gold ("🥇 Mastered! +30% XP per serve", gold ★★★ RichText stars, no boxes), a 4th call says "already gold"; Business tab shows "Menu mastery ★ 3 / 75".
 - Not verified: phone-emulator layout, `profile.mastery` saving (DataStore off in Studio). Minor: an open Recipes tab doesn't refresh when a tier is reached (it does on reopen).
 
+## Rush tuning (Account 2, PR #4): Studio-verified + merged by Account 1 on 2026-11-07
+- A rush's extra traffic scales with level (`Config/DayCycle.RushScale`: 35% at level 1 → 100% at level 8). Measured live with the new `DevCommand("traffic")`: level 1 lunch ×1.28 / dinner ×1.35 / late ×1.14; level 4 ×1.50 / ×1.63 / ×1.25; level 8 ×1.8 / ×2.0 / ×1.4; morning ×0.9 and afternoon ×0.8 unscaled. Matches the PR table exactly.
+- Note: `DevCommand("open")` opens the doors without starting a shift, so no rush runs. Open with the real OPEN sign (or a bot press) to test rushes.
+
+## Level-up popup (2026-11-07, Account 1)
+- Several level-ups in a row now show as ONE popup (highest level, "Levels 2 → 4", rewards summed, every unlock listed) instead of a chain, and it closes itself after 12 s (`LEVEL_AUTO_CLOSE` in `Notifications.luau`). The old chain kept "LEVEL UP! 2" on screen while the HUD already said 3. The server sends each level-up once (verified). In Studio every session starts at level 1 because saving is off, so the level-2 popup appears early in every playtest; that's expected.
+
 ## Full-shift playtest (2026-11-07, Account 1)
 A client-side test bot played a whole day through the real prompts in the new 81 x 66 layout: register + POS, dough → board → sauce/toppings → oven → box → pickup, colas, a supply run (Owner PC order → truck → back-door pallet → fridge), lunch + dinner rush, closing, day summary.
 - **Works, no script errors:** every station, topping meshes on the board model, ~16 s bakes, deliveries to the moved pad/fridge, level-ups (1 → 3) with rewards, the summary card (9 orders, 11 pizzas + 5 drinks, $108 sales, $15.75 tips, shift bonus +$25.62 +40 XP).

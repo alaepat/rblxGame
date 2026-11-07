@@ -71,6 +71,23 @@ return {
 		T.ok(not DayCycle.isClosingTime(minute(21, 59)))
 	end,
 
+	["rushes are softened at low levels, quiet phases are not"] = function()
+		local rs = C.RushScale
+		T.eq(DayCycle.rushScale(nil), 1, "no level: full strength")
+		T.eq(DayCycle.rushScale(rs.FromLevel), rs.MinScale)
+		T.eq(DayCycle.rushScale(rs.FullAtLevel), 1)
+		T.eq(DayCycle.rushScale(50), 1)
+		T.ok(DayCycle.rushScale(4) > DayCycle.rushScale(2), "grows with level")
+		T.eq(DayCycle.rushScale(0), rs.MinScale, "never below MinScale")
+		local dinner = minute(18)
+		T.eq(DayCycle.traffic(dinner), 2.0)
+		T.near(DayCycle.traffic(dinner, 1), 1 + 1.0 * rs.MinScale, 1e-9)
+		T.eq(DayCycle.traffic(dinner, rs.FullAtLevel), 2.0)
+		T.eq(DayCycle.traffic(minute(15), 1), 0.8, "afternoon lull unchanged")
+		T.eq(DayCycle.traffic(minute(23), 1), 1)
+		T.ok(DayCycle.traffic(dinner, 1) > 1, "a rush is still busier than normal at level 1")
+	end,
+
 	["timeline fractions match the phases"] = function()
 		local tl = DayCycle.timeline()
 		T.eq(#tl, #C.Phases)
