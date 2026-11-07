@@ -81,11 +81,13 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 ### Also verified (2026-11-05, third pass)
 - An angry walk-out drops the rating gently (4.0 → 3.5, fixed from 1.0). Counter wiping restores cleanliness. Emergency delivery sends 4 boxes and then goes on cooldown.
 
-## Menu mastery (Account 2, 2026-11-06): branch `a2/menu-mastery`, PR #3, offline-tested, NOT Studio-verified
+## Menu mastery (Account 2, 2026-11-06): PR #3, Studio-verified + merged into `main` by Account 1 on 2026-11-07
 - Every served recipe counts toward its mastery: 🥉 Bronze 10 · 🥈 Silver 30 · 🥇 Gold 75 serves (drinks ×2). Each tier pays a one-off reward scaled to the recipe (price ×3/×6/×12, XP ×2/×4/×8) and adds +10/20/30% bonus XP to every later serve of that recipe. Numbers in `Config/Mastery.luau`.
 - Recipes tab cards show stars, a progress bar and "12 / 30 to 🥈 Silver"; the Business tab shows "Menu mastery ★ N / 75". Saved as serve counts in `profile.mastery`.
 - Studio hook: `DevCommand:Invoke("mastery", "cheese_pizza")` jumps a recipe to its next tier.
-- Offline: 75 Lune tests pass; `rojo build` OK. Studio checklist in PR #3 (TASKS #20).
+- Offline: 75 Lune tests pass; `rojo build` OK.
+- **Studio (PC) verified 2026-11-07, Account 1:** no errors; Recipes cards show grey stars + "0 / 10 to 🥉 Bronze" (drinks "0 / 20"), locked cards unchanged, nothing overlaps the description; a real served Tomato Pizza + Orbit Orange counted (1 / 10, 1 / 20); `("mastery","cheese_pizza")` ×3 paid bronze (+$24, +20 XP toast) → silver → gold ("🥇 Mastered! +30% XP per serve", gold ★★★ RichText stars, no boxes), a 4th call says "already gold"; Business tab shows "Menu mastery ★ 3 / 75".
+- Not verified: phone-emulator layout, `profile.mastery` saving (DataStore off in Studio). Minor: an open Recipes tab doesn't refresh when a tier is reached (it does on reopen).
 
 ## Full-shift playtest (2026-11-07, Account 1)
 A client-side test bot played a whole day through the real prompts in the new 81 x 66 layout: register + POS, dough → board → sauce/toppings → oven → box → pickup, colas, a supply run (Owner PC order → truck → back-door pallet → fridge), lunch + dinner rush, closing, day summary.

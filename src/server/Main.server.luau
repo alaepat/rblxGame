@@ -11,6 +11,7 @@ local ORDER = {
 	"UpgradeService",
 	"GoalService", -- daily goals + streaks
 	"ShiftService", -- day / shift cycle, rushes, end-of-day summary
+	"MasteryService", -- menu mastery: per-recipe serve counts, bronze/silver/gold
 	"HeldService",
 	"StationService",
 	"CleaningService",

@@ -13,6 +13,8 @@
 --   ServerStorage.DevCommand:Invoke("day", "close")     -- jump to closing time
 --   ServerStorage.DevCommand:Invoke("day", "end")       -- end the day now (summary)
 --   ServerStorage.DevCommand:Invoke("queue")            -- front customer's wish + open orders (for test bots)
+--   ServerStorage.DevCommand:Invoke("mastery", "cheese_pizza") -- jump a recipe to its next mastery tier
+--   ServerStorage.DevCommand:Invoke("mastery")          -- list mastery serve counts
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -106,6 +108,23 @@ local function run(cmd: string, arg: any): any
 		end
 		S.ProgressService.push(player)
 		return "goals finished: " .. #profile.daily.goals
+	elseif cmd == "mastery" then
+		local Mastery = require(Shared.Mastery.Mastery)
+		local counts = S.MasteryService.stateFor(player).mastery or {}
+		local recipe = type(arg) == "string" and require(Shared.Config.Recipes).get(arg)
+		if not recipe then
+			local t = {}
+			for id, n in counts do
+				table.insert(t, id .. " " .. n)
+			end
+			return "mastery: " .. (if #t > 0 then table.concat(t, ", ") else "none (pass a recipe id to level one up)")
+		end
+		local v = Mastery.view(recipe, counts[arg])
+		if not v.nextAt then
+			return arg .. " is already gold"
+		end
+		S.MasteryService.addServes(player, arg, v.nextAt - v.count)
+		return ("%s now %d serves (tier %d)"):format(arg, v.nextAt, v.tier + 1)
 	elseif cmd == "day" then
 		if arg == "end" then
 			if not plot.shift then

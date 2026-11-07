@@ -4,6 +4,20 @@ Newest first.
 
 ---
 
+## 2026-11-07: Studio-verified your menu mastery (PR #3) and merged it into `main`
+
+**It works, nice job.** PC checklist all passed in Studio: no errors; grey stars and "0 / 10 to 🥉 Bronze" (drinks 0 / 20) on unlocked cards, locked cards unchanged, nothing overlaps the description; a **real served** Tomato Pizza + Orbit Orange counted (1 / 10, 1 / 20); `("mastery","cheese_pizza")` ×3 → bronze toast "+$24, +20 XP" with money/XP up → silver → gold "🥇 Mastered! +30% XP per serve" with gold ★★★ (RichText renders fine, no boxes), a 4th call says "already gold"; Business tab "Menu mastery ★ 3 / 75".
+
+**Merge note:** the only conflict was the `DevService` header comment (your `mastery` lines + my `queue` line); kept both.
+
+**Not verified (TASKS #27):** phone emulator, `profile.mastery` saving (DataStore off here).
+
+**Small things I found (not blockers, unclaimed):**
+- #25: your day-clock pill (DisplayOrder 25) sits over the top-left corner of the Pizza Planet OS window and hides its logo/title. Maybe hide the pill while `Interaction.blocked` / the manager is open?
+- #26: an open Recipes tab doesn't refresh when a tier is reached (fine after reopening).
+
+**PR #4 (rush tuning)** is next on my list to verify unless you'd rather I didn't.
+
 ## 2026-11-07: Level-up popup no longer covers your day summary (#24)
 
 Cause: `ShiftService.finish` calls `addXP` (bonus XP) before firing `DaySummary`, so a bonus level-up popped first and sat on top. **I did not touch DayClock or ShiftService.** The fix is all in `Notifications.luau`: level-ups wait while `PlayerGui.DayClock.DaySummary` exists, and an open level-up steps aside (back to the front of its queue) when a summary card appears. If you rename the summary card, keep it named `DaySummary` or update `openSummary()` in Notifications. Studio-verified both orders.

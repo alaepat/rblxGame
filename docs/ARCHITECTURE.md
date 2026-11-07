@@ -9,6 +9,7 @@
 | `src/shared/Food/FoodVisuals` | same | Builds the 3D model for any item table (pizza, kebab, box, cup, supply box, ingredient pan) |
 | `src/shared/Goals/DailyGoals` | `ReplicatedStorage.Shared.Goals` | Pure daily-goal rules: generation, progress, claiming, streaks, rollover (no services, so it is unit-tested in Lune) |
 | `src/shared/Shift/DayCycle` | `ReplicatedStorage.Shared.Shift` | Pure day/shift rules: game clock, phases + rush traffic, day stats, grade, end-of-day bonus, wages, records (unit-tested in Lune) |
+| `src/shared/Mastery/Mastery` | `ReplicatedStorage.Shared.Mastery` | Pure menu-mastery rules: tier thresholds, rewards, serve XP bonus, progress views, star totals (unit-tested in Lune) |
 | `src/shared/Net` | `ReplicatedStorage.Shared.Net` | Creates/locates every RemoteEvent/RemoteFunction |
 | `src/server/Main.server` | `ServerScriptService.Server.Main` | Bootstraps services in order (`init` for all, then `start`; DataService starts last) |
 | `src/server/Services/*` | `ServerScriptService.Server.Services` | Game systems (below) |
@@ -26,6 +27,7 @@ Each service is a module with `init(services)` (receives the registry) and `star
 | **UpgradeService** | Buys upgrades, sums `effects` (cookSpeed, capacity, traffic, tip, queue), shows/hides upgrade models in the plot. |
 | **GoalService** | Daily goals + streaks. Other services call `GoalService.record(player, event, amount, param)`; it rolls goals at the UTC reset (auto-paying finished-but-unclaimed rewards), validates `ClaimGoal`, pays through ProgressService, and adds `goals` to the State snapshot. Saved in `profile.daily`. |
 | **ShiftService** | Day / shift cycle per restaurant. Opening the sign starts "Day N" at 10:00; rush phases multiply customer traffic (`CustomerService.spawnInterval` divides by `ShiftService.traffic(plot)`); at 22:00 it closes the sign, and once the last customers leave (or `ClosingGrace` runs out) it sends the `DaySummary` remote, pays the shift bonus and wages, and saves records in `profile.shift`. Day stats come from `GoalService.onEvent`. Adds `shift` to the State snapshot. |
+| **MasteryService** | Menu mastery. Counts each served recipe (`serve_recipe` via `GoalService.onEvent`) in `profile.mastery = { [recipeId] = n }`; reaching 🥉/🥈/🥇 pays a one-off cash + XP reward, and each tier adds bonus XP to later serves of that recipe. Adds `mastery`, `masteryStars`, `masteryMax` to the State snapshot. |
 | **HeldService** | The one item each player carries (server table + a welded visual). |
 | **StationService** | Turns every part tagged `Station=<kind>` into prompts and runs its rules: Bin, PizzaBoard, KebabBoard, Topping, Oven, Fryer, BoxStation, HeatShelf, Trash, Fountain, Register, Pickup, Storage, OfficePC, OpenSign. Runs the cooking loop. |
 | **CleaningService** | Rubbish after customers, messy counters after N uses, the cleanliness score. |
@@ -83,6 +85,14 @@ Numbers: `Config/DayCycle.luau` (open/close hours, `SecondsPerHour`, phases with
 - A day only counts (day number, bonus, summary) once at least one order was served. If the player leaves mid-shift, that day is dropped.
 - Wages: `ShiftService.staffOf(player)` returns `{ [role] = count }`. It is empty until staff exist (TASKS #11); return the hired staff there and the summary charges `Config.Wages`.
 - Studio hooks: `DevCommand:Invoke("day", 12)` jumps the clock to 12:00, `("day", "close")` to closing time, `("day", "end")` closes and ends the day now.
+
+## Menu mastery
+
+Numbers: `Config/Mastery.luau` (tiers with serves, reward multipliers of the recipe's price/XP, serve XP bonus; drinks need ×2 serves). Rules: `Shared/Mastery/Mastery.luau`. Server: `MasteryService`. Client: `UI/MasteryBadge.luau` adds a stars + progress row to each unlocked card in the Recipes tab; the Business tab shows "Menu mastery ★ N / max".
+
+- Only serve counts are saved; tiers are worked out from them, so rewards can't be paid twice (a tier is paid when a serve crosses its threshold).
+- Stars are RichText "★" in gold/grey: the Gotham fonts have no "☆".
+- Studio hook: `DevCommand:Invoke("mastery", "cheese_pizza")` jumps a recipe to its next tier; `("mastery")` lists the counts.
 
 ## Offline tests
 
