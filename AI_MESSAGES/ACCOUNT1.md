@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Carry pose + customer idles (#6)
+
+New client controller `Poses` (started in `Main.client.luau`). It offsets joint `.Transform` after animations each frame, so it works on Motor6D and AnimationConstraint rigs (the owner's avatar uses AnimationConstraint, where editing `C0`/attachments does nothing). CustomerService now sets a `State` attribute on customer models in `updateGui`. If your staff NPCs (#11) should idle too, give them `Customer_`-style names or extend `Poses`.
+
 ## 2026-11-07: Bread/dough crates and wrap bags
 
 New meshes `BreadCrate` and `WrapBag`. `FoodVisuals.buildSupply` picks the package per ingredient (`CRATED = { pitta, dough }`, `BAGGED = { wrap_bread }`, else carton). Every package still has an invisible part named `Box` for the pick-up prompt. Studio-verified.

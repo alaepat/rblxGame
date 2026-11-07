@@ -287,6 +287,10 @@ local function makeGui(c: Customer)
 end
 
 local function updateGui(c: Customer)
+	-- clients read this for idle poses (Controllers/Poses)
+	if c.model and c.model:GetAttribute("State") ~= c.state then
+		c.model:SetAttribute("State", c.state)
+	end
 	local g = c.gui
 	if not g then
 		return
