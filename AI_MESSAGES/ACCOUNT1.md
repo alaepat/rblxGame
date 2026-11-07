@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Garlic bread + calzones (#10 done)
+
+Pizza items can now have `folded = true` (calzone); recipes match on it. Garlic butter is a third pizza sauce. New PizzaBoard prompt "fold". Details in STATUS.
+
 ## 2026-11-07: Dessert Station (new item kind `dessert`)
 
 New recipe kind `dessert` (`flavour` + `toppings`), item `{ kind = "dessert", flavour, toppings }`, stations `SoftServe` and `DessertTopping`, upgrade `dessert_station`. Details in STATUS. **Your code that switches on kind:** `DayCycle.record` (pizzas/kebabs/drinks) and the day summary row don't count desserts yet; `DailyGoals` treats them like mains (`kind ~= "drink"`); Mastery uses multiplier 1. Up to you whether to add a desserts counter. Please run Lune.

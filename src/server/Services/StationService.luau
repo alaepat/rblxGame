@@ -238,8 +238,10 @@ local function refresh(st: Station)
 			show(P.main, empty, "Take " .. ingName(id) .. " (" .. (profile.stock[id] or 0) .. ")")
 		end
 	elseif k == "PizzaBoard" then
+		local level = profile.level
+		show(P.fold, FoodLogic.canFold(st.item) and level >= GameConfig.CalzoneLevel, "Fold into a calzone")
 		if st.item then
-			show(P.main, empty, "Pick up pizza")
+			show(P.main, empty, "Pick up " .. (st.item.folded and "calzone" or "pizza"))
 		elseif held and held.kind == "dough" then
 			show(P.main, true, "Place dough")
 		elseif held and held.kind == "pizza" and not held.boxed and (held.cook or 0) == 0 then
@@ -409,8 +411,20 @@ actions.Bin = function(st, player)
 	S.ProgressService.sound(player, "Pickup")
 end
 
-actions.PizzaBoard = function(st, player)
+actions.PizzaBoard = function(st, player, which)
 	local held = S.HeldService.get(player)
+	if which == "fold" then
+		local profile = S.DataService.get(player)
+		if not FoodLogic.canFold(st.item) or profile.level < GameConfig.CalzoneLevel then
+			return
+		end
+		st.item.folded = true
+		setItem(st, st.item)
+		markUse(st)
+		S.ProgressService.sound(player, "Wrap")
+		S.StationService.refreshFor(player)
+		return
+	end
 	if st.item then
 		if held then
 			return deny(player, "Your hands are full")
@@ -732,6 +746,9 @@ local function setupStation(plot, part: BasePart)
 		gui = nil,
 	}
 	newPrompt(st, "main", Enum.KeyCode.E, 0)
+	if kind == "PizzaBoard" then
+		newPrompt(st, "fold", Enum.KeyCode.F)
+	end
 	if kind == "KebabBoard" then
 		newPrompt(st, "wrap", Enum.KeyCode.F)
 		newPrompt(st, "chips", Enum.KeyCode.R)

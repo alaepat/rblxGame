@@ -21,6 +21,8 @@ return {
 	-- Free boxes of each ingredient a level-up unlocks (only when the player has none),
 	-- so newly unlocked recipes customers order can be cooked straight away.
 	UnlockStarterBoxes = 1,
+	-- Level at which the prep boards get the "Fold into a calzone" prompt.
+	CalzoneLevel = 18,
 	-- Max units per ingredient = boxSize * BaseCapacityBoxes * (1 + capacity upgrades)
 	BaseCapacityBoxes = 3,
 

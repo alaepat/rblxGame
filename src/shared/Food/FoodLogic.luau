@@ -30,7 +30,7 @@ export type Item = { [string]: any }
 
 local FoodLogic = {}
 
-local SAUCES = { tomato_sauce = true, bbq_sauce = true }
+local SAUCES = { tomato_sauce = true, bbq_sauce = true, garlic_butter = true }
 local KEBAB_SAUCES = { garlic_sauce = true, chilli_sauce = true, mayo = true }
 FoodLogic.PizzaSauces = SAUCES
 FoodLogic.KebabSauces = KEBAB_SAUCES
@@ -80,6 +80,9 @@ function FoodLogic.canAddToPizza(item: Item, ingredientId: string): (boolean, st
 	if (item.cook or 0) > 0 then
 		return false, "This pizza has already been cooked"
 	end
+	if item.folded then
+		return false, "It's folded into a calzone"
+	end
 	if SAUCES[ingredientId] then
 		if item.sauce then
 			return false, "It already has sauce"
@@ -117,6 +120,12 @@ function FoodLogic.canAddToKebab(item: Item, ingredientId: string): (boolean, st
 	return true, nil
 end
 
+-- Can the pizza on the board be folded into a calzone?
+function FoodLogic.canFold(item: Item?): boolean
+	return item ~= nil and item.kind == "pizza" and not item.folded and not item.boxed
+		and (item.cook or 0) == 0 and item.sauce ~= nil and #(item.toppings or {}) > 0
+end
+
 -- Can a dessert topping go on the held dessert cup?
 function FoodLogic.canAddToDessert(item: Item, ingredientId: string): (boolean, string?)
 	if item.kind ~= "dessert" then
@@ -144,7 +153,7 @@ function FoodLogic.identify(item: Item?): string?
 			return nil
 		end
 		for _, r in Recipes.List do
-			if r.kind == "pizza" and r.sauce == item.sauce and setEquals(r.toppings :: { string }, item.toppings) then
+			if r.kind == "pizza" and r.sauce == item.sauce and (r.folded == true) == (item.folded == true) and setEquals(r.toppings :: { string }, item.toppings) then
 				return r.id
 			end
 		end
@@ -210,6 +219,9 @@ function FoodLogic.describe(item: Item?): string
 			return "Boxed " .. (r and r.name or "pizza (doesn't match the menu)")
 		end
 		local prefix = ({ raw = "Raw", cooking = "Undercooked", cooked = "Cooked", burnt = "Burnt" })[state] or ""
+		if item.folded then
+			return prefix .. " calzone (" .. (#item.toppings) .. " fillings)"
+		end
 		return prefix .. " pizza (" .. (#item.toppings) .. " toppings)"
 	elseif k == "bread" then
 		return ingName(item.base)

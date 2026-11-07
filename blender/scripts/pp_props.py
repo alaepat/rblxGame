@@ -1414,6 +1414,34 @@ def build_SundaeCup():
     rot_apply(sp, 0, math.radians(-18), 0)
 
 
+# ---- batch 13: calzone
+
+def build_Calzone():
+    # Folded pizza: a puffy half-moon (fold along the straight edge at y = 0,
+    # curved edge towards -Y) with a hand-crimped rim and two steam slits.
+    # Roles: Crust, Crimp, Slit.
+    R = 1.1
+    body = sphere("Calzone_Crust", 1.0, (0, 0, 0), (R, R, 0.42), 64, 32)
+    boolean_diff(body, rounded_box("cut", 3, 2, 2, 0.01, 1, (0, 1.0, 0)))  # keep y < 0
+    boolean_diff(body, rounded_box("cut", 3, 3, 2, 0.01, 1, (0, 0, -1.0)))  # flat bottom
+    for v in body.data.vertices:  # soft, bready unevenness and a lift at the fold
+        v.co.z += 0.05 * max(0.0, 1 + v.co.y / R) * (v.co.z > 0.02)
+    displace(body, 0.025, 31, 3.5)
+    # crimped rim along the curved edge
+    pts = []
+    n = 72
+    for i in range(n + 1):
+        a = math.pi + i / n * math.pi  # from (-R,0) round the -Y side to (R,0)
+        r = R * 0.985 + 0.035 * math.sin(i * 1.7)
+        pts.append((math.cos(a) * r, math.sin(a) * r, 0.05 + 0.03 * math.sin(i * 3.4)))
+    tube("Calzone_Crimp", pts, 0.075, 3)
+    slits = []
+    for x in (-0.3, 0.25):
+        s = rounded_box("s", 0.28, 0.05, 0.03, 0.012, 2, (x, -0.45, 0.43))
+        slits.append(rot_apply(s, math.radians(8), 0, math.radians(18 if x < 0 else -14)))
+    join(slits, "Calzone_Slit")
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1696,7 +1724,7 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "BoothBench", "BoothTable", "ArtFrame",
          "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter",
          "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair", "Carton",
-         "BreadCrate", "WrapBag", "SoftServe", "SundaeCup"] + TOPPINGS
+         "BreadCrate", "WrapBag", "SoftServe", "SundaeCup", "Calzone"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1778,7 +1806,8 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "SoftServe_Head": (0.78, 0.8, 0.82), "SoftServe_Lever": (0.85, 0.15, 0.15), "SoftServe_Tray": (0.5, 0.52, 0.55),
              "SoftServe_Lid": (0.78, 0.8, 0.82), "SoftServe_Feet": (0.13, 0.13, 0.14), "SundaeCup_Cup": (0.95, 0.4, 0.55),
              "SundaeCup_Swirl": (0.98, 0.93, 0.82), "SundaeCup_Drizzle1": (0.35, 0.2, 0.12), "SundaeCup_Drizzle2": (0.85, 0.15, 0.2),
-             "SundaeCup_Sprinkles": (0.9, 0.4, 0.7), "SundaeCup_Crumble": (0.55, 0.38, 0.22), "SundaeCup_Spoon": (0.85, 0.87, 0.89)}
+             "SundaeCup_Sprinkles": (0.9, 0.4, 0.7), "SundaeCup_Crumble": (0.55, 0.38, 0.22), "SundaeCup_Spoon": (0.85, 0.87, 0.89),
+             "Calzone_Crust": (0.88, 0.65, 0.36), "Calzone_Crimp": (0.8, 0.55, 0.28), "Calzone_Slit": (0.75, 0.15, 0.1)}
 
 
 def render_preview(prop):

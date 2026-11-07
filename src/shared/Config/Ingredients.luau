@@ -56,6 +56,7 @@ local list: { Ingredient } = {
 	{ id = "cola_syrup", name = "Cola Syrup", category = "dry", boxSize = 40, boxCost = 10, level = 1, color = Color3.fromRGB(60, 25, 15), shape = "sauce", icon = "🥤" },
 	{ id = "orange_syrup", name = "Orange Syrup", category = "dry", boxSize = 40, boxCost = 10, level = 3, color = Color3.fromRGB(255, 140, 20), shape = "sauce", icon = "🍊" },
 	{ id = "lime_syrup", name = "Lime Syrup", category = "dry", boxSize = 40, boxCost = 10, level = 6, color = Color3.fromRGB(150, 220, 40), shape = "sauce", icon = "🍋" },
+	{ id = "garlic_butter", name = "Garlic Butter", category = "cold", boxSize = 30, boxCost = 8, level = 17, color = Color3.fromRGB(245, 226, 140), shape = "sauce", icon = "🧈" },
 	-- Desserts (Dessert Station upgrade)
 	{ id = "dessert_cup", name = "Dessert Cups", category = "dry", boxSize = 40, boxCost = 6, level = 12, color = Color3.fromRGB(240, 120, 150), shape = "box", icon = "🍨" },
 	{ id = "vanilla_mix", name = "Vanilla Ice Cream Mix", category = "cold", boxSize = 40, boxCost = 12, level = 12, color = Color3.fromRGB(252, 242, 214), shape = "sauce", icon = "🍦" },

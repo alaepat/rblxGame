@@ -3,6 +3,8 @@
 -- (level >= recipe.level AND, if set, the required upgrade is owned).
 --
 -- kind "pizza": base dough -> sauce -> toppings (set). Must be cooked + boxed.
+--   folded = true: a calzone (press Fold on the board before baking).
+--   Garlic bread is a pizza with garlic_butter as its "sauce".
 -- kind "kebab": base (pitta / wrap_bread / food_box) -> fillings (set). Must be wrapped/closed.
 -- kind "drink": a cup filled from the fountain with `syrup`.
 -- kind "dessert": a dessert cup filled at the soft-serve machine with
@@ -23,6 +25,7 @@ export type Recipe = {
 	fillings: { string }?, -- kebab
 	syrup: string?, -- drink
 	flavour: string?, -- dessert (ice cream mix)
+	folded: boolean?, -- pizza: calzone
 	description: string,
 }
 
@@ -68,6 +71,16 @@ local list: { Recipe } = {
 	{ id = "galaxy_pizza", name = "Galaxy Pizza", kind = "pizza", level = 19, price = 30, xp = 45, icon = "🌌",
 		sauce = "tomato_sauce", toppings = { "mozzarella", "cheddar", "tomato", "pepperoni", "mushroom", "ham", "onion", "green_pepper", "chicken", "olive", "beef", "jalapeno" },
 		description = "Every topping in the kitchen. Only for legends." },
+
+	-- garlic bread + calzones (levels 17-20)
+	{ id = "garlic_bread", name = "Garlic Bread", kind = "pizza", level = 17, price = 6, xp = 10, icon = "🧄",
+		sauce = "garlic_butter", toppings = {}, description = "Dough brushed with garlic butter and baked." },
+	{ id = "cheesy_garlic_bread", name = "Cheesy Garlic Bread", kind = "pizza", level = 17, price = 8, xp = 13, icon = "🧀",
+		sauce = "garlic_butter", toppings = { "mozzarella" }, description = "Garlic bread with melted mozzarella." },
+	{ id = "classic_calzone", name = "Classic Calzone", kind = "pizza", level = 18, price = 16, xp = 26, icon = "🥟", folded = true,
+		sauce = "tomato_sauce", toppings = { "mozzarella", "ham", "mushroom" }, description = "Ham and mushroom folded in a pizza and baked." },
+	{ id = "meat_calzone", name = "Meat Lover's Calzone", kind = "pizza", level = 20, price = 21, xp = 34, icon = "🥩", folded = true,
+		sauce = "bbq_sauce", toppings = { "mozzarella", "pepperoni", "beef", "chicken" }, description = "BBQ sauce and three meats, folded and baked." },
 
 	-- ===== KEBABS =====
 	{ id = "chicken_doner", name = "Chicken Doner Kebab", kind = "kebab", level = 6, price = 9, xp = 14, icon = "🥙", requires = "kebab_station",

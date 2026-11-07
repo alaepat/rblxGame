@@ -33,6 +33,8 @@ local milestones: { [number]: string } = {
 	[12] = "Planet Special Box unlocked + Dessert Station available in Upgrades",
 	[13] = "Late-game menu: new pizzas and sides keep coming every level",
 	[15] = "Hotter Oven III available",
+	[17] = "Garlic bread: garlic butter tub on every prep board",
+	[18] = "Calzones: press Fold on the prep board before baking",
 	[19] = "Galaxy Pizza: every topping on one pizza",
 	[20] = "Planet Mega Box: the biggest order in the galaxy",
 }

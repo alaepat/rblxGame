@@ -95,4 +95,6 @@ return {
 	-- batch 12: dessert station
 	SoftServe = { assetId = 111324424451357, size = Vector3.new(2.4, 3.06, 1.879), center = Vector3.new(0, 0, 0.14) },
 	SundaeCup = { assetId = 137499676391994, size = Vector3.new(0.721, 1.239, 0.714) },
+	-- batch 13: calzone (origin on the fold line, curved edge towards +Z)
+	Calzone = { assetId = 128754487870002, size = Vector3.new(2.356, 0.512, 1.223), center = Vector3.new(0, 0, 0.567) },
 } :: { [string]: MeshInfo }

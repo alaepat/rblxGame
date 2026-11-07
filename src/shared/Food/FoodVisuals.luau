@@ -285,6 +285,14 @@ local function buildPizza(item: Item): Model
 	end
 	local sauceIng = item.sauce and Ingredients.get(item.sauce)
 	local y = 0.25
+	if item.folded and MeshLib.has("Calzone") then
+		-- calzone: everything is inside, so only the folded crust shows
+		MeshLib.place(m, "Calzone", CFrame.new(0, 0, -0.6), { -- origin is the fold line; centre it
+			Crust = base, Crimp = base:Lerp(Color3.fromRGB(120, 70, 30), 0.15),
+			Slit = sauceIng and sauceIng.color or BRAND_RED,
+		})
+		return m
+	end
 	if MeshLib.has("Pizza") then
 		-- Blender mesh: rolled crust + organic sauce/cheese layers
 		MeshLib.place(m, "Pizza", CFrame.new(), {

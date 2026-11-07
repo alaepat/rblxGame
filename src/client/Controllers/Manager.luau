@@ -152,7 +152,7 @@ local previewCache: { [string]: Model } = {}
 
 local function previewItem(r: any): { [string]: any }
 	if r.kind == "pizza" then
-		return { kind = "pizza", sauce = r.sauce, toppings = r.toppings, cook = 1 }
+		return { kind = "pizza", sauce = r.sauce, toppings = r.toppings, cook = 1, folded = r.folded }
 	elseif r.kind == "kebab" then
 		return { kind = "kebab", base = r.base, fillings = r.fillings, wrapped = false }
 	elseif r.kind == "dessert" then
@@ -255,7 +255,13 @@ local function renderRecipes()
 			for _, t in r.toppings :: { string } do
 				table.insert(tops, ingName(t))
 			end
-			steps = "1. 🍞 Dough on the board  →  2. " .. ingName(r.sauce :: string) .. "  →  3. " .. table.concat(tops, ", ") .. "  →  4. 🔥 Bake until READY  →  5. 📦 Box it"
+			if r.folded then
+				steps = "1. 🍞 Dough  →  2. " .. ingName(r.sauce :: string) .. "  →  3. " .. table.concat(tops, ", ") .. "  →  4. 🥟 Fold it (F)  →  5. 🔥 Bake  →  6. 📦 Box it"
+			elseif #tops == 0 then
+				steps = "1. 🍞 Dough on the board  →  2. " .. ingName(r.sauce :: string) .. "  →  3. 🔥 Bake until READY  →  4. 📦 Box it"
+			else
+				steps = "1. 🍞 Dough on the board  →  2. " .. ingName(r.sauce :: string) .. "  →  3. " .. table.concat(tops, ", ") .. "  →  4. 🔥 Bake until READY  →  5. 📦 Box it"
+			end
 		elseif r.kind == "kebab" then
 			local fills = {}
 			for _, t in r.fillings :: { string } do

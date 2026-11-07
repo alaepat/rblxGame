@@ -9,7 +9,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 5 | Blender pass 10 (optional): stand mixer, PC monitor, lockers/vending, storage shelving | Art | — | Fronts face +Z after import. Pass, rails and office desk/chair are done. |
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
-| 10 | More content: garlic bread, calzone (need a fold step / bread mechanic) | Content | — | Levels 13–20 dishes and the Dessert Station are done (2026-11-07) |
 | 11 | Staff NPCs (cashier, cleaner) as late-game upgrades | Gameplay | **Account 2** | Wages are ready: return hired staff from `ShiftService.staffOf` and the day summary charges `Config/DayCycle.Wages` (PR #2) |
 | 12 | Mobile/tablet UI pass (scale HUD, bigger touch targets) | UI | — | Test with the Studio device emulator |
 | 13 | Interior themes / decorations shop (restyle floors, tables, wall colours) | Expansion | — | |
@@ -33,6 +32,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| #10 done: garlic bread (garlic butter tub on each prep board, level 17) and calzones (Fold prompt F on the prep board, level 18; Blender Calzone mesh) (Studio-verified) | Account 1 | 2026-11-07 |
 | Dessert Station (upgrade, level 12): soft-serve machine + topping jars, 5 sundaes, new `dessert` item kind; Blender SoftServe + SundaeCup (Studio-verified) | Account 1 | 2026-11-07 |
 | Levels 13–20 content: 6 pizzas (Galaxy Pizza = 12 toppings), 5 kebab-station dishes (Planet Mega Box), Hotter Oven III, Bigger Storage III, Premium Packaging; board caps derived from recipes; paging menu boards (Studio-verified) | Account 1 | 2026-11-07 |
 | #6 Carry pose (arms forward while holding anything) + customer idles in the queue/waiting area (look around, check phone, shift weight); client `Controllers/Poses` (Studio-verified) | Account 1 | 2026-11-07 |

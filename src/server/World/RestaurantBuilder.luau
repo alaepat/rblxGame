@@ -713,6 +713,8 @@ local function buildPrepCounter(c: Ctx, name: string, x: number, boardId: string
 	local board = B.box(m, "Board", -1.7, COUNTER_H, -0.1, 1.7, COUNTER_H + 0.18, 1.25, C.WOOD, M.Wood)
 	B.station(board, "PizzaBoard", label, { BoardId = boardId })
 	B.itemAt(board, CFrame.new(0, 0.09, 0))
+	-- garlic butter tub beside the board (garlic bread, level 17)
+	pan(m, "garlic_butter", -2.75, COUNTER_H, 0.55, boardId, 0.9)
 	-- topping rail (two tiers)
 	local railMesh = MeshLib.has("PrepRail")
 	if railMesh then
