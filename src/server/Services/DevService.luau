@@ -9,6 +9,7 @@
 --   ServerStorage.DevCommand:Invoke("info")
 --   ServerStorage.DevCommand:Invoke("goals")            -- finish every daily goal
 --   ServerStorage.DevCommand:Invoke("goals", "reset")   -- roll a fresh set of goals
+--   ServerStorage.DevCommand:Invoke("goals", "weekly")  -- finish the weekly challenge
 --   ServerStorage.DevCommand:Invoke("day", 12)          -- jump the shift clock to 12:00 (lunch rush)
 --   ServerStorage.DevCommand:Invoke("day", "close")     -- jump to closing time
 --   ServerStorage.DevCommand:Invoke("day", "end")       -- end the day now (summary)
@@ -89,6 +90,16 @@ local function run(cmd: string, arg: any): any
 		S.ProgressService.addMoney(player, -profile.money + 5)
 		return "money " .. profile.money
 	elseif cmd == "goals" then
+		if arg == "weekly" then
+			S.GoalService.ensure(player)
+			local w = profile.daily.weekly and profile.daily.weekly.goal
+			if not w then
+				return "no weekly"
+			end
+			w.progress = w.target
+			S.ProgressService.push(player)
+			return "weekly finished: " .. w.id
+		end
 		if arg == "reset" then
 			profile.daily = nil
 			S.GoalService.ensure(player)

@@ -10,6 +10,7 @@ return {
 	Sauce = "",
 	OvenOpen = "",
 	Ding = "",
+	GoalDone = "", -- a daily goal or the weekly challenge was just finished
 	Box = "",
 	Wrap = "",
 	Pour = "",

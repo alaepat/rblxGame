@@ -5,7 +5,8 @@
 --  * Goals roll over at the UTC reset; finished-but-unclaimed rewards are paid
 --    automatically at rollover.
 --  * The client claims through the ClaimGoal remote: ClaimGoal(index) for one
---    goal, ClaimGoal("bonus") for the all-goals streak bonus.
+--    goal, ClaimGoal("bonus") for the all-goals streak bonus, ClaimGoal("weekly")
+--    for the weekly challenge. RerollGoal(index) uses the free daily swap.
 --  * Rules live in Shared.Goals.DailyGoals, numbers/content in Config/Challenges.
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -55,16 +56,25 @@ function GoalService.ensure(player: Player)
 	end
 	local today = DailyGoals.dayNumber(now())
 	local hadGoals = daily.day > 0
+	local hadWeekly = type(daily.weekly) == "table" and daily.weekly.week >= 0
 	local changed, payout = DailyGoals.rollover(daily, today, player.UserId, profile.level, profile.upgrades)
-	if not changed then
+	local weekChanged, weekPayout = DailyGoals.weeklyRollover(daily, today, player.UserId, profile.level, profile.upgrades)
+	if not changed and not weekChanged then
 		return
 	end
 	if payout.cash > 0 or payout.xp > 0 then
 		pay(player, payout)
 		S.ProgressService.notify(player, ("Yesterday's unclaimed goals paid out: +$%d, +%d XP"):format(payout.cash, payout.xp), "good")
 	end
-	if hadGoals then
+	if weekPayout.cash > 0 or weekPayout.xp > 0 then
+		pay(player, weekPayout)
+		S.ProgressService.notify(player, ("Last week's challenge paid out: +$%d, +%d XP"):format(weekPayout.cash, weekPayout.xp), "good")
+	end
+	if changed and hadGoals then
 		S.ProgressService.notify(player, "🎯 New daily goals are ready!", "info")
+	end
+	if weekChanged and hadWeekly then
+		S.ProgressService.notify(player, "🏆 A new weekly challenge has started!", "info")
 	end
 	S.ProgressService.push(player)
 end
@@ -96,7 +106,11 @@ function GoalService.record(player: Player?, event: string, amount: number?, par
 	for _, i in finished do
 		local g = daily.goals[i]
 		S.ProgressService.notify(player, "🎯 Goal done: " .. DailyGoals.describe(g) .. "  (claim it in Goals)", "good")
-		S.ProgressService.sound(player, "Ding")
+		S.ProgressService.sound(player, "GoalDone")
+	end
+	if DailyGoals.recordWeekly(daily, event, amount, param) then
+		S.ProgressService.notify(player, "🏆 Weekly challenge done! Claim it in Goals", "good")
+		S.ProgressService.sound(player, "GoalDone")
 	end
 	S.ProgressService.push(player)
 end
@@ -111,6 +125,8 @@ function GoalService.claim(player: Player, which: any): (boolean, string)
 	local ok, msg, reward
 	if which == "bonus" then
 		ok, msg, reward = DailyGoals.claimBonus(daily, profile.level, DailyGoals.dayNumber(now()))
+	elseif which == "weekly" then
+		ok, msg, reward = DailyGoals.claimWeekly(daily, DailyGoals.dayNumber(now()))
 	else
 		ok, msg, reward = DailyGoals.claim(daily, which)
 	end
@@ -121,6 +137,22 @@ function GoalService.claim(player: Player, which: any): (boolean, string)
 	S.ProgressService.sound(player, "Cash")
 	S.ProgressService.push(player)
 	return true, ("%s +$%d, +%d XP"):format(msg, reward.cash, reward.xp)
+end
+
+-- Free daily swap of an unfinished goal.
+function GoalService.reroll(player: Player, index: any): (boolean, string)
+	local profile = S.DataService.get(player)
+	GoalService.ensure(player)
+	local daily = dailyOf(player)
+	if not profile or not daily then
+		return false, "Profile not loaded"
+	end
+	local ok, msg = DailyGoals.reroll(daily, index, DailyGoals.dayNumber(now()), player.UserId, profile.level, profile.upgrades)
+	if ok then
+		S.ProgressService.sound(player, "Click")
+		S.ProgressService.push(player)
+	end
+	return ok, msg
 end
 
 -- Snapshot fields for the client (see Controllers/Goals).
@@ -138,6 +170,14 @@ function GoalService.start()
 		local ok, res, msg = pcall(GoalService.claim, player, which)
 		if not ok then
 			warn("[GoalService] claim failed: " .. tostring(res))
+			return false, "Something went wrong"
+		end
+		return res, msg
+	end
+	Net.func("RerollGoal").OnServerInvoke = function(player, index)
+		local ok, res, msg = pcall(GoalService.reroll, player, index)
+		if not ok then
+			warn("[GoalService] reroll failed: " .. tostring(res))
 			return false, "Something went wrong"
 		end
 		return res, msg

@@ -1,7 +1,8 @@
 --!strict
 -- Daily goals panel: a "Goals" button under the recipe book (with a badge
 -- counting claimable rewards) that opens a card list of today's goals, the
--- streak, the all-goals bonus and the time until new goals.
+-- streak, the all-goals bonus and the time until new goals, plus the weekly
+-- challenge card and a free daily "Swap" (reroll) on unfinished goals.
 -- Data comes from the server snapshot (`goals`, built by DailyGoals.view);
 -- claiming goes through the ClaimGoal remote, which validates everything.
 
@@ -59,6 +60,25 @@ local function claim(which: number | string)
 	end
 end
 
+local function reroll(index: number)
+	if claiming then
+		return
+	end
+	claiming = true
+	local ok, res, msg = pcall(function()
+		return Net.func("RerollGoal"):InvokeServer(index)
+	end)
+	claiming = false
+	if not ok then
+		Notifications.toast("Couldn't reach the server. Try again.", "bad")
+	elseif res then
+		Notifications.toast(tostring(msg), "good")
+	else
+		Sounds.play("Error")
+		Notifications.toast(tostring(msg), "bad")
+	end
+end
+
 local function claimable(view: any): number
 	local n = 0
 	for _, g in view.goals or {} do
@@ -69,14 +89,27 @@ local function claimable(view: any): number
 	if view.bonus and view.bonus.ready then
 		n += 1
 	end
+	if view.weekly and view.weekly.done and not view.weekly.claimed then
+		n += 1
+	end
 	return n
+end
+
+local function formatDays(seconds: number): string
+	seconds = math.max(0, math.floor(seconds))
+	local d = seconds // 86400
+	if d > 0 then
+		return ("%dd %dh"):format(d, (seconds % 86400) // 3600)
+	end
+	local h = seconds // 3600
+	return ("%dh %02dm"):format(h, (seconds % 3600) // 60)
 end
 
 local function rewardText(cash: number, xp: number): string
 	return ("💰 %s   ✨ %d XP"):format(Theme.money(cash), xp)
 end
 
-local function goalCard(g: any, order: number)
+local function goalCard(g: any, order: number, canSwap: boolean)
 	local card = T("Frame", {
 		Parent = list,
 		LayoutOrder = order,
@@ -149,7 +182,85 @@ local function goalCard(g: any, order: number)
 		btnProps.TextColor3 = Col.InkSoft
 		btnProps.Text = ("%d%%"):format(math.floor(frac * 100))
 		btnProps.AutoButtonColor = false
+		if canSwap then
+			-- free daily swap: percentage moves down, the swap button sits above it
+			btnProps.AnchorPoint = Vector2.new(1, 1)
+			btnProps.Position = UDim2.new(1, -10, 1, -8)
+			btnProps.Size = UDim2.fromOffset(84, 30)
+			Theme.button({
+				Parent = card,
+				Name = "Swap_" .. g.index,
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.new(1, -10, 0, 8),
+				Size = UDim2.fromOffset(84, 30),
+				BackgroundColor3 = Col.Blue,
+				Text = "🎲 Swap",
+				TextSize = 13,
+			}, function()
+				reroll(g.index)
+			end)
+		end
 		Theme.button(btnProps, function() end)
+	end
+end
+
+local function weeklyCard(w: any, order: number)
+	local card = T("Frame", {
+		Parent = list,
+		LayoutOrder = order,
+		Size = UDim2.new(1, 0, 0, 104),
+		BackgroundColor3 = w.claimed and Color3.fromRGB(236, 246, 236) or Color3.fromRGB(240, 232, 255),
+	}, { Theme.corner(12), Theme.stroke(w.done and Col.Green or Col.Purple, 2) })
+	Theme.text({
+		Parent = card,
+		Name = "WeeklyTitle",
+		Position = UDim2.fromOffset(12, 6),
+		Size = UDim2.new(1, -24, 0, 18),
+		Text = "🏆 WEEKLY CHALLENGE · ends in " .. formatDays(w.resetsAt - workspace:GetServerTimeNow()),
+		Font = Theme.FontBlack,
+		TextColor3 = Col.Purple,
+		TextSize = 13,
+	})
+	Theme.text({ Parent = card, Position = UDim2.fromOffset(10, 28), Size = UDim2.fromOffset(34, 34), Text = w.icon, TextSize = 26, TextXAlignment = Enum.TextXAlignment.Center })
+	Theme.text({
+		Parent = card,
+		Position = UDim2.fromOffset(50, 26),
+		Size = UDim2.new(1, -150, 0, 36),
+		Text = w.text,
+		TextColor3 = Col.Ink,
+		TextSize = 14,
+		TextWrapped = true,
+	})
+	local barBg = T("Frame", { Parent = card, Position = UDim2.fromOffset(50, 66), Size = UDim2.new(1, -150, 0, 10), BackgroundColor3 = Col.Line }, { Theme.corner(5) })
+	local frac = if w.target > 0 then math.clamp(w.progress / w.target, 0, 1) else 0
+	T("Frame", { Parent = barBg, Size = UDim2.fromScale(frac, 1), BackgroundColor3 = w.done and Col.Green or Col.Purple }, { Theme.corner(5) })
+	Theme.text({
+		Parent = card,
+		Position = UDim2.fromOffset(50, 80),
+		Size = UDim2.new(1, -150, 0, 18),
+		Text = w.progressText .. "    " .. rewardText(w.cash, w.xp),
+		TextColor3 = Col.InkSoft,
+		TextSize = 12,
+	})
+	local props = { Parent = card, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 10), Size = UDim2.fromOffset(84, 36), TextSize = 14 }
+	if w.claimed then
+		props.BackgroundColor3 = Color3.fromRGB(210, 230, 210)
+		props.TextColor3 = Col.GreenDark
+		props.Text = "✓ Done"
+		props.AutoButtonColor = false
+		Theme.button(props, function() end)
+	elseif w.done then
+		props.BackgroundColor3 = Col.Purple
+		props.Text = "Claim"
+		Theme.button(props, function()
+			claim("weekly")
+		end)
+	else
+		props.BackgroundColor3 = Color3.fromRGB(240, 236, 230)
+		props.TextColor3 = Col.InkSoft
+		props.Text = ("%d%%"):format(math.floor(frac * 100))
+		props.AutoButtonColor = false
+		Theme.button(props, function() end)
 	end
 end
 
@@ -226,7 +337,11 @@ local function bonusCard(view: any, order: number)
 end
 
 local function signature(view: any): string
-	local parts = { tostring(view.streak), tostring(view.bonus and view.bonus.ready), tostring(view.bonus and view.bonus.claimed), tostring(view.resetsAt) }
+	local parts = { tostring(view.streak), tostring(view.bonus and view.bonus.ready), tostring(view.bonus and view.bonus.claimed), tostring(view.resetsAt), tostring(view.rerollsLeft) }
+	local w = view.weekly
+	if w then
+		table.insert(parts, w.text .. ":" .. tostring(w.progress) .. ":" .. tostring(w.claimed))
+	end
 	for _, g in view.goals or {} do
 		table.insert(parts, g.text .. ":" .. tostring(g.progress) .. ":" .. tostring(g.claimed))
 	end
@@ -258,8 +373,12 @@ local function render(force: boolean?)
 			ch:Destroy()
 		end
 	end
+	local canSwap = (view.rerollsLeft or 0) > 0
 	for i, g in view.goals do
-		goalCard(g, i)
+		goalCard(g, i, canSwap)
+	end
+	if view.weekly then
+		weeklyCard(view.weekly, 50)
 	end
 	bonusCard(view, 100)
 end
@@ -355,13 +474,42 @@ local function build()
 		TextColor3 = Col.InkSoft,
 		TextSize = 12,
 	})
-	list = T("Frame", {
+	-- the cards scroll when they don't fit on screen (phones); see fitList
+	local layout = Theme.list(Enum.FillDirection.Vertical, 8)
+	list = T("ScrollingFrame", {
 		Parent = panel,
+		Name = "GoalsList",
 		LayoutOrder = 3,
 		Size = UDim2.new(1, -20, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-	}, { Theme.list(Enum.FillDirection.Vertical, 8) })
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		CanvasSize = UDim2.new(),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	}, { layout })
+	-- List height = its content, capped to the space left below the panel's top
+	-- (all in the Responsive root's unscaled units). Offline tests have no layout
+	-- engine or signals, so this only runs in Roblox.
+	if typeof(workspace) == "Instance" then
+		local function fitList()
+			local root = panel.Parent :: GuiObject
+			local scale = root:GetAttribute("Scale")
+			local s = if type(scale) == "number" and scale > 0 then scale else 1
+			local content = layout.AbsoluteContentSize.Y / s
+			local avail = (root.AbsoluteSize.Y - (list.AbsolutePosition.Y - root.AbsolutePosition.Y)) / s - 16
+			list.Size = UDim2.new(1, -20, 0, math.max(120, math.min(content, avail)))
+		end
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitList)
+		panel:GetPropertyChangedSignal("Parent"):Connect(function()
+			task.defer(fitList)
+		end)
+		task.defer(function()
+			local root = panel.Parent :: GuiObject
+			root:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitList)
+			fitList()
+		end)
+	end
 end
 
 function Goals.start()

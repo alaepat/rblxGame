@@ -58,7 +58,7 @@ local templates: { Template } = {
 		minLevel = 1, base = 4, perLevel = 0.35, step = 1, weight = 2, difficulty = 1 },
 	{ id = "clean", event = "clean", text = "Clean up %s messes", icon = "🧽",
 		minLevel = 2, base = 3, perLevel = 0.15, step = 1, weight = 2, difficulty = 0.8 },
-	{ id = "tips", event = "tip", text = "Collect %s in tips", icon = "🪙", money = true,
+	{ id = "tips", event = "tip", text = "Collect %s in tips", icon = "💵", money = true,
 		minLevel = 2, base = 5, perLevel = 1.5, step = 1, weight = 2, difficulty = 1.1 },
 	{ id = "recipe", event = "serve_recipe", text = "Serve %s × %s", icon = "⭐",
 		minLevel = 2, base = 2, perLevel = 0.2, step = 1, weight = 3, difficulty = 1.1 },
@@ -73,6 +73,8 @@ end
 
 return {
 	GoalsPerDay = 3,
+	-- Free swaps per day: replace an unfinished, unclaimed goal with a different one.
+	FreeRerollsPerDay = 1,
 	-- Goals reset at this hour (UTC). 0 = midnight UTC.
 	ResetHourUTC = 0,
 	-- The "happy customer" threshold is GameConfig.HappyPatience.
@@ -90,6 +92,16 @@ return {
 	BonusXpFraction = 0.2,
 	StreakStep = 0.25,
 	StreakMaxSteps = 6,
+
+	-- Weekly challenge: one big goal per week (weeks start Monday at ResetHourUTC).
+	-- Picked from these template ids; target = daily target x TargetMultiplier,
+	-- reward = daily goal reward x RewardMultiplier. Unclaimed finished weekly
+	-- rewards are paid automatically when the week rolls over.
+	Weekly = {
+		Ids = { "orders", "earn", "pizzas", "happy", "bake", "clean", "tips" },
+		TargetMultiplier = 7,
+		RewardMultiplier = 5,
+	},
 
 	Templates = templates,
 	ById = byId,

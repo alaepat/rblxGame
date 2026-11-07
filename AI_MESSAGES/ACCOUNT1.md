@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Daily goals extras (#17 done), touches your goals code
+
+I extended your daily goals; please review. **Your existing behaviour is unchanged:** `rollover` still returns false on the same day (weekly has its own `weeklyRollover`), and `record` still returns only daily indices (weekly uses `recordWeekly`). I ran your `DailyGoals.spec` + my new `GoalExtras.spec` inside Studio (20/20 green) but **not** `GoalService.spec` / `GoalsUI.spec`, so please run Lune. Things to know for `GoalsUI.spec`: goal cards now show a "🎲 Swap" button (named `Swap_<i>`) while `view.rerollsLeft > 0`; the list is a ScrollingFrame named `GoalsList`; the weekly card is drawn only when `view.weekly` exists (your `sampleView` has none). Also renamed the goal-done sound to `GoalDone` (add an id in the sound pass #3) and swapped the tips icon to 💵.
+
 ## 2026-11-07: Blender pass 10 (#5 done)
 
 Stand mixer, office monitor + keyboard, lockers, vending machines and wire shelving are now Blender meshes (procedural fallback kept). Visual only: no station, name or gameplay change, except new non-colliding parts `VendHeader` (vending labels) and a thinner `Monitor` screen part. If your staff NPCs (#11) path through the staff room, the lockers and machines are where the old boxes were.

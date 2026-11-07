@@ -9,6 +9,8 @@
 --     bestStreak = 5,
 --     lastFullDay = 20396,    -- last day the all-goals bonus was earned
 --     bonusClaimed = false,
+--     rerollsUsed = 0,        -- free goal swaps used today (Challenges.FreeRerollsPerDay)
+--     weekly = { week = 2913, goal = Goal? },  -- weekly challenge (weeks start Monday)
 --   }
 --   Goal = { id, param?, target, progress, cash, xp, claimed }
 --
@@ -37,6 +39,8 @@ export type Daily = {
 	bestStreak: number,
 	lastFullDay: number,
 	bonusClaimed: boolean,
+	rerollsUsed: number,
+	weekly: { week: number, goal: Goal? },
 }
 
 export type Reward = { cash: number, xp: number }
@@ -54,6 +58,17 @@ end
 -- Unix time of the next reset after `t`.
 function DailyGoals.nextReset(t: number): number
 	return (DailyGoals.dayNumber(t) + 1) * DAY + Challenges.ResetHourUTC * 3600
+end
+
+-- Weeks start on Monday at the daily reset hour. Day 4 (1970-01-05) was a Monday.
+function DailyGoals.weekOfDay(day: number): number
+	return (day - 4) // 7
+end
+
+-- Unix time when the weekly challenge for the week containing `t` ends.
+function DailyGoals.nextWeeklyReset(t: number): number
+	local week = DailyGoals.weekOfDay(DailyGoals.dayNumber(t))
+	return ((week + 1) * 7 + 4) * DAY + Challenges.ResetHourUTC * 3600
 end
 
 ------------------------------------------------------------------ random
@@ -133,6 +148,38 @@ local function eligible(t: Challenges.Template, level: number, upgrades: { [stri
 	return true
 end
 
+local function makeGoal(t: Challenges.Template, rand: () -> number, mains: { string }, level: number): Goal
+	local param = t.param
+	if t.event == "serve_recipe" then
+		param = mains[math.clamp(math.floor(rand() * #mains) + 1, 1, #mains)]
+	end
+	local reward = DailyGoals.goalReward(level, t.difficulty)
+	return {
+		id = t.id,
+		param = param,
+		target = DailyGoals.target(t, level),
+		progress = 0,
+		cash = reward.cash,
+		xp = reward.xp,
+		claimed = false,
+	}
+end
+
+local function pickWeighted(pool: { Challenges.Template }, rand: () -> number): number
+	local total = 0
+	for _, t in pool do
+		total += t.weight
+	end
+	local roll = rand() * total
+	for i, t in pool do
+		roll -= t.weight
+		if roll <= 0 then
+			return i
+		end
+	end
+	return #pool
+end
+
 -- The goals a player gets on `day`. Same inputs always give the same goals.
 function DailyGoals.generate(day: number, userId: number, level: number, upgrades: { [string]: boolean }): { Goal }
 	local rand = makeRng(day * 1000003 + userId % 1000000007 + 17)
@@ -148,34 +195,9 @@ function DailyGoals.generate(day: number, userId: number, level: number, upgrade
 	end
 	local goals: { Goal } = {}
 	while #goals < Challenges.GoalsPerDay and #pool > 0 do
-		local total = 0
-		for _, t in pool do
-			total += t.weight
-		end
-		local roll = rand() * total
-		local index = #pool
-		for i, t in pool do
-			roll -= t.weight
-			if roll <= 0 then
-				index = i
-				break
-			end
-		end
+		local index = pickWeighted(pool, rand)
 		local t = table.remove(pool, index) :: Challenges.Template
-		local param = t.param
-		if t.event == "serve_recipe" then
-			param = mains[math.clamp(math.floor(rand() * #mains) + 1, 1, #mains)]
-		end
-		local reward = DailyGoals.goalReward(level, t.difficulty)
-		table.insert(goals, {
-			id = t.id,
-			param = param,
-			target = DailyGoals.target(t, level),
-			progress = 0,
-			cash = reward.cash,
-			xp = reward.xp,
-			claimed = false,
-		})
+		table.insert(goals, makeGoal(t, rand, mains, level))
 	end
 	return goals
 end
@@ -183,7 +205,16 @@ end
 ------------------------------------------------------------------ state
 
 function DailyGoals.new(): Daily
-	return { day = 0, goals = {}, streak = 0, bestStreak = 0, lastFullDay = -1, bonusClaimed = false }
+	return {
+		day = 0,
+		goals = {},
+		streak = 0,
+		bestStreak = 0,
+		lastFullDay = -1,
+		bonusClaimed = false,
+		rerollsUsed = 0,
+		weekly = { week = -1 },
+	}
 end
 
 -- Fill in fields missing from an older or partial save.
@@ -282,7 +313,135 @@ function DailyGoals.rollover(daily: Daily, today: number, userId: number, level:
 	daily.day = today
 	daily.goals = DailyGoals.generate(today, userId, level, upgrades)
 	daily.bonusClaimed = false
+	daily.rerollsUsed = 0
 	return true, payout
+end
+
+------------------------------------------------------------------ free reroll
+
+function DailyGoals.rerollsLeft(daily: Daily): number
+	return math.max(0, Challenges.FreeRerollsPerDay - (daily.rerollsUsed or 0))
+end
+
+-- Swap goal `index` for a different goal (not one already on today's list).
+-- Only unfinished, unclaimed goals can be swapped; progress starts over.
+function DailyGoals.reroll(daily: Daily, index: any, today: number, userId: number, level: number, upgrades: { [string]: boolean }): (boolean, string)
+	if type(index) ~= "number" or index ~= index or index % 1 ~= 0 then
+		return false, "Invalid goal"
+	end
+	local g = daily.goals[index]
+	if not g then
+		return false, "Invalid goal"
+	end
+	if daily.day ~= today then
+		return false, "Your goals are out of date"
+	end
+	if DailyGoals.rerollsLeft(daily) <= 0 then
+		return false, "No free swaps left today"
+	end
+	if g.claimed or DailyGoals.isDone(g) then
+		return false, "That goal is already finished"
+	end
+	local used: { [string]: boolean } = {}
+	for _, other in daily.goals do
+		used[other.id] = true
+	end
+	local mains = mainRecipes(level, upgrades)
+	local pool = {}
+	for _, t in Challenges.Templates do
+		if not used[t.id] and eligible(t, level, upgrades, mains) then
+			table.insert(pool, t)
+		end
+	end
+	if #pool == 0 then
+		return false, "No other goals available yet"
+	end
+	daily.rerollsUsed = (daily.rerollsUsed or 0) + 1
+	local rand = makeRng(today * 1000003 + userId % 1000000007 + 7919 * daily.rerollsUsed + index * 31)
+	for _ = 1, 4 do
+		rand()
+	end
+	daily.goals[index] = makeGoal(pool[pickWeighted(pool, rand)], rand, mains, level)
+	return true, "🎲 New goal: " .. DailyGoals.describe(daily.goals[index])
+end
+
+------------------------------------------------------------------ weekly challenge
+
+-- The weekly challenge for `week`. Same inputs always give the same goal.
+function DailyGoals.generateWeekly(week: number, userId: number, level: number, upgrades: { [string]: boolean }): Goal?
+	local rand = makeRng(week * 7919 + userId % 1000000007 + 99991)
+	for _ = 1, 4 do
+		rand()
+	end
+	local mains = mainRecipes(level, upgrades)
+	local pool = {}
+	for _, id in Challenges.Weekly.Ids do
+		local t = Challenges.ById[id]
+		if t and eligible(t, level, upgrades, mains) then
+			table.insert(pool, t)
+		end
+	end
+	if #pool == 0 then
+		return nil
+	end
+	local t = pool[pickWeighted(pool, rand)]
+	local g = makeGoal(t, rand, mains, level)
+	g.target = math.max(t.step, math.floor(g.target * Challenges.Weekly.TargetMultiplier / t.step + 0.5) * t.step)
+	g.cash *= Challenges.Weekly.RewardMultiplier
+	g.xp *= Challenges.Weekly.RewardMultiplier
+	return g
+end
+
+-- Moves the weekly challenge to the week containing `today`. A finished but
+-- unclaimed weekly reward is paid out. Returns (changed, payout, isNewWeek).
+function DailyGoals.weeklyRollover(daily: Daily, today: number, userId: number, level: number, upgrades: { [string]: boolean }): (boolean, Reward)
+	local payout: Reward = { cash = 0, xp = 0 }
+	if type(daily.weekly) ~= "table" then
+		daily.weekly = { week = -1 }
+	end
+	local w = daily.weekly
+	local week = DailyGoals.weekOfDay(today)
+	if w.week == week or week < (w.week or -1) then
+		return false, payout
+	end
+	local old = w.goal
+	if old and DailyGoals.isDone(old) and not old.claimed then
+		payout.cash += old.cash
+		payout.xp += old.xp
+	end
+	daily.weekly = { week = week, goal = DailyGoals.generateWeekly(week, userId, level, upgrades) }
+	return true, payout
+end
+
+-- Counts an event toward the weekly challenge. Returns true when it just finished.
+function DailyGoals.recordWeekly(daily: Daily, event: string, amount: number?, param: string?): boolean
+	local g = type(daily.weekly) == "table" and daily.weekly.goal or nil
+	local n = amount or 1
+	if not g or n ~= n or n <= 0 or DailyGoals.isDone(g) then
+		return false
+	end
+	local t = Challenges.ById[g.id]
+	if not t or t.event ~= event or (g.param ~= nil and g.param ~= param) then
+		return false
+	end
+	g.progress = math.min(g.target, math.floor((g.progress + n) * 100 + 0.5) / 100)
+	return DailyGoals.isDone(g)
+end
+
+function DailyGoals.claimWeekly(daily: Daily, today: number): (boolean, string, Reward?)
+	local w = daily.weekly
+	local g = type(w) == "table" and w.goal or nil
+	if not g or w.week ~= DailyGoals.weekOfDay(today) then
+		return false, "No weekly challenge right now", nil
+	end
+	if g.claimed then
+		return false, "Already claimed", nil
+	end
+	if not DailyGoals.isDone(g) then
+		return false, "Not finished yet", nil
+	end
+	g.claimed = true
+	return true, "🏆 Weekly challenge complete!", { cash = g.cash, xp = g.xp }
 end
 
 -- Counts an event toward matching goals. Returns the indices of goals that
@@ -362,6 +521,27 @@ function DailyGoals.describe(goal: Goal): string
 	return (string.format(t.text, target))
 end
 
+local function weeklyView(daily: Daily, now: number): { [string]: any }?
+	local w = daily.weekly
+	local g = type(w) == "table" and w.goal or nil
+	if not g or w.week ~= DailyGoals.weekOfDay(DailyGoals.dayNumber(now)) then
+		return nil
+	end
+	local t = Challenges.ById[g.id]
+	return {
+		text = DailyGoals.describe(g),
+		icon = t and t.icon or "🏆",
+		progress = g.progress,
+		target = g.target,
+		progressText = DailyGoals.amountText(t, g.progress) .. " / " .. DailyGoals.amountText(t, g.target),
+		cash = g.cash,
+		xp = g.xp,
+		done = DailyGoals.isDone(g),
+		claimed = g.claimed,
+		resetsAt = DailyGoals.nextWeeklyReset(now),
+	}
+end
+
 -- What the client needs to draw the goals panel.
 function DailyGoals.view(daily: Daily, level: number, now: number): { [string]: any }
 	local today = DailyGoals.dayNumber(now)
@@ -401,6 +581,8 @@ function DailyGoals.view(daily: Daily, level: number, now: number): { [string]: 
 			claimed = daily.bonusClaimed,
 		},
 		resetsAt = DailyGoals.nextReset(now),
+		rerollsLeft = DailyGoals.rerollsLeft(daily),
+		weekly = weeklyView(daily, now),
 	}
 end
 
