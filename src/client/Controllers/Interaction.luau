@@ -193,15 +193,15 @@ local function render(target: Instance?, list: { ProximityPrompt }, screenPos: V
 			Parent = rows,
 			LayoutOrder = i,
 			AutoButtonColor = touch,
-			Size = UDim2.fromOffset(0, 28),
+			Size = UDim2.fromOffset(0, touch and 44 or 28), -- finger-sized on phones
 			AutomaticSize = Enum.AutomaticSize.X,
 			BackgroundColor3 = Col.Pill,
 			BackgroundTransparency = 0.18,
 			Text = "",
 		}, { Theme.corner(14), Theme.pad(3, 6), Theme.list(Enum.FillDirection.Horizontal, 8) })
-		local keyTag = T("Frame", { Parent = row, LayoutOrder = 1, Size = UDim2.fromOffset(22, 22), BackgroundColor3 = Col.Yellow }, { Theme.corner(6) })
-		Theme.text({ Parent = keyTag, Size = UDim2.fromScale(1, 1), Text = touch and "👆" or keyName(p.KeyboardKeyCode), Font = Theme.FontBlack, TextSize = 13, TextColor3 = Col.Ink, TextXAlignment = Enum.TextXAlignment.Center })
-		Theme.text({ Parent = row, LayoutOrder = 2, Size = UDim2.fromOffset(0, 22), AutomaticSize = Enum.AutomaticSize.X, Text = p.ActionText .. (p.HoldDuration > 0 and "  (hold)" or ""), TextSize = 14 })
+		local keyTag = T("Frame", { Parent = row, LayoutOrder = 1, Size = touch and UDim2.fromOffset(34, 34) or UDim2.fromOffset(22, 22), BackgroundColor3 = Col.Yellow }, { Theme.corner(6) })
+		Theme.text({ Parent = keyTag, Size = UDim2.fromScale(1, 1), Text = touch and "👆" or keyName(p.KeyboardKeyCode), Font = Theme.FontBlack, TextSize = touch and 18 or 13, TextColor3 = Col.Ink, TextXAlignment = Enum.TextXAlignment.Center })
+		Theme.text({ Parent = row, LayoutOrder = 2, Size = UDim2.fromOffset(0, touch and 34 or 22), AutomaticSize = Enum.AutomaticSize.X, Text = p.ActionText .. (p.HoldDuration > 0 and "  (hold)" or ""), TextSize = touch and 17 or 14 })
 		row.Activated:Connect(function()
 			if touch then
 				p:InputHoldBegin()

@@ -11,6 +11,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local Responsive = require(script.Parent.Parent.UI.Responsive)
 local State = require(script.Parent.State)
 local Notifications = require(script.Parent.Notifications)
 local Sounds = require(script.Parent.Sounds)
@@ -277,6 +278,7 @@ local function build()
 		DisplayOrder = 2,
 		Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
 	})
+	Responsive.apply(gui, Responsive.HUD)
 	-- Under the HUD's recipe book button (which sits at y = 70, 40 tall).
 	button = Theme.button({
 		Parent = gui,

@@ -14,6 +14,7 @@ local Net = require(Shared.Net)
 local DayCycle = require(Shared.Shift.DayCycle)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local Responsive = require(script.Parent.Parent.UI.Responsive)
 local State = require(script.Parent.State)
 local Sounds = require(script.Parent.Sounds)
 local T = Theme.make
@@ -288,6 +289,7 @@ function DayClock.start()
 		DisplayOrder = 25, -- under the toasts (30)
 		Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
 	})
+	Responsive.apply(gui, Responsive.HUD)
 	buildPill()
 	Net.event("DaySummary").OnClientEvent:Connect(DayClock.showSummary)
 	State.Changed:Connect(function()

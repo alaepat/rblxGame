@@ -12,6 +12,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local Responsive = require(script.Parent.Parent.UI.Responsive)
 local MasteryBadge = require(script.Parent.Parent.UI.MasteryBadge)
 local State = require(script.Parent.State)
 local Interaction = require(script.Parent.Interaction)
@@ -371,6 +372,8 @@ render = function()
 			btn.Visible = tab == "Supplies"
 		end
 	end
+	-- the order buttons only show on Supplies; elsewhere the tip gets the whole bar
+	footerText.Size = UDim2.new(1, if tab == "Supplies" then -460 else -32, 1, 0)
 	previewCards = {}
 	if tab == "Supplies" then
 		renderSupplies()
@@ -394,6 +397,7 @@ end
 
 local function build()
 	gui = T("ScreenGui", { Name = "Manager", ResetOnSpawn = false, DisplayOrder = 20, IgnoreGuiInset = true, Parent = Players.LocalPlayer:WaitForChild("PlayerGui") })
+	local root = Responsive.apply(gui, Responsive.WINDOW)
 	window = T("Frame", {
 		Parent = gui,
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -403,6 +407,7 @@ local function build()
 		Visible = false,
 	}, { Theme.corner(18), T("UISizeConstraint", { MaxSize = Vector2.new(1180, 760) }) })
 	T("TextButton", { Parent = window, Modal = true, BackgroundTransparency = 1, Text = "", Size = UDim2.fromOffset(0, 0) })
+	Responsive.fit(root, window, UDim2.fromScale(0.9, 0.84), UDim2.fromScale(0.98, 0.94))
 	-- sidebar
 	local side = T("Frame", { Parent = window, Size = UDim2.new(0, 210, 1, 0), BackgroundColor3 = Col.Cream }, { Theme.corner(18), Theme.pad(14) })
 	local logo = T("Frame", { Parent = side, Size = UDim2.new(1, 0, 0, 50), BackgroundTransparency = 1 })

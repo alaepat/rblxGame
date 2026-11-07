@@ -8,6 +8,7 @@ local Recipes = require(Shared.Config.Recipes)
 local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local Responsive = require(script.Parent.Parent.UI.Responsive)
 local Interaction = require(script.Parent.Interaction)
 local DayClock = require(script.Parent.DayClock)
 local Notify = require(script.Parent.Notifications)
@@ -109,6 +110,7 @@ end
 
 local function build()
 	gui = T("ScreenGui", { Name = "POS", ResetOnSpawn = false, DisplayOrder = 20, IgnoreGuiInset = true, Parent = Players.LocalPlayer:WaitForChild("PlayerGui") })
+	local root = Responsive.apply(gui, Responsive.WINDOW)
 	window = T("Frame", {
 		Parent = gui,
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -119,6 +121,7 @@ local function build()
 	}, { Theme.corner(18), T("UISizeConstraint", { MaxSize = Vector2.new(1100, 700) }) })
 	-- Modal button frees the mouse in first person while the window is open
 	T("TextButton", { Parent = window, Modal = true, BackgroundTransparency = 1, Text = "", Size = UDim2.fromOffset(0, 0) })
+	Responsive.fit(root, window, UDim2.fromScale(0.86, 0.8), UDim2.fromScale(0.98, 0.94))
 	-- header
 	local header = T("Frame", { Parent = window, Size = UDim2.new(1, 0, 0, 56), BackgroundColor3 = Color3.fromRGB(36, 16, 14) }, { Theme.corner(18) })
 	T("Frame", { Parent = header, Position = UDim2.new(0, 0, 1, -18), Size = UDim2.new(1, 0, 0, 18), BackgroundColor3 = Color3.fromRGB(36, 16, 14), BorderSizePixel = 0 })

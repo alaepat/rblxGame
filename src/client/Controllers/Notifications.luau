@@ -10,6 +10,7 @@ local Upgrades = require(Shared.Config.Upgrades)
 local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local Responsive = require(script.Parent.Parent.UI.Responsive)
 local Sounds = require(script.Parent.Sounds)
 local T = Theme.make
 local Col = Theme.Colors
@@ -223,6 +224,7 @@ end
 
 function Notifications.start()
 	gui = T("ScreenGui", { Name = "Notifications", ResetOnSpawn = false, DisplayOrder = 30, Parent = Players.LocalPlayer:WaitForChild("PlayerGui") })
+	Responsive.apply(gui, Responsive.POPUP)
 	stack = T("Frame", {
 		Parent = gui,
 		AnchorPoint = Vector2.new(0.5, 0),

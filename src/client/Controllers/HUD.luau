@@ -8,6 +8,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
+local Responsive = require(script.Parent.Parent.UI.Responsive)
 local State = require(script.Parent.State)
 local T = Theme.make
 local Col = Theme.Colors
@@ -49,6 +50,7 @@ local function build()
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
+	Responsive.apply(gui, Responsive.HUD)
 
 	-- TOP RIGHT --------------------------------------------------------
 	local right = T("Frame", {
