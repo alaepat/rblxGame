@@ -1278,6 +1278,58 @@ def build_Carton():
     rounded_box("Carton_Label", 1.1, 0.008, 0.62, 0.02, 2, (0, -D / 2 - 0.028, H * 0.5))
 
 
+# ---- batch 11: bakery crate + wrap bag
+
+def build_BreadCrate():
+    # Stackable plastic bakery crate 2.0 x 1.5 x 0.85, open top, slotted
+    # walls, hand holds in the short ends, a stacking lip. The goods inside
+    # (pittas, dough balls) are placed by the game. Front = -Y.
+    W, D, H, T = 2.0, 1.5, 0.85, 0.06
+    crate = rounded_box("BreadCrate_Crate", W, D, H, 0.06, 4, (0, 0, H / 2))
+    boolean_diff(crate, rounded_box("cut", W - 2 * T, D - 2 * T, H, 0.04, 3, (0, 0, H / 2 + 0.06)))
+    # vertical slots along the long walls, horizontal slots on the short walls
+    for side in (-1, 1):
+        for i in range(7):
+            x = -W / 2 + 0.26 + i * (W - 0.52) / 6
+            boolean_diff(crate, rounded_box("cut", 0.1, 0.4, 0.42, 0.04, 3, (x, side * D / 2, 0.42)))
+        for j in range(3):
+            z = 0.22 + j * 0.17
+            boolean_diff(crate, rounded_box("cut", 0.4, 0.75, 0.08, 0.03, 2, (side * W / 2, 0, z)))
+        # hand hold near the top of each short end
+        boolean_diff(crate, rounded_box("cut", 0.4, 0.5, 0.13, 0.06, 4, (side * W / 2, 0, H - 0.16)))
+    rim = rounded_box("BreadCrate_Rim", W + 0.06, D + 0.06, 0.05, 0.03, 3, (0, 0, H - 0.025))
+    boolean_diff(rim, rounded_box("cut", W - 2 * T, D - 2 * T, 0.3, 0.04, 3, (0, 0, H)))
+    # small paper tag clipped to the front wall
+    rounded_box("BreadCrate_Tag", 0.62, 0.02, 0.28, 0.02, 2, (0.5, -D / 2 - 0.02, H - 0.3))
+
+
+def build_WrapBag():
+    # Clear bag of tortilla wraps: a soft pillow of plastic around a stack of
+    # round wraps, heat-sealed crimped end, printed label. 1.7 x 1.7 x ~0.36.
+    # Stack of wraps: slightly wavy discs
+    wraps = []
+    for i in range(8):
+        d = cylinder("w", 0.72, 0.026, (0, 0, 0.05 + i * 0.028), 48, bevel=0.01)
+        wobble_edge(d, 0.025, 30 + i)
+        wraps.append(d)
+    join(wraps, "WrapBag_Wraps")
+    # the bag: a rounded pillow a little bigger than the stack, soft wrinkles
+    bag = rounded_box("WrapBag_Bag", 1.62, 1.62, 0.34, 0.15, 6, (0, -0.04, 0.17))
+    sub = bag.modifiers.new("sub", "SUBSURF")
+    sub.levels = 2
+    apply_mods(bag)
+    for v in bag.data.vertices:
+        if v.co.z > 0.2:
+            v.co.z += 0.03 * (1 - min(1.0, (v.co.x ** 2 + v.co.y ** 2) / 0.6))
+    displace(bag, 0.01, 12, 6)
+    # sealed, crimped strip at the back end
+    seal = rounded_box("seal", 1.5, 0.14, 0.03, 0.01, 2, (0, 0.85, 0.17))
+    for v in seal.data.vertices:
+        v.co.z += 0.012 * math.sin(v.co.x * 60)
+    join([bag, seal], "WrapBag_Bag")
+    rounded_box("WrapBag_Label", 0.8, 0.5, 0.008, 0.03, 2, (0.15, -0.25, 0.37))
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1559,7 +1611,8 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "FrameBar", "BarStool", "Fryer", "SignEdge", "PlanetSign", "PylonPost", "BladeSign",
          "BoothBench", "BoothTable", "ArtFrame",
          "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter",
-         "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair", "Carton"] + TOPPINGS
+         "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair", "Carton",
+         "BreadCrate", "WrapBag"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1635,7 +1688,9 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "OfficeDesk_Drawer": (0.72, 0.5, 0.32), "OfficeDesk_Handle": (0.85, 0.87, 0.89), "OfficeChair_Frame": (0.13, 0.13, 0.14),
              "OfficeChair_Wheel": (0.1, 0.1, 0.1), "OfficeChair_Seat": (0.2, 0.2, 0.22),
              "Carton_Box": (0.77, 0.59, 0.39), "Carton_Rib": (0.66, 0.5, 0.32), "Carton_Tape": (0.82, 0.68, 0.48),
-             "Carton_Label": (0.97, 0.96, 0.92)}
+             "Carton_Label": (0.97, 0.96, 0.92), "BreadCrate_Crate": (0.2, 0.45, 0.8), "BreadCrate_Rim": (0.17, 0.4, 0.72),
+             "BreadCrate_Tag": (0.97, 0.96, 0.92), "WrapBag_Wraps": (0.94, 0.84, 0.64), "WrapBag_Bag": (0.85, 0.9, 0.95),
+             "WrapBag_Label": (0.85, 0.15, 0.15)}
 
 
 def render_preview(prop):

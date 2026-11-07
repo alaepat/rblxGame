@@ -89,4 +89,7 @@ return {
 	OfficeChair = { assetId = 116609512196526, size = Vector3.new(2.16, 4.189, 2.06), center = Vector3.new(0, 0, -0.131) },
 	-- batch 10: cardboard carton (supply deliveries + shelf stock)
 	Carton = { assetId = 73047244675868, size = Vector3.new(2.054, 1.31, 1.557) },
+	-- batch 11: bread/dough crate, wrap bag (supply deliveries)
+	BreadCrate = { assetId = 88238334337309, size = Vector3.new(2.06, 0.85, 1.56) },
+	WrapBag = { assetId = 114925787289147, size = Vector3.new(1.622, 0.379, 1.773), center = Vector3.new(0, 0, -0.033) },
 } :: { [string]: MeshInfo }

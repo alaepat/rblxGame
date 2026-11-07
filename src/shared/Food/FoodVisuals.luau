@@ -515,9 +515,70 @@ local CATEGORY_COLORS = {
 	frozen = Color3.fromRGB(120, 220, 240),
 }
 
+-- Packaging per ingredient: bread and dough come in an open plastic bakery
+-- crate (goods visible), wraps in a clear plastic bag, everything else in a
+-- cardboard carton.
+local CRATED = { pitta = true, dough = true }
+local BAGGED = { wrap_bread = true }
+
+-- invisible hit box + printed tag shared by every package
+local function supplyLabel(m: Model, ing: any, item: Item, hitSize: Vector3, tagCF: CFrame, tagSize: Vector2)
+	local hit = newPart(m, "Box", hitSize, CFrame.new(0, hitSize.Y / 2, 0), Color3.new(1, 1, 1))
+	hit.Transparency = 1 -- SupplyService puts the pick-up prompt on "Box"
+	local tag = newPart(m, "LabelPrint", Vector3.new(tagSize.X, tagSize.Y, 0.01), tagCF, Color3.new(1, 1, 1))
+	tag.Transparency = 1
+	labelGui(tag, Enum.NormalId.Back, (ing and ing.icon or "📦") .. " " .. (ing and ing.name or "?"), "×" .. tostring(item.amount))
+end
+
+local function buildCrate(m: Model, ing: any, item: Item)
+	MeshLib.place(m, "BreadCrate", CFrame.new(), {
+		Crate = Color3.fromRGB(46, 110, 196), Rim = Color3.fromRGB(38, 96, 176), Tag = Color3.fromRGB(250, 248, 240),
+	}, { materials = { Crate = Enum.Material.SmoothPlastic, Rim = Enum.Material.SmoothPlastic, Tag = Enum.Material.SmoothPlastic } })
+	-- the goods, visible over the rim
+	if ing and ing.id == "pitta" and MeshLib.has("Pitta") then
+		for i = 0, 5 do
+			local col, row = i % 3, i // 3
+			MeshLib.place(m, "Pitta", CFrame.new(-0.55 + col * 0.55, 0.12 + row * 0.2, (row == 0 and -0.2 or 0.2)) * CFrame.Angles(0, math.rad(90 + (i % 2) * 8), 0), {
+				Bread = ing.color, Toast = ing.color:Lerp(Color3.fromRGB(190, 130, 70), 0.3),
+			}, { scale = 0.62, shadow = false })
+		end
+	elseif MeshLib.has("Dough") then
+		for i = 0, 5 do
+			local col, row = i % 3, i // 3
+			MeshLib.place(m, "Dough", CFrame.new(-0.6 + col * 0.6, 0.1, -0.35 + row * 0.7), {
+				Dough = DOUGH_RAW, Flour = Color3.fromRGB(252, 248, 238),
+			}, { scale = 0.48, shadow = false })
+		end
+	end
+	supplyLabel(m, ing, item, Vector3.new(2.06, 0.85, 1.56), CFrame.new(0.5, 0.55, 0.795), Vector2.new(0.58, 0.26))
+end
+
+local function buildBag(m: Model, ing: any, item: Item)
+	local parts = MeshLib.place(m, "WrapBag", CFrame.new(), {
+		Bag = Color3.fromRGB(225, 236, 245), Wraps = ing and ing.color or Color3.fromRGB(240, 214, 165), Label = BRAND_RED,
+	}, { materials = { Bag = Enum.Material.Glass, Wraps = Enum.Material.SmoothPlastic, Label = Enum.Material.SmoothPlastic } })
+	if parts.Bag then
+		parts.Bag.Transparency = 0.55 -- clear plastic: the stack of wraps shows through
+		parts.Bag.Reflectance = 0.08
+	end
+	local tag = newPart(m, "LabelPrint", Vector3.new(0.78, 0.01, 0.48), CFrame.new(0.15, 0.378, 0.25), Color3.new(1, 1, 1))
+	tag.Transparency = 1
+	labelGui(tag, Enum.NormalId.Top, (ing and ing.icon or "🌯") .. " " .. (ing and ing.name or "Wraps"), "×" .. tostring(item.amount))
+	local hit = newPart(m, "Box", Vector3.new(1.62, 0.4, 1.7), CFrame.new(0, 0.2, 0), Color3.new(1, 1, 1))
+	hit.Transparency = 1
+end
+
 local function buildSupply(item: Item): Model
 	local m = newModel("SupplyBox")
 	local ing = Ingredients.get(item.ingredient)
+	if ing and CRATED[ing.id] and MeshLib.has("BreadCrate") then
+		buildCrate(m, ing, item)
+		return m
+	end
+	if ing and BAGGED[ing.id] and MeshLib.has("WrapBag") then
+		buildBag(m, ing, item)
+		return m
+	end
 	if MeshLib.has("Carton") then
 		-- taped shipping carton with a printed label (category colour on the label band)
 		local catColor = ing and CATEGORY_COLORS[ing.category] or Color3.new(1, 1, 1)

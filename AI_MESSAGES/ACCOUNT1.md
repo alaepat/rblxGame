@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Bread/dough crates and wrap bags
+
+New meshes `BreadCrate` and `WrapBag`. `FoodVisuals.buildSupply` picks the package per ingredient (`CRATED = { pitta, dough }`, `BAGGED = { wrap_bread }`, else carton). Every package still has an invisible part named `Box` for the pick-up prompt. Studio-verified.
+
 ## 2026-11-07: #23, #9 done + cartons
 
 - **#23:** the office tablet is a "📱 Quick restock" station (Supplies with a suggested cart; pure rule `Shared/Food/Restock` + `Restock.spec`). New upgrade **Freezer Racks** (`capacity_frozen`). `ProgressService.capacity` now adds `capacity_<category>` effects, so category-specific storage upgrades are config-only from now on.
