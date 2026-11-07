@@ -103,11 +103,13 @@ end
 local function buildWant(plot): { string }
 	local profile = S.DataService.get(plot.owner)
 	local unlocked = FoodLogic.unlockedRecipes(profile.level, profile.upgrades)
-	local mains, drinks = {}, {}
+	local mains, drinks, desserts = {}, {}, {}
 	for _, id in unlocked do
 		local r = Recipes.get(id) :: any
 		if r.kind == "drink" then
 			table.insert(drinks, id)
+		elseif r.kind == "dessert" then
+			table.insert(desserts, id)
 		else
 			-- newer recipes appear a little more often so they get practised
 			local weight = 1 + math.max(0, r.level - profile.level + 3) // 2
@@ -123,6 +125,9 @@ local function buildWant(plot): { string }
 	end
 	if #drinks > 0 and rng:NextNumber() < 0.55 and #want < GameConfig.MaxItemsPerOrder then
 		table.insert(want, pick(drinks))
+	end
+	if #desserts > 0 and rng:NextNumber() < 0.3 and #want < GameConfig.MaxItemsPerOrder then
+		table.insert(want, pick(desserts))
 	end
 	return want
 end

@@ -306,6 +306,27 @@ local function refresh(st: Station)
 			local ok = held ~= nil and held.kind == "cup" and held.syrup == nil
 			show(P.main, ok, "Pour " .. (recipe and recipe.name or "drink"))
 		end
+	elseif k == "SoftServe" and st.busy then
+		show(P.main, false, "Filling...")
+	elseif k == "SoftServe" then
+		local mix = st.part:GetAttribute("Ingredient") :: string
+		local ing = Ingredients.get(mix)
+		if not hasStock(owner, mix) then
+			show(P.main, true, ingName(mix) .. ": out of stock")
+		else
+			local ok = held ~= nil and held.kind == "dessert" and held.flavour == nil
+			show(P.main, ok, "Fill with " .. (ing and ing.name:gsub(" Mix$", "") or "ice cream"))
+		end
+	elseif k == "DessertTopping" then
+		local id = st.part:GetAttribute("Ingredient") :: string
+		local ing = Ingredients.get(id)
+		if ing and profile.level < ing.level then
+			show(P.main, true, "Unlocks at level " .. ing.level)
+		elseif not hasStock(owner, id) then
+			show(P.main, true, ingName(id) .. ": out of stock")
+		else
+			show(P.main, held ~= nil and held.kind == "dessert" and held.flavour ~= nil, "Add " .. ingName(id))
+		end
 	elseif k == "Register" then
 		local ready = S.CustomerService.frontCustomer(st.plot) ~= nil
 		show(P.main, ready, "Take order")
@@ -377,6 +398,8 @@ actions.Bin = function(st, player)
 		item = { kind = "dough" }
 	elseif id == "cup" then
 		item = { kind = "cup" }
+	elseif id == "dessert_cup" then
+		item = { kind = "dessert", toppings = {} }
 	elseif id == "chips" then
 		item = { kind = "chips", cook = 0 }
 	else
@@ -613,6 +636,58 @@ actions.Fountain = function(st, player)
 			refresh(st)
 		end
 	end)
+end
+
+-- Soft-serve: fill the held dessert cup (takes a moment, like the fountain)
+actions.SoftServe = function(st, player)
+	local held = S.HeldService.get(player)
+	local mix = st.part:GetAttribute("Ingredient") :: string
+	if not held or held.kind ~= "dessert" or held.flavour then
+		return deny(player, "Grab an empty dessert cup first")
+	end
+	if st.busy then
+		return
+	end
+	if not useStock(player, mix) then
+		return deny(player, "Out of " .. ingName(mix))
+	end
+	st.busy = true
+	S.ProgressService.sound(player, "Pour")
+	show(st.prompts.main, false, "Filling...")
+	task.delay(GameConfig.PourTime, function()
+		st.busy = false
+		if player.Parent and S.HeldService.get(player) == held and held.flavour == nil then
+			held.flavour = mix
+			S.HeldService.changed(player)
+		else
+			local p = S.DataService.get(player)
+			if p then
+				p.stock[mix] = (p.stock[mix] or 0) + 1
+				S.ProgressService.push(player)
+			end
+			refresh(st)
+		end
+	end)
+end
+
+actions.DessertTopping = function(st, player)
+	local id = st.part:GetAttribute("Ingredient") :: string
+	local ing = Ingredients.get(id)
+	local profile = S.DataService.get(player)
+	if ing and profile.level < ing.level then
+		return deny(player, ing.name .. " unlocks at level " .. ing.level)
+	end
+	local held = S.HeldService.get(player)
+	local ok, err = FoodLogic.canAddToDessert(held or {}, id)
+	if not ok then
+		return deny(player, err or "Can't add that")
+	end
+	if not useStock(player, id) then
+		return deny(player, "Out of " .. ingName(id) .. ". Order more on the office computer.")
+	end
+	table.insert((held :: Item).toppings, id)
+	S.HeldService.changed(player)
+	S.ProgressService.sound(player, if id == "sprinkles" or id == "cookie_crumble" then "Topping" else "Sauce")
 end
 
 actions.Register = function(st, player)

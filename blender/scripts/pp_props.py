@@ -1330,6 +1330,90 @@ def build_WrapBag():
     rounded_box("WrapBag_Label", 0.8, 0.5, 0.008, 0.03, 2, (0.15, -0.25, 0.37))
 
 
+# ---- batch 12: dessert station
+
+def build_SoftServe():
+    # Twin-flavour soft-serve machine, 2.4 wide x 1.6 deep x 3.0 tall.
+    # Front (spouts, levers) = -Y. Roles: Body, Panel, Head, Lever, Tray, Lid.
+    W, D, H = 2.4, 1.6, 3.0
+    body = rounded_box("SoftServe_Body", W, D, H - 0.3, 0.12, 5, (0, 0, 0.3 + (H - 0.3) / 2))
+    # recess where the cup goes
+    boolean_diff(body, rounded_box("cut", W - 0.5, 0.9, 1.45, 0.08, 4, (0, -D / 2, 1.27)))
+    rounded_box("SoftServe_Panel", W - 0.4, 0.04, 0.55, 0.06, 3, (0, -D / 2 - 0.01, 2.35))
+    heads, levers = [], []
+    for x in (-0.45, 0.45):
+        heads.append(lathe("head", [(0.0, 1.66), (0.06, 1.66), (0.08, 1.72), (0.15, 1.8), (0.19, 2.0), (0.0, 2.0)], 32, (x, -0.62, 0)))
+        heads.append(rounded_box("block", 0.44, 0.5, 0.12, 0.04, 3, (x, -0.55, 1.98)))
+        lv = tube("lever", [(x, -0.78, 1.9), (x, -0.95, 2.02), (x, -1.0, 2.2)], 0.035, 3)
+        levers.append(lv)
+        levers.append(sphere("knob", 0.07, (x, -1.01, 2.24), (1, 1, 1), 16, 8))
+    join(heads, "SoftServe_Head")
+    join(levers, "SoftServe_Lever")
+    tray = rounded_box("SoftServe_Tray", W - 0.6, 0.6, 0.1, 0.04, 3, (0, -D / 2 + 0.05, 0.55))
+    for i in range(9):
+        boolean_diff(tray, rounded_box("cut", 0.06, 0.45, 0.2, 0.02, 2, (-0.7 + i * 0.175, -D / 2 + 0.05, 0.62)))
+    lids = []
+    for x in (-0.55, 0.55):
+        lids.append(cylinder("lid", 0.36, 0.08, (x, 0.15, H + 0.02), 40, bevel=0.03))
+    join(lids, "SoftServe_Lid")
+    # feet
+    rounded_box("SoftServe_Feet", W - 0.2, D - 0.2, 0.3, 0.06, 3, (0, 0, 0.15))
+
+
+def build_SundaeCup():
+    # Sundae in a fluted paper cup with a spoon. Roles: Cup, Swirl, Drizzle1,
+    # Drizzle2, Sprinkles, Crumble, Spoon (the game hides/colours roles).
+    cup = lathe("SundaeCup_Cup", [(0.0, 0.0), (0.2, 0.0), (0.22, 0.02), (0.32, 0.46), (0.345, 0.5), (0.33, 0.52), (0.31, 0.5), (0.2, 0.06), (0.0, 0.06)], 48, ridges=0.0)
+    for v in cup.data.vertices:  # fluted paper pleats
+        a = math.atan2(v.co.y, v.co.x)
+        r = math.hypot(v.co.x, v.co.y)
+        if r > 0.15:
+            k = 1 + 0.035 * math.cos(a * 24)
+            v.co.x *= k
+            v.co.y *= k
+    # soft-serve swirl: a tube spiralling up and in
+    pts = []
+    turns, n = 3.2, 70
+    for i in range(n + 1):
+        t = i / n
+        a = t * turns * math.tau
+        r = 0.27 * (1 - t) ** 0.9 + 0.01
+        pts.append((math.cos(a) * r, math.sin(a) * r, 0.5 + t * 0.48))
+    swirl = tube("SundaeCup_Swirl", pts, 0.085, 4)
+    # sauce drizzles running down the swirl
+    def drizzle(phase, height):
+        d = []
+        for i in range(25):
+            t = i / 24
+            a = phase + t * math.tau * 1.1
+            z = height - t * 0.28 + 0.03 * math.sin(t * 15)
+            r = 0.27 * max(0.05, 1 - (z - 0.5) / 0.48) ** 0.9 + 0.07
+            d.append((math.cos(a) * r, math.sin(a) * r, z))
+        return d
+    tube("SundaeCup_Drizzle1", drizzle(0.3, 0.98), 0.03, 3)
+    tube("SundaeCup_Drizzle2", drizzle(2.6, 0.9), 0.028, 3)
+    rnd = random.Random(9)
+    sprinkles = []
+    for _ in range(40):
+        t = rnd.uniform(0.1, 0.9)
+        a = rnd.uniform(0, math.tau)
+        z = 0.5 + t * 0.48
+        r = 0.27 * (1 - t) ** 0.9 + 0.09
+        s = cylinder("s", 0.012, 0.06, (math.cos(a) * r, math.sin(a) * r, z), 6)
+        sprinkles.append(rot_apply(s, rnd.uniform(0, 3), rnd.uniform(0, 3), 0))
+    join(sprinkles, "SundaeCup_Sprinkles")
+    crumbs = []
+    for _ in range(12):
+        a = rnd.uniform(0, math.tau)
+        r = rnd.uniform(0.05, 0.2)
+        crumbs.append(lumpy("c", 0.045, (1, 1, 0.7), 0.012, rnd.randint(1, 99), (math.cos(a) * r, math.sin(a) * r, 0.82 + rnd.uniform(0, 0.15)), 14))
+    join(crumbs, "SundaeCup_Crumble")
+    spoon = [rounded_box("handle", 0.05, 0.02, 0.6, 0.01, 2, (0.18, 0.1, 0.95)),
+             sphere("bowl", 0.06, (0.18, 0.1, 0.66), (1, 0.6, 1.3), 16, 8)]
+    sp = join(spoon, "SundaeCup_Spoon")
+    rot_apply(sp, 0, math.radians(-18), 0)
+
+
 # ---- batch 4: realistic food. Toppings are small meshes scattered by
 # FoodVisuals; each is coloured per role from the ingredient colour.
 
@@ -1612,7 +1696,7 @@ PROPS = ["Tray", "PizzaBox", "Cup", "Pizza", "Pan", "Chair", "Table", "FoodBox",
          "BoothBench", "BoothTable", "ArtFrame",
          "SodaFountain", "CupDispenser", "TrashBin", "TableCaddy", "PosStand", "PosBezel", "ReceiptPrinter",
          "HeatGantry", "PrepRail", "OfficeDesk", "OfficeChair", "Carton",
-         "BreadCrate", "WrapBag"] + TOPPINGS
+         "BreadCrate", "WrapBag", "SoftServe", "SundaeCup"] + TOPPINGS
 
 
 PREVIEW_COLORS = {
@@ -1690,7 +1774,11 @@ OVERRIDES = {"PizzaBox_Body": (0.98, 0.96, 0.92), "Pan_Body": (0.78, 0.8, 0.82),
              "Carton_Box": (0.77, 0.59, 0.39), "Carton_Rib": (0.66, 0.5, 0.32), "Carton_Tape": (0.82, 0.68, 0.48),
              "Carton_Label": (0.97, 0.96, 0.92), "BreadCrate_Crate": (0.2, 0.45, 0.8), "BreadCrate_Rim": (0.17, 0.4, 0.72),
              "BreadCrate_Tag": (0.97, 0.96, 0.92), "WrapBag_Wraps": (0.94, 0.84, 0.64), "WrapBag_Bag": (0.85, 0.9, 0.95),
-             "WrapBag_Label": (0.85, 0.15, 0.15)}
+             "WrapBag_Label": (0.85, 0.15, 0.15), "SoftServe_Body": (0.85, 0.87, 0.89), "SoftServe_Panel": (0.13, 0.13, 0.14),
+             "SoftServe_Head": (0.78, 0.8, 0.82), "SoftServe_Lever": (0.85, 0.15, 0.15), "SoftServe_Tray": (0.5, 0.52, 0.55),
+             "SoftServe_Lid": (0.78, 0.8, 0.82), "SoftServe_Feet": (0.13, 0.13, 0.14), "SundaeCup_Cup": (0.95, 0.4, 0.55),
+             "SundaeCup_Swirl": (0.98, 0.93, 0.82), "SundaeCup_Drizzle1": (0.35, 0.2, 0.12), "SundaeCup_Drizzle2": (0.85, 0.15, 0.2),
+             "SundaeCup_Sprinkles": (0.9, 0.4, 0.7), "SundaeCup_Crumble": (0.55, 0.38, 0.22), "SundaeCup_Spoon": (0.85, 0.87, 0.89)}
 
 
 def render_preview(prop):

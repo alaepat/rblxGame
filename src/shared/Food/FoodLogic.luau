@@ -8,6 +8,7 @@
 --   { kind = "kebab", base = id, fillings = {id}, wrapped = bool }
 --   { kind = "chips", cook = 0..n }
 --   { kind = "cup", syrup = id? }
+--   { kind = "dessert", flavour = id?, toppings = {id} }
 --   { kind = "supply", ingredient = id, amount = n }
 
 local Config = script.Parent.Parent.Config
@@ -116,6 +117,23 @@ function FoodLogic.canAddToKebab(item: Item, ingredientId: string): (boolean, st
 	return true, nil
 end
 
+-- Can a dessert topping go on the held dessert cup?
+function FoodLogic.canAddToDessert(item: Item, ingredientId: string): (boolean, string?)
+	if item.kind ~= "dessert" then
+		return false, "Grab a dessert cup first"
+	end
+	if not item.flavour then
+		return false, "Fill it at the soft-serve machine first"
+	end
+	if contains(item.toppings, ingredientId) then
+		return false, "Already added"
+	end
+	if #item.toppings >= 4 then
+		return false, "It's full"
+	end
+	return true, nil
+end
+
 -- Returns the recipe id this finished item satisfies, or nil.
 function FoodLogic.identify(item: Item?): string?
 	if not item then
@@ -148,6 +166,15 @@ function FoodLogic.identify(item: Item?): string?
 				return r.id
 			end
 		end
+	elseif item.kind == "dessert" then
+		if not item.flavour then
+			return nil
+		end
+		for _, r in Recipes.List do
+			if r.kind == "dessert" and r.flavour == item.flavour and setEquals(r.toppings :: { string }, item.toppings) then
+				return r.id
+			end
+		end
 	end
 	return nil
 end
@@ -160,6 +187,7 @@ function FoodLogic.isPackaged(item: Item?): boolean
 	return (item.kind == "pizza" and item.boxed == true)
 		or (item.kind == "kebab" and item.wrapped == true)
 		or (item.kind == "cup" and item.syrup ~= nil)
+		or (item.kind == "dessert" and item.flavour ~= nil)
 end
 
 local function ingName(id: string?): string
@@ -203,6 +231,13 @@ function FoodLogic.describe(item: Item?): string
 			return r and r.name or "Drink"
 		end
 		return "Empty cup"
+	elseif k == "dessert" then
+		if not item.flavour then
+			return "Empty dessert cup"
+		end
+		local id = FoodLogic.identify(item)
+		local r = id and Recipes.get(id)
+		return r and r.name or (ingName(item.flavour):gsub(" Mix$", "") .. " (" .. #item.toppings .. " toppings)")
 	elseif k == "supply" then
 		return "Supply box: " .. ingName(item.ingredient) .. " ×" .. tostring(item.amount)
 	end

@@ -92,4 +92,7 @@ return {
 	-- batch 11: bread/dough crate, wrap bag (supply deliveries)
 	BreadCrate = { assetId = 88238334337309, size = Vector3.new(2.06, 0.85, 1.56) },
 	WrapBag = { assetId = 114925787289147, size = Vector3.new(1.622, 0.379, 1.773), center = Vector3.new(0, 0, -0.033) },
+	-- batch 12: dessert station
+	SoftServe = { assetId = 111324424451357, size = Vector3.new(2.4, 3.06, 1.879), center = Vector3.new(0, 0, 0.14) },
+	SundaeCup = { assetId = 137499676391994, size = Vector3.new(0.721, 1.239, 0.714) },
 } :: { [string]: MeshInfo }

@@ -484,6 +484,47 @@ local function buildChips(item: Item): Model
 	return m
 end
 
+-- Sundae in a fluted paper cup: swirl coloured by flavour, sauces as
+-- drizzles, sprinkles and cookie crumble shown only when added.
+local function buildDessert(item: Item): Model
+	local m = newModel("Dessert")
+	local tops: { string } = item.toppings or {}
+	local has = function(id: string): boolean
+		return table.find(tops, id) ~= nil
+	end
+	local flavour = item.flavour and Ingredients.get(item.flavour)
+	local sauces = {}
+	for _, id in tops do
+		if id == "choc_sauce" or id == "strawberry_sauce" then
+			table.insert(sauces, Ingredients.get(id))
+		end
+	end
+	if MeshLib.has("SundaeCup") then
+		local spr = Ingredients.get("sprinkles")
+		local crumb = Ingredients.get("cookie_crumble")
+		MeshLib.place(m, "SundaeCup", CFrame.new(), {
+			Cup = Color3.fromRGB(240, 120, 150),
+			Swirl = flavour and flavour.color or Color3.new(1, 1, 1),
+			Drizzle1 = sauces[1] and sauces[1].color or Color3.new(1, 1, 1),
+			Drizzle2 = sauces[2] and sauces[2].color or Color3.new(1, 1, 1),
+			Sprinkles = spr and spr.color or Color3.new(1, 0.5, 0.8),
+			Crumble = crumb and crumb.color or Color3.new(0.6, 0.4, 0.2),
+			Spoon = Color3.fromRGB(215, 220, 226),
+		}, {
+			hide = { Swirl = flavour == nil, Drizzle1 = sauces[1] == nil, Drizzle2 = sauces[2] == nil, Sprinkles = not has("sprinkles"), Crumble = not has("cookie_crumble"), Spoon = flavour == nil },
+			materials = { Cup = Enum.Material.SmoothPlastic, Swirl = Enum.Material.SmoothPlastic, Spoon = Enum.Material.Metal },
+			shadow = false,
+		})
+		return m
+	end
+	-- procedural fallback
+	newPart(m, "Cup", Vector3.new(0.5, 0.65, 0.65), CFrame.new(0, 0.25, 0) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(240, 120, 150), nil, Enum.PartType.Cylinder)
+	if flavour then
+		newPart(m, "Swirl", Vector3.new(0.6, 0.5, 0.6), CFrame.new(0, 0.7, 0), flavour.color, nil, Enum.PartType.Ball)
+	end
+	return m
+end
+
 local function buildCup(item: Item): Model
 	local m = newModel("Cup")
 	local filled = item.syrup ~= nil
@@ -618,6 +659,8 @@ function FoodVisuals.build(item: Item): Model
 		m = buildChips(item)
 	elseif k == "cup" then
 		m = buildCup(item)
+	elseif k == "dessert" then
+		m = buildDessert(item)
 	elseif k == "supply" then
 		m = buildSupply(item)
 	else

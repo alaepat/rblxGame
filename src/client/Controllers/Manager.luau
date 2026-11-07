@@ -155,6 +155,8 @@ local function previewItem(r: any): { [string]: any }
 		return { kind = "pizza", sauce = r.sauce, toppings = r.toppings, cook = 1 }
 	elseif r.kind == "kebab" then
 		return { kind = "kebab", base = r.base, fillings = r.fillings, wrapped = false }
+	elseif r.kind == "dessert" then
+		return { kind = "dessert", flavour = r.flavour, toppings = r.toppings }
 	end
 	return { kind = "cup", syrup = r.syrup }
 end
@@ -260,6 +262,12 @@ local function renderRecipes()
 				table.insert(fills, ingName(t) .. (t == "chips" and " (fried)" or ""))
 			end
 			steps = "1. " .. ingName(r.base :: string) .. " on the kebab board  →  2. " .. table.concat(fills, ", ") .. "  →  3. " .. (r.base == "food_box" and "Close the box" or "Wrap it up")
+		elseif r.kind == "dessert" then
+			local tops = {}
+			for _, t in r.toppings :: { string } do
+				table.insert(tops, ingName(t))
+			end
+			steps = "1. 🍨 Take a dessert cup  →  2. Fill with " .. ingName(r.flavour :: string) .. "  →  3. " .. table.concat(tops, ", ")
 		else
 			steps = "1. 🥤 Take a cup  →  2. Hold the " .. ingName(r.syrup :: string) .. " fountain"
 		end

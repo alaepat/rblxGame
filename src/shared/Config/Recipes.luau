@@ -5,6 +5,8 @@
 -- kind "pizza": base dough -> sauce -> toppings (set). Must be cooked + boxed.
 -- kind "kebab": base (pitta / wrap_bread / food_box) -> fillings (set). Must be wrapped/closed.
 -- kind "drink": a cup filled from the fountain with `syrup`.
+-- kind "dessert": a dessert cup filled at the soft-serve machine with
+--   `flavour`, then toppings (set) from the jars. Served as soon as it's filled.
 
 export type Recipe = {
 	id: string,
@@ -20,6 +22,7 @@ export type Recipe = {
 	base: string?, -- kebab
 	fillings: { string }?, -- kebab
 	syrup: string?, -- drink
+	flavour: string?, -- dessert (ice cream mix)
 	description: string,
 }
 
@@ -98,6 +101,18 @@ local list: { Recipe } = {
 	{ id = "planet_mega_box", name = "Planet Mega Box", kind = "kebab", level = 20, price = 26, xp = 40, icon = "🚀", requires = "fryer",
 		base = "food_box", fillings = { "chips", "chicken_doner", "lamb_doner", "cheddar", "lettuce", "tomato", "cucumber", "red_cabbage", "onion", "garlic_sauce", "chilli_sauce", "mayo" },
 		description = "Everything from the kebab station. Bring a friend." },
+
+	-- ===== DESSERTS (Dessert Station upgrade) =====
+	{ id = "vanilla_sundae", name = "Vanilla Sundae", kind = "dessert", level = 12, price = 5, xp = 8, icon = "🍨", requires = "dessert_station",
+		flavour = "vanilla_mix", toppings = { "choc_sauce" }, description = "Vanilla soft serve with chocolate sauce." },
+	{ id = "chocolate_sundae", name = "Chocolate Sundae", kind = "dessert", level = 12, price = 5, xp = 8, icon = "🍫", requires = "dessert_station",
+		flavour = "chocolate_mix", toppings = { "sprinkles" }, description = "Chocolate soft serve with rainbow sprinkles." },
+	{ id = "strawberry_sundae", name = "Strawberry Sundae", kind = "dessert", level = 13, price = 6, xp = 9, icon = "🍓", requires = "dessert_station",
+		flavour = "vanilla_mix", toppings = { "strawberry_sauce", "sprinkles" }, description = "Vanilla, strawberry sauce and sprinkles." },
+	{ id = "cookie_crunch_sundae", name = "Cookie Crunch", kind = "dessert", level = 14, price = 7, xp = 11, icon = "🍪", requires = "dessert_station",
+		flavour = "chocolate_mix", toppings = { "cookie_crumble", "choc_sauce" }, description = "Chocolate soft serve, cookie crumble, chocolate sauce." },
+	{ id = "galaxy_sundae", name = "Galaxy Sundae", kind = "dessert", level = 16, price = 9, xp = 15, icon = "🌌", requires = "dessert_station",
+		flavour = "chocolate_mix", toppings = { "choc_sauce", "strawberry_sauce", "sprinkles", "cookie_crumble" }, description = "Every topping on chocolate soft serve." },
 
 	-- ===== DRINKS =====
 	{ id = "cola", name = "Planet Cola", kind = "drink", level = 1, price = 2, xp = 3, icon = "🥤", syrup = "cola_syrup", description = "Ice-cold cola." },

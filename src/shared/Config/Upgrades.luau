@@ -34,6 +34,8 @@ local list: { Upgrade } = {
 		description = "Pizzas cook another 25% faster.", effects = { cookSpeed = 0.25 } },
 	{ id = "oven_heat_3", name = "Hotter Oven III", category = "Kitchen", level = 15, cost = 1800, icon = "🔥", requires = "oven_heat_2",
 		description = "Pizzas cook another 20% faster.", effects = { cookSpeed = 0.2 } },
+	{ id = "dessert_station", name = "Dessert Station", category = "Kitchen", level = 12, cost = 1200, icon = "🍨",
+		description = "A soft-serve machine and topping jars. Unlocks sundaes; customers add desserts to orders." },
 	{ id = "heat_shelf_2", name = "Bigger Heat Shelf", category = "Kitchen", level = 6, cost = 200, icon = "♨️",
 		description = "Two more heated holding slots on the pass." },
 	-- Storage

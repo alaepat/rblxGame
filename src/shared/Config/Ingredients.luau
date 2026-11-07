@@ -56,6 +56,14 @@ local list: { Ingredient } = {
 	{ id = "cola_syrup", name = "Cola Syrup", category = "dry", boxSize = 40, boxCost = 10, level = 1, color = Color3.fromRGB(60, 25, 15), shape = "sauce", icon = "🥤" },
 	{ id = "orange_syrup", name = "Orange Syrup", category = "dry", boxSize = 40, boxCost = 10, level = 3, color = Color3.fromRGB(255, 140, 20), shape = "sauce", icon = "🍊" },
 	{ id = "lime_syrup", name = "Lime Syrup", category = "dry", boxSize = 40, boxCost = 10, level = 6, color = Color3.fromRGB(150, 220, 40), shape = "sauce", icon = "🍋" },
+	-- Desserts (Dessert Station upgrade)
+	{ id = "dessert_cup", name = "Dessert Cups", category = "dry", boxSize = 40, boxCost = 6, level = 12, color = Color3.fromRGB(240, 120, 150), shape = "box", icon = "🍨" },
+	{ id = "vanilla_mix", name = "Vanilla Ice Cream Mix", category = "cold", boxSize = 40, boxCost = 12, level = 12, color = Color3.fromRGB(252, 242, 214), shape = "sauce", icon = "🍦" },
+	{ id = "chocolate_mix", name = "Chocolate Ice Cream Mix", category = "cold", boxSize = 40, boxCost = 12, level = 12, color = Color3.fromRGB(120, 72, 44), shape = "sauce", icon = "🍫" },
+	{ id = "choc_sauce", name = "Chocolate Sauce", category = "dry", boxSize = 40, boxCost = 7, level = 12, color = Color3.fromRGB(78, 42, 24), shape = "drizzle", icon = "🍫" },
+	{ id = "sprinkles", name = "Rainbow Sprinkles", category = "dry", boxSize = 60, boxCost = 5, level = 12, color = Color3.fromRGB(240, 110, 180), shape = "sprinkles", icon = "🌈" },
+	{ id = "strawberry_sauce", name = "Strawberry Sauce", category = "dry", boxSize = 40, boxCost = 7, level = 13, color = Color3.fromRGB(220, 40, 60), shape = "drizzle", icon = "🍓" },
+	{ id = "cookie_crumble", name = "Cookie Crumble", category = "dry", boxSize = 40, boxCost = 8, level = 14, color = Color3.fromRGB(150, 100, 58), shape = "crumble", icon = "🍪" },
 }
 
 local byId: { [string]: Ingredient } = {}

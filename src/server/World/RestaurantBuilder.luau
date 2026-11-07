@@ -911,6 +911,41 @@ local function buildKitchen(c: Ctx)
 		B.station(hit, "Fountain", "🥤 " .. string.gsub(f[2], "\n", " "), { Ingredient = f[1] })
 	end
 
+	-- Dessert station (upgrade): island next to the drinks, same orientation
+	local dessertFolder = B.model(k, "DessertStation")
+	dessertFolder.parent:SetAttribute("UpgradeId", "dessert_station")
+	local ds = counter(B.sub(dessertFolder, 15.5, 0.6, 180), "DessertCounter", 8, 2.8)
+	if MeshLib.has("SoftServe") then
+		MeshLib.place(ds.parent, "SoftServe", ds.origin * CFrame.new(-1.6, COUNTER_H, -0.45), {
+			Body = Color3.fromRGB(236, 238, 242), Panel = Color3.fromRGB(30, 30, 34), Head = C.STEEL, Lever = C.RED,
+			Tray = C.STEEL_DARK, Lid = C.STEEL, Feet = C.BLACK,
+		}, { materials = { Body = M.SmoothPlastic, Head = M.Metal, Tray = M.Metal, Lid = M.Metal } })
+	else
+		B.box(ds, "SoftServeBody", -2.8, COUNTER_H, -1.3, -0.4, COUNTER_H + 3, 0.4, C.WHITE)
+	end
+	for i, mix in { "vanilla_mix", "chocolate_mix" } do
+		local x = -1.6 + (i == 1 and -0.45 or 0.45)
+		local hit = B.hitbox(ds, "SoftServe_" .. mix, Vector3.new(0.85, 1.5, 1.0), CFrame.new(x, COUNTER_H + 1.2, 0.35))
+		B.station(hit, "SoftServe", (i == 1 and "🍦 Vanilla" or "🍫 Chocolate") .. " soft serve", { Ingredient = mix })
+	end
+	-- dessert cup stack
+	local cupStack = B.model(ds, "DessertCups")
+	for i = 0, 6 do
+		B.cyl(cupStack, "Cup", 0.62, 0.12, 1.0, COUNTER_H + i * 0.11, 0.0, Color3.fromRGB(240, 120, 150):Lerp(C.WHITE, (i % 2) * 0.25), nil, { CanQuery = false })
+	end
+	local cupHit = B.hitbox(ds, "Bin_dessert_cup", Vector3.new(1.0, 1.2, 1.0), CFrame.new(1.0, COUNTER_H + 0.5, 0.0))
+	B.station(cupHit, "Bin", "🍨 Dessert Cups", { Ingredient = "dessert_cup" })
+	-- topping jars along the front edge
+	for i, id in { "choc_sauce", "strawberry_sauce", "sprinkles", "cookie_crumble" } do
+		local ing = Ingredients.ById[id]
+		local x = 1.95 + (i - 1) * 0.55
+		B.cyl(ds, "Jar", 0.46, 0.55, x, COUNTER_H, 0.6, Color3.fromRGB(230, 236, 240), M.Glass, { Transparency = 0.45, CanQuery = false })
+		B.cyl(ds, "JarFill", 0.38, 0.4, x, COUNTER_H + 0.03, 0.6, ing.color, if id == "sprinkles" or id == "cookie_crumble" then M.Sand else M.SmoothPlastic, { CanQuery = false })
+		B.cyl(ds, "JarLid", 0.5, 0.08, x, COUNTER_H + 0.55, 0.6, C.STEEL, M.Metal, { CanQuery = false })
+		local hit = B.hitbox(ds, "Dessert_" .. id, Vector3.new(0.55, 1.0, 0.6), CFrame.new(x, COUNTER_H + 0.4, 0.6))
+		B.station(hit, "DessertTopping", ing.icon .. " " .. ing.name, { Ingredient = id })
+	end
+
 	-- Kebab station (upgrade) along the east wall, facing -X
 	local kebabFolder = B.model(ke, "KebabStation")
 	kebabFolder.parent:SetAttribute("UpgradeId", "kebab_station")
@@ -1201,7 +1236,7 @@ local function buildFront(c: Ctx)
 	end
 	menuBoard("MenuPizza", -27, -12.5, "MenuGui_pizza", "🍕 PIZZAS", C.RED)
 	menuBoard("MenuKebab", -11.5, 1, "MenuGui_kebab", "🥙 KEBABS & BOXES", Color3.fromRGB(220, 110, 30))
-	menuBoard("MenuDrink", 2, 9.5, "MenuGui_drink", "🥤 DRINKS", Color3.fromRGB(40, 120, 220))
+	menuBoard("MenuDrink", 2, 9.5, "MenuGui_drink", "🥤 DRINKS & 🍨 DESSERTS", Color3.fromRGB(40, 120, 220))
 	-- Promo board facing the door
 	local promo = screen(f, "PromoBoard", 14, 9, 28, 12.3, 7.2, 1)
 	B.label(promo, Enum.NormalId.Back, "🪐 PIZZA PLANET\nFresh from the stone oven", { color = C.WHITE, bg = Color3.fromRGB(20, 120, 120), font = Enum.Font.FredokaOne, pad = 14 })
@@ -1694,7 +1729,7 @@ function RestaurantBuilder.updateMenuBoard(model: Model?, level: number, upgrade
 				local teasers = 0
 				local shown = {}
 				for _, r in Recipes.List do
-					if r.kind == kind then
+					if r.kind == kind or (kind == "drink" and r.kind == "dessert") then
 						local unlocked = FoodLogic.isRecipeUnlocked(r.id, level, upgrades)
 						if unlocked or teasers < 2 then
 							if not unlocked then
