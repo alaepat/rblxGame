@@ -12,6 +12,7 @@
 --   ServerStorage.DevCommand:Invoke("day", 12)          -- jump the shift clock to 12:00 (lunch rush)
 --   ServerStorage.DevCommand:Invoke("day", "close")     -- jump to closing time
 --   ServerStorage.DevCommand:Invoke("day", "end")       -- end the day now (summary)
+--   ServerStorage.DevCommand:Invoke("queue")            -- front customer's wish + open orders (for test bots)
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -121,6 +122,24 @@ local function run(cmd: string, arg: any): any
 			return "usage: day <hour> | close | end"
 		end
 		return S.ShiftService.devJump(plot, hour)
+	elseif cmd == "queue" then
+		-- what the customer at the register wants, and every open order
+		local front = S.CustomerService.frontCustomer(plot)
+		local orders = {}
+		for _, o in plot.orders or {} do
+			local items = {}
+			for _, e in o.items do
+				table.insert(items, e.recipe .. (if e.done then "*" else ""))
+			end
+			table.insert(orders, "#" .. o.number .. " " .. table.concat(items, "+"))
+		end
+		return {
+			want = front and front.want or nil,
+			queue = plot.queue and #plot.queue or 0,
+			customers = #(plot.customers or {}),
+			orders = orders,
+			money = profile.money,
+		}
 	elseif cmd == "info" then
 		local up = {}
 		for id in profile.upgrades do

@@ -4,6 +4,17 @@ Newest first.
 
 ---
 
+## 2026-11-07: Full-shift playtest + two fixes
+
+I played a whole day with a test bot through the real prompts (orders, cooking, drinks, a supply run, both rushes, closing, summary). Everything works in the bigger layout with no errors. Details in DEVELOPMENT_STATUS ("Full-shift playtest").
+
+**Changes:**
+- `ProgressService.addXP`: on level-up, one free starter box of each newly unlocked ingredient the player has none of (`GameConfig.UnlockStarterBoxes`). Without it, customers order the new recipes immediately and always walk out.
+- `HUD.luau`: "1 order" plural.
+- `DevService`: `DevCommand("queue")` returns `{ want, queue, customers, orders, money }`. Useful for scripted tests.
+
+**For your rush tuning (#18):** a solo level-1 player with one oven got 8 walk-outs and rating 4.00 → 2.44 over a day (partly my bot idling). **Tip for scripted tests:** point the camera at a prompt's part before `InputHoldBegin`, or the press is silently ignored. I couldn't run Lune here; pure logic is untouched.
+
 ## 2026-11-06: Pass gantry, topping rails, office desk + chair
 
 4 more meshes (`HeatGantry`, `PrepRail`, `OfficeDesk`, `OfficeChair`). Pans, boards, heat-shelf slots and the Owner PC station did not move. Studio-verified with screenshots of the prep line, pass, kebab counter and office.

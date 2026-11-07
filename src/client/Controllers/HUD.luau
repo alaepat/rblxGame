@@ -177,7 +177,8 @@ local function update(snap: { [string]: any })
 	cleanLabel.Text = ("🧽 %d%%"):format(snap.cleanliness or 100)
 	if snap.open then
 		statusDot.BackgroundColor3 = Col.Green
-		statusLabel.Text = ("OPEN · %d in queue · %d orders"):format(snap.queue or 0, #(snap.orders or {}))
+		local n = #(snap.orders or {})
+		statusLabel.Text = ("OPEN · %d in queue · %d order%s"):format(snap.queue or 0, n, if n == 1 then "" else "s")
 	else
 		statusDot.BackgroundColor3 = Col.Red
 		statusLabel.Text = "CLOSED · flip the sign by the door"

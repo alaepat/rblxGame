@@ -124,6 +124,17 @@ function ProgressService.addXP(player: Player, amount: number)
 		ProgressService.addMoney(player, reward, "level")
 		local unlocks = Levels.unlocksAt(profile.level)
 		profile.unlockedRecipes = FoodLogic.unlockedRecipes(profile.level, profile.upgrades)
+		-- Customers start ordering new recipes right away, so give a starter box
+		-- of every ingredient this level unlocks (only if the player has none).
+		local boxes = GameConfig.UnlockStarterBoxes or 0
+		if boxes > 0 then
+			for _, ing in Ingredients.List do
+				if ing.level == profile.level and (profile.stock[ing.id] or 0) == 0 then
+					profile.stock[ing.id] = ing.boxSize * boxes
+					ProgressService.notify(player, ("🎁 Free starter box: %s"):format(ing.name), "good")
+				end
+			end
+		end
 		levelUpEvent:FireClient(player, {
 			level = profile.level,
 			reward = reward,

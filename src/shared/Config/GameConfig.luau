@@ -18,6 +18,9 @@ return {
 		cup = 20,
 		cola_syrup = 30,
 	},
+	-- Free boxes of each ingredient a level-up unlocks (only when the player has none),
+	-- so newly unlocked recipes customers order can be cooked straight away.
+	UnlockStarterBoxes = 1,
 	-- Max units per ingredient = boxSize * BaseCapacityBoxes * (1 + capacity upgrades)
 	BaseCapacityBoxes = 3,
 

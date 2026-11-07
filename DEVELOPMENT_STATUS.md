@@ -87,6 +87,14 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - Studio hook: `DevCommand:Invoke("mastery", "cheese_pizza")` jumps a recipe to its next tier.
 - Offline: 75 Lune tests pass; `rojo build` OK. Studio checklist in PR #3 (TASKS #20).
 
+## Full-shift playtest (2026-11-07, Account 1)
+A client-side test bot played a whole day through the real prompts in the new 81 x 66 layout: register + POS, dough → board → sauce/toppings → oven → box → pickup, colas, a supply run (Owner PC order → truck → back-door pallet → fridge), lunch + dinner rush, closing, day summary.
+- **Works, no script errors:** every station, topping meshes on the board model, ~16 s bakes, deliveries to the moved pad/fridge, level-ups (1 → 3) with rewards, the summary card (9 orders, 11 pizzas + 5 drinks, $108 sales, $15.75 tips, shift bonus +$25.62 +40 XP).
+- **Fixed:** newly unlocked ingredients started at 0 stock, so customers ordered new recipes the player couldn't make (guaranteed walk-outs). Level-ups now give one free starter box of each newly unlocked ingredient the player has none of (`GameConfig.UnlockStarterBoxes = 1`, in `ProgressService.addXP`). Verified: level 3 → pepperoni, mushroom, ham, onion, pepper all stocked, toasts shown.
+- **Fixed:** HUD status said "1 orders"; now "1 order".
+- **Observed, not fixed:** the level-up popup can sit on top of the day-summary card when both appear together; a solo level-1 player with one oven struggles in the dinner rush (8 walk-outs, rating 4.00 → 2.44, though part of that was the bot idling) - see TASKS #18.
+- **Test tooling:** `DevCommand("queue")` returns the front customer's wish and the open orders. If you script prompts with `InputHoldBegin/End`, point the camera at the part first: the game only accepts prompts that are on screen, which is why scripted presses were flaky.
+
 ## Not yet verified end-to-end
 - The extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
