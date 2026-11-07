@@ -6,7 +6,6 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
-| 2 | Re-check PizzaBox v2 in game (ring now flat); playtest extension annex (level 10) | QA | — | |
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 5 | Blender pass 10 (optional): stand mixer, PC monitor, lockers/vending, storage shelving | Art | — | Fronts face +Z after import. Pass, rails and office desk/chair are done. |
 | 25 | The day-clock pill (top-left, DisplayOrder 25) covers the corner of the Pizza Planet OS window (logo + title). Hide/move the pill while the manager window is open | UI | — | Seen while verifying PR #3; DayClock is Account 2's |
@@ -39,6 +38,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | Blender pass 2: counters, oven, fridge, meat cone, fryer basket, pitta, wrap, kebab paper (+ mesh orientation fix) | Account 1 | 2026-11-05 |
 | Lune offline test harness (`tests/`, 24 tests) | Account 2 | 2026-11-05 |
 | #16 Menu mastery: bronze/silver/gold per recipe, tier rewards, serve XP bonus, Recipes/Business tab UI (branch `a2/menu-mastery`, PR #3, offline-tested with 75 tests; Studio check is #20) | Account 2 | 2026-11-06 |
+| #2 Extension annex fixed (blocked opening, floating poster/neon, nested upgrade visibility) and PizzaBox v2 checked (Studio-verified) | Account 1 | 2026-11-07 |
 | PR #4 rush tuning Studio-verified (multipliers measured live) and merged; level-up popup merges chained level-ups and auto-closes; `DevCommand("traffic")` | Account 1 | 2026-11-07 |
 | #20 Studio-verified menu mastery (PR #3) on PC and merged into `main` (remaining checks #27) | Account 1 | 2026-11-07 |
 | #24 Level-up popup waits for the day-summary card (Studio-verified) | Account 1 | 2026-11-07 |

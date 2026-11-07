@@ -195,6 +195,21 @@ local function booth(c: Ctx, name: string, x: number, z: number, yaw: number)
 	B.cyl(m, "Pole", 0.35, 2.9, 0, 0, 0, C.BLACK, M.Metal)
 end
 
+-- Framed poster on a wall. yaw turns the poster's face: 0 = +Z, pi/2 = +X, -pi/2 = -X.
+local function hangArt(c: Ctx, x: number, z: number, yaw: number, text: string, color: Color3)
+	local rel = CFrame.new(x, 6.5, z) * CFrame.Angles(0, yaw, 0) * CFrame.new(0, 0, 0.13)
+	if MeshLib.has("ArtFrame") then
+		-- moulded frame on the wall facing into the room, with a printed poster inside
+		MeshLib.place(c.parent, "ArtFrame", c.origin * rel, { Frame = C.BLACK, Lip = C.YELLOW, Mat = C.CREAM },
+			{ materials = { Frame = M.Wood, Lip = M.Metal, Mat = M.SmoothPlastic } })
+	else
+		local frame = B.part(c, "ArtFrame", Vector3.new(4.4, 3.6, 0.2), rel * CFrame.new(0, 1.8, -0.06), C.BLACK)
+		frame.CanQuery = false
+	end
+	local poster = B.part(c, "Poster", Vector3.new(3.4, 2.6, 0.04), rel * CFrame.new(0, 1.8, 0), color, M.SmoothPlastic, { CanCollide = false, CanQuery = false })
+	B.label(poster, Enum.NormalId.Back, text, { color = C.WHITE, bg = color, font = Enum.Font.FredokaOne, pad = 14, ppu = 50 })
+end
+
 local function plant(c: Ctx, x: number, z: number, scale: number?)
 	local s = scale or 1
 	local m = B.model(c, "Plant")
@@ -559,7 +574,8 @@ local function buildShell(c: Ctx)
 	-- Dining walls: dark red wainscot + cream plaster
 	local wcut = { { 10, 18, 3.6, 2 }, { 24, 32, 3.6, 2 } }
 	B.wallZ(s, "Wainscot", IW + 0.05, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
-	B.wallZ(s, "Wainscot", IE - 0.05, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
+	-- east panelling lives in the wall section the annex upgrade removes
+	B.wallZ(eastDining, "Wainscot", IE - 0.05, 6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, wcut)
 	for _, r in { { 6, 10 }, { 18, 24 }, { 32, ZF - 0.5 } } do
 		B.box(s, "Rail", IW, 3.6, r[1], IW + 0.2, 3.8, r[2], C.WOOD_DARK, M.Wood)
 	end
@@ -1226,17 +1242,14 @@ local function buildFront(c: Ctx)
 		{ IW, 21, math.pi / 2, "🥙\nKEBAB\nORBIT", Color3.fromRGB(230, 120, 30) },
 	}
 	for _, a in art do
-		if MeshLib.has("ArtFrame") then
-			-- moulded frame on the wall facing into the room, with a printed poster inside
-			local rel = CFrame.new(a[1], 6.5, a[2]) * CFrame.Angles(0, a[3], 0) * CFrame.new(0, 0, 0.13)
-			MeshLib.place(dining.parent, "ArtFrame", dining.origin * rel, { Frame = C.BLACK, Lip = C.YELLOW, Mat = C.CREAM },
-				{ materials = { Frame = M.Wood, Lip = M.Metal, Mat = M.SmoothPlastic } })
-			local poster = B.part(dining, "Poster", Vector3.new(3.4, 2.6, 0.04), rel * CFrame.new(0, 1.8, 0), a[5], M.SmoothPlastic, { CanCollide = false, CanQuery = false })
-			B.label(poster, Enum.NormalId.Back, a[4], { color = C.WHITE, bg = a[5], font = Enum.Font.FredokaOne, pad = 14, ppu = 50 })
-		elseif a[1] > 0 then
-			local frame = B.box(dining, "ArtFrame", a[1] - 0.2, 6.5, a[2] - 2.2, a[1], 10.1, a[2] + 2.2, C.BLACK)
-			frame.CanQuery = false
+		local ctx = dining
+		if a[1] > 0 then
+			-- the east wall opens into the annex when it's bought
+			local m = B.model(dining, "EastArt")
+			m.parent:SetAttribute("HideWhen", "expansion_1")
+			ctx = m
 		end
+		hangArt(ctx, a[1], a[2], a[3], a[4], a[5])
 	end
 	-- Decor upgrades
 	local plants = B.model(c, "DecorPlants")
@@ -1254,7 +1267,9 @@ local function buildFront(c: Ctx)
 	local n1 = B.box(neon, "NeonPizza", IW + 0.1, 6, 6.5, IW + 0.2, 9.5, 9, Color3.fromRGB(255, 200, 40), M.Neon)
 	B.label(n1, Enum.NormalId.Right, "🍕", { pad = 2, brightness = 3 })
 	B.pointLight(n1, Color3.fromRGB(255, 190, 60), 10, 1.2)
-	local n2 = B.box(neon, "NeonKebab", IE - 0.2, 6, 6.5, IE - 0.1, 9.5, 9, Color3.fromRGB(255, 90, 160), M.Neon)
+	local eastNeon = B.model(neon, "EastNeon")
+	eastNeon.parent:SetAttribute("HideWhen", "expansion_1") -- the annex has its own
+	local n2 = B.box(eastNeon, "NeonKebab", IE - 0.2, 6, 6.5, IE - 0.1, 9.5, 9, Color3.fromRGB(255, 90, 160), M.Neon)
 	B.label(n2, Enum.NormalId.Left, "🥙", { pad = 2, brightness = 3 })
 	B.pointLight(n2, Color3.fromRGB(255, 90, 160), 10, 1.2)
 
@@ -1569,6 +1584,16 @@ local function buildOutside(c: Ctx)
 		table4(ex, "Table", t[1], t[2], nil)
 		ceilingLight(ex, t[1], t[2], 3, 3)
 	end
+	-- interior to match the main dining room: red panelling, cream plaster, art
+	B.wallX(ex, "Wainscot", 6.55, 29.5, 46.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood)
+	B.wallZ(ex, "Wainscot", 46.45, 6.6, ZF - 0.5, 0, 3.6, 0.1, C.RED_DARK, M.Wood, { { 9, 19, 3.6, 2 }, { 22, 31, 3.6, 2 } })
+	B.wallX(ex, "ExPlaster", 6.6, 29.5, 46.5, 3.6, 13, 0.1, Color3.fromRGB(246, 232, 204), M.Plaster)
+	hangArt(ex, 38.5, 6.65, 0, "🪐\nPLANET\nPIZZERIA", Color3.fromRGB(40, 120, 200))
+	local exNeon = B.model(ex, "ExNeon")
+	exNeon.parent:SetAttribute("UpgradeId", "decor_neon")
+	local n3 = B.box(exNeon, "NeonKebab", 31.5, 6, 6.6, 34, 9.5, 6.7, Color3.fromRGB(255, 90, 160), M.Neon)
+	B.label(n3, Enum.NormalId.Back, "🥙", { pad = 2, brightness = 3 })
+	B.pointLight(n3, Color3.fromRGB(255, 90, 160), 10, 1.2)
 end
 
 ------------------------------------------------------------------ nodes

@@ -4,6 +4,12 @@ Newest first.
 
 ---
 
+## 2026-11-07: Extension annex fixed (#2), and a small UpgradeService change
+
+The Dining Room Extension was broken after today's wider building: the east wall's panelling blocked the way in, and the east poster and neon sign floated in the gap. All fixed and Studio-verified (both purchase orders, walk test, screenshots).
+
+**UpgradeService.applyPlot (shared code, please note):** it now also checks `UpgradeId`/`HideWhen` rules on models *nested inside a hidden model*, and a re-shown piece returns to its `HomeParent` even when that parent is hidden. This lets a piece depend on two upgrades (e.g. the annex neon sign needs both `expansion_1` and `decor_neon`). If your staff NPCs (#11) use nested upgrade models, this is the behaviour you get.
+
 ## 2026-11-07: Merged your rush tuning (PR #4) + level-up popup change
 
 **PR #4 verified and merged.** I added `DevCommand("traffic")` (returns the live multiplier) and measured it in Studio at levels 1/4/8 across the day: it matches your table exactly, and the lulls are unscaled. **Heads-up on your checklist:** `DevCommand("open")` doesn't start a shift (it calls `CustomerService.setOpen` directly), so `("day", 18)` then says "no shift running". Open with the OPEN sign. Maybe make `open` start the shift too?

@@ -89,6 +89,13 @@ _Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery 
 - **Studio (PC) verified 2026-11-07, Account 1:** no errors; Recipes cards show grey stars + "0 / 10 to 🥉 Bronze" (drinks "0 / 20"), locked cards unchanged, nothing overlaps the description; a real served Tomato Pizza + Orbit Orange counted (1 / 10, 1 / 20); `("mastery","cheese_pizza")` ×3 paid bronze (+$24, +20 XP toast) → silver → gold ("🥇 Mastered! +30% XP per serve", gold ★★★ RichText stars, no boxes), a 4th call says "already gold"; Business tab shows "Menu mastery ★ 3 / 75".
 - Not verified: phone-emulator layout, `profile.mastery` saving (DataStore off in Studio). Minor: an open Recipes tab doesn't refresh when a tier is reached (it does on reopen).
 
+## Extension annex + PizzaBox v2 (TASKS #2, Account 1, 2026-11-07): Studio-verified
+- **Annex bugs fixed** (they came from moving the east wall out): the east wall's wood panelling stayed in the opening after buying the Dining Room Extension and blocked the way in, and the east poster and neon sign floated in mid-air. The panelling now belongs to the wall section the annex removes; the east poster and neon sign hide with `HideWhen = expansion_1`. The annex got its own panelling, a cream back wall, a framed "PLANET PIZZERIA" poster and a neon sign that needs Neon Wall Signs too.
+- **UpgradeService fix:** a show/hide rule nested inside a hidden upgrade model (the east neon sign inside the neon decor) was never checked, so buying the annex first and the neon decor second brought the old sign back. `applyPlot` now also checks rules inside hidden models, and a re-shown piece goes back into its home even when that home is hidden. Verified in both purchase orders.
+- Walk test: the player walks straight from the dining room into the annex. No trees inside its footprint.
+- PizzaBox v2 checked: the orbit ring lies flat around the logo, trim and tab look right.
+- New helper `hangArt(ctx, x, z, yaw, text, color)` in RestaurantBuilder for framed posters.
+
 ## Rush tuning (Account 2, PR #4): Studio-verified + merged by Account 1 on 2026-11-07
 - A rush's extra traffic scales with level (`Config/DayCycle.RushScale`: 35% at level 1 → 100% at level 8). Measured live with the new `DevCommand("traffic")`: level 1 lunch ×1.28 / dinner ×1.35 / late ×1.14; level 4 ×1.50 / ×1.63 / ×1.25; level 8 ×1.8 / ×2.0 / ×1.4; morning ×0.9 and afternoon ×0.8 unscaled. Matches the PR table exactly.
 - Note: `DevCommand("open")` opens the doors without starting a shift, so no rush runs. Open with the real OPEN sign (or a bot press) to test rushes.

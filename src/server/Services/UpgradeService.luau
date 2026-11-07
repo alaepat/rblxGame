@@ -54,6 +54,13 @@ function UpgradeService.applyPlot(plot)
 	for _, d in hidden:GetChildren() do
 		table.insert(candidates, d)
 	end
+	-- rules nested inside a hidden model (e.g. the east neon sign inside the
+	-- neon decor, hidden again by the annex) must be checked too
+	for _, d in hidden:GetDescendants() do
+		if d.Parent ~= hidden and (d:GetAttribute("UpgradeId") or d:GetAttribute("HideWhen")) then
+			table.insert(candidates, d)
+		end
+	end
 	for _, d in candidates do
 		local need = d:GetAttribute("UpgradeId")
 		local hideWhen = d:GetAttribute("HideWhen")
@@ -67,7 +74,8 @@ function UpgradeService.applyPlot(plot)
 		if visible then
 			if d.Parent == hidden then
 				local parentPath = d:GetAttribute("HomeParent")
-				local home = parentPath and model:FindFirstChild(parentPath, true) or model
+				-- its home may itself be hidden: then it goes back inside it and stays hidden with it
+				local home = parentPath and (model:FindFirstChild(parentPath, true) or hidden:FindFirstChild(parentPath, true)) or model
 				d.Parent = home
 			end
 		else
