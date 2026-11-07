@@ -1391,6 +1391,17 @@ local function buildBack(c: Ctx)
 		end
 	end
 
+	-- Freezer Racks upgrade: a second stocked rack along the walk-in's east wall
+	local fr = B.model(fz, "FreezerRacks")
+	fr.parent:SetAttribute("UpgradeId", "freezer_racks")
+	local rack2 = shelving(B.sub(fr, -3.6, -24.6, 90), "FreezerRack2", 6, 2.2, 7)
+	for i = 0, 2 do
+		for j = 0, 1 do
+			local y = 0.48 + i * 2.13
+			B.box(rack2, "Frozen", -2.2 + j * 2.6 - 0.95, y, -0.8, -2.2 + j * 2.6 + 0.95, y + 1.0, 0.8, Color3.fromRGB(250, 236, 190):Lerp(Color3.fromRGB(215, 160, 90), (i + j) % 2 * 0.6), M.Cardboard, { CanQuery = false })
+		end
+	end
+
 	-- storage upgrades: extra shelves
 	local st1 = B.model(b, "Storage1")
 	st1.parent:SetAttribute("UpgradeId", "storage_1")
@@ -1430,8 +1441,11 @@ local function buildBack(c: Ctx)
 	B.box(o, "TabletStand", 7.25, 3.1, dz + 1.6, 7.55, 3.5, dz + 1.9, C.STEEL_DARK, M.Metal)
 	local tab = B.part(o, "Tablet", Vector3.new(1.5, 1.05, 0.08), CFrame.new(7.4, 3.85, dz + 1.85) * CFrame.Angles(math.rad(-20), 0, 0), C.BLACK)
 	B.label(tab, Enum.NormalId.Back, "📦 Order stock", { color = C.WHITE, bg = Color3.fromRGB(230, 90, 40), font = Enum.Font.GothamBlack, pad = 4, brightness = 1.5 })
-	local pcHit = B.hitbox(o, "PCHit", Vector3.new(6.6, 3.6, 2.6), CFrame.new(5.4, 5, dz + 1.6))
+	local pcHit = B.hitbox(o, "PCHit", Vector3.new(4.6, 3.6, 2.6), CFrame.new(4.6, 5, dz + 1.6))
 	B.station(pcHit, "OfficePC", "💻 Owner PC (orders & upgrades)")
+	-- the tablet is a shortcut: supplies with a suggested restock already in the cart
+	local tabHit = B.hitbox(o, "TabletHit", Vector3.new(1.8, 1.8, 1.4), CFrame.new(7.4, 3.9, dz + 1.8))
+	B.station(tabHit, "OfficeTablet", "📱 Quick restock")
 	if MeshLib.has("OfficeChair") then
 		-- swivel chair turned to face the desk
 		MeshLib.place(o.parent, "OfficeChair", o.origin * CFrame.new(4.6, 0, dz + 4.6) * CFrame.Angles(0, math.pi + 0.25, 0), {

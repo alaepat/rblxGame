@@ -16,6 +16,7 @@ local State = require(script.Parent.State)
 local Interaction = require(script.Parent.Interaction)
 local Notify = require(script.Parent.Notifications)
 local DayClock = require(script.Parent.DayClock)
+local Restock = require(Shared.Food.Restock)
 local T = Theme.make
 local Col = Theme.Colors
 
@@ -324,6 +325,15 @@ end
 function Manager.start()
 	build()
 	Net.event("OpenManager").OnClientEvent:Connect(function(which)
+		if which == "Restock" then
+			-- office tablet: Supplies with a suggested top-up in the cart
+			local snap = State.data
+			cart = Restock.suggest(Ingredients.List, snap.stock or {}, snap.capacity or {}, snap.level or 1, GameConfig.MaxBoxesPerDelivery)
+			local _, boxes = cartTotals()
+			Manager.open("Supplies", true)
+			Notify.toast(if boxes > 0 then ("📱 Suggested restock: %d box%s. Check it and place the order."):format(boxes, boxes == 1 and "" or "es") else "📱 Everything is well stocked", "info")
+			return
+		end
 		Manager.open(which, true)
 	end)
 	-- light refresh for live numbers (money, stock) without rebuilding every tick

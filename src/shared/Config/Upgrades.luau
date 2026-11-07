@@ -39,6 +39,8 @@ local list: { Upgrade } = {
 		description = "+50% stock capacity for every ingredient.", effects = { capacity = 0.5 } },
 	{ id = "storage_2", name = "Bigger Storage II", category = "Storage", level = 10, cost = 800, icon = "📦", requires = "storage_1",
 		description = "+50% more stock capacity.", effects = { capacity = 0.5 } },
+	{ id = "freezer_racks", name = "Freezer Racks", category = "Storage", level = 6, cost = 350, icon = "❄️", requires = "kebab_station",
+		description = "Extra racks in the walk-in freezer: double capacity for frozen stock (doner meat, chips).", effects = { capacity_frozen = 1.0 } },
 	-- Dining
 	{ id = "seating_1", name = "More Seating I", category = "Dining", level = 2, cost = 150, icon = "🪑",
 		description = "Two more tables. Customers arrive 15% more often.", effects = { traffic = 0.15 } },

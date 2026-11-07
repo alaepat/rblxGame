@@ -48,7 +48,8 @@ function ProgressService.capacity(player: Player, ingredientId: string): number
 	if not profile or not ing then
 		return 0
 	end
-	local mult = 1 + S.UpgradeService.effect(player, "capacity")
+	-- general storage upgrades + ones for a single category (e.g. capacity_frozen)
+	local mult = 1 + S.UpgradeService.effect(player, "capacity") + S.UpgradeService.effect(player, "capacity_" .. ing.category)
 	return math.floor(ing.boxSize * GameConfig.BaseCapacityBoxes * mult)
 end
 

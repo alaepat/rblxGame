@@ -632,6 +632,11 @@ actions.OfficePC = function(st, player)
 	S.ProgressService.sound(player, "Click")
 end
 
+actions.OfficeTablet = function(st, player)
+	Net.event("OpenManager"):FireClient(player, "Restock")
+	S.ProgressService.sound(player, "Click")
+end
+
 actions.OpenSign = function(st, player)
 	S.CustomerService.setOpen(st.plot, not st.plot.open)
 end
