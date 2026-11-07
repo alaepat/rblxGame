@@ -32,6 +32,8 @@ local list: { Upgrade } = {
 		description = "Fry chips for loaded fries and doner boxes." },
 	{ id = "oven_heat_2", name = "Hotter Oven II", category = "Kitchen", level = 9, cost = 900, icon = "🔥", requires = "oven_heat_1",
 		description = "Pizzas cook another 25% faster.", effects = { cookSpeed = 0.25 } },
+	{ id = "oven_heat_3", name = "Hotter Oven III", category = "Kitchen", level = 15, cost = 1800, icon = "🔥", requires = "oven_heat_2",
+		description = "Pizzas cook another 20% faster.", effects = { cookSpeed = 0.2 } },
 	{ id = "heat_shelf_2", name = "Bigger Heat Shelf", category = "Kitchen", level = 6, cost = 200, icon = "♨️",
 		description = "Two more heated holding slots on the pass." },
 	-- Storage
@@ -39,6 +41,8 @@ local list: { Upgrade } = {
 		description = "+50% stock capacity for every ingredient.", effects = { capacity = 0.5 } },
 	{ id = "storage_2", name = "Bigger Storage II", category = "Storage", level = 10, cost = 800, icon = "📦", requires = "storage_1",
 		description = "+50% more stock capacity.", effects = { capacity = 0.5 } },
+	{ id = "storage_3", name = "Bigger Storage III", category = "Storage", level = 16, cost = 1500, icon = "📦", requires = "storage_2",
+		description = "+50% more stock capacity again.", effects = { capacity = 0.5 } },
 	{ id = "freezer_racks", name = "Freezer Racks", category = "Storage", level = 6, cost = 350, icon = "❄️", requires = "kebab_station",
 		description = "Extra racks in the walk-in freezer: double capacity for frozen stock (doner meat, chips).", effects = { capacity_frozen = 1.0 } },
 	-- Dining
@@ -55,6 +59,8 @@ local list: { Upgrade } = {
 		description = "Glowing pizza and kebab neon signs.", effects = { tip = 0.04 } },
 	{ id = "decor_lights", name = "Pendant Lights", category = "Decor", level = 7, cost = 250, icon = "🏮",
 		description = "Warm pendant lights over the tables.", effects = { tip = 0.04 } },
+	{ id = "premium_packaging", name = "Premium Packaging", category = "Decor", level = 13, cost = 600, icon = "🎁",
+		description = "Branded boxes and napkins. Customers tip more.", effects = { tip = 0.05 } },
 }
 
 local byId: { [string]: Upgrade } = {}

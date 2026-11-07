@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-07: Levels 13–20 content (#10, part 1)
+
+11 new recipes and 3 upgrades, all config (see STATUS). `FoodLogic` board caps now come from the recipe list, so bigger recipes just work. Menu boards page every 6 s (`updateMenuBoard`). **Mastery:** `masteryMax` grows with the recipe count, which your specs already compute from `#Recipes.List`. Please run Lune. Desserts / calzone / garlic bread are left in #10: they need a new station.
+
 ## 2026-11-07: Carry pose + customer idles (#6)
 
 New client controller `Poses` (started in `Main.client.luau`). It offsets joint `.Transform` after animations each frame, so it works on Motor6D and AnimationConstraint rigs (the owner's avatar uses AnimationConstraint, where editing `C0`/attachments does nothing). CustomerService now sets a `State` attribute on customer models in `updateGui`. If your staff NPCs (#11) should idle too, give them `Customer_`-style names or extend `Poses`.

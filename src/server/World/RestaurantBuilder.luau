@@ -1691,12 +1691,54 @@ function RestaurantBuilder.updateMenuBoard(model: Model?, level: number, upgrade
 					end
 				end
 				local order = 0
+				local teasers = 0
+				local shown = {}
 				for _, r in Recipes.List do
 					if r.kind == kind then
+						local unlocked = FoodLogic.isRecipeUnlocked(r.id, level, upgrades)
+						if unlocked or teasers < 2 then
+							if not unlocked then
+								teasers += 1
+							end
+							table.insert(shown, r)
+						end
+					end
+				end
+				-- Like a real digital menu board: up to MENU_PAGE items per page
+				-- (2 columns), cycling through pages so the text stays readable.
+				local MENU_PAGE = 10
+				local pages = math.max(1, math.ceil(#shown / MENU_PAGE))
+				local grid = items:FindFirstChildOfClass("UIGridLayout")
+				if grid then
+					local rows = math.clamp(math.ceil(math.min(#shown, MENU_PAGE) / 2), 4, MENU_PAGE // 2)
+					grid.CellSize = UDim2.new(0.5, -6, 1 / rows, -4)
+				end
+				gui:SetAttribute("MenuPages", pages)
+				gui:SetAttribute("MenuPage", 1)
+				if pages > 1 and not gui:GetAttribute("MenuCycling") then
+					gui:SetAttribute("MenuCycling", true)
+					task.spawn(function()
+						while gui.Parent do
+							task.wait(6)
+							local n = gui:GetAttribute("MenuPages") or 1
+							local page = ((gui:GetAttribute("MenuPage") or 1) % n) + 1
+							gui:SetAttribute("MenuPage", page)
+							for _, t in items:GetChildren() do
+								if t:IsA("TextLabel") then
+									t.Visible = t:GetAttribute("Page") == page
+								end
+							end
+						end
+					end)
+				end
+				for _, r in shown do
+					do
 						order += 1
 						local unlocked = FoodLogic.isRecipeUnlocked(r.id, level, upgrades)
 						local t = Instance.new("TextLabel")
 						t.LayoutOrder = order
+						t:SetAttribute("Page", (order - 1) // MENU_PAGE + 1)
+						t.Visible = (order - 1) // MENU_PAGE + 1 == 1
 						t.BackgroundTransparency = 1
 						t.Font = Enum.Font.GothamBold
 						t.TextScaled = true

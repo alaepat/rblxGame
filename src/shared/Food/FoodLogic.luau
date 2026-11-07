@@ -15,6 +15,16 @@ local Recipes = require(Config.Recipes)
 local Ingredients = require(Config.Ingredients)
 local GameConfig = require(Config.GameConfig)
 
+-- Board capacity = the biggest recipe of each kind, so new recipes always fit.
+local MAX_TOPPINGS, MAX_FILLINGS = 0, 0
+for _, r in Recipes.List do
+	if r.kind == "pizza" then
+		MAX_TOPPINGS = math.max(MAX_TOPPINGS, #(r.toppings :: { string }))
+	elseif r.kind == "kebab" then
+		MAX_FILLINGS = math.max(MAX_FILLINGS, #(r.fillings :: { string }))
+	end
+end
+
 export type Item = { [string]: any }
 
 local FoodLogic = {}
@@ -81,7 +91,7 @@ function FoodLogic.canAddToPizza(item: Item, ingredientId: string): (boolean, st
 	if contains(item.toppings, ingredientId) then
 		return false, "Already added"
 	end
-	if #item.toppings >= 8 then
+	if #item.toppings >= MAX_TOPPINGS then
 		return false, "Too many toppings"
 	end
 	return true, nil
@@ -100,7 +110,7 @@ function FoodLogic.canAddToKebab(item: Item, ingredientId: string): (boolean, st
 	if ingredientId == "chips" and item.base ~= "food_box" then
 		return false, "Chips go in a food box"
 	end
-	if #item.fillings >= 9 then
+	if #item.fillings >= MAX_FILLINGS then
 		return false, "It's full"
 	end
 	return true, nil

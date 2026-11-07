@@ -31,6 +31,10 @@ local milestones: { [number]: string } = {
 	[8] = "Chip Fryer available in Upgrades",
 	[10] = "Dining Room Extension available",
 	[12] = "Planet Special Box unlocked",
+	[13] = "Late-game menu: new pizzas and sides keep coming every level",
+	[15] = "Hotter Oven III available",
+	[19] = "Galaxy Pizza: every topping on one pizza",
+	[20] = "Planet Mega Box: the biggest order in the galaxy",
 }
 
 export type Unlocks = { recipes: { string }, ingredients: { string }, upgrades: { string }, note: string? }

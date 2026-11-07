@@ -51,6 +51,20 @@ local list: { Recipe } = {
 		sauce = "tomato_sauce", toppings = { "mozzarella", "pepperoni", "beef", "mushroom", "onion", "green_pepper", "olive" }, description = "Everything a supreme should have." },
 	{ id = "deluxe_house_pizza", name = "Deluxe House Pizza", kind = "pizza", level = 11, price = 21, xp = 32, icon = "🪐",
 		sauce = "tomato_sauce", toppings = { "mozzarella", "cheddar", "ham", "pepperoni", "mushroom", "olive", "jalapeno" }, description = "The Pizza Planet signature." },
+	-- levels 13-20: late-game pizzas from the same rail, bigger and pricier
+	{ id = "chicken_mushroom_pizza", name = "Chicken & Mushroom Pizza", kind = "pizza", level = 13, price = 16, xp = 26, icon = "🍗",
+		sauce = "tomato_sauce", toppings = { "mozzarella", "chicken", "mushroom", "green_pepper" }, description = "Roast chicken, mushrooms and green pepper." },
+	{ id = "bbq_meat_feast_pizza", name = "BBQ Meat Feast", kind = "pizza", level = 14, price = 22, xp = 34, icon = "🔥",
+		sauce = "bbq_sauce", toppings = { "mozzarella", "chicken", "beef", "ham", "pepperoni", "onion" }, description = "BBQ base, four meats and red onion." },
+	{ id = "four_cheese_heat_pizza", name = "Cheesy Inferno", kind = "pizza", level = 15, price = 18, xp = 29, icon = "🌋",
+		sauce = "tomato_sauce", toppings = { "mozzarella", "cheddar", "jalapeno", "green_pepper", "onion" }, description = "Double cheese, jalapeños and peppers." },
+	{ id = "garden_supreme_pizza", name = "Garden Supreme", kind = "pizza", level = 16, price = 19, xp = 30, icon = "🌿",
+		sauce = "tomato_sauce", toppings = { "mozzarella", "tomato", "mushroom", "onion", "green_pepper", "olive", "jalapeno" }, description = "Every vegetable on the rail." },
+	{ id = "bbq_ranch_pizza", name = "Smokehouse Pizza", kind = "pizza", level = 17, price = 21, xp = 33, icon = "🤠",
+		sauce = "bbq_sauce", toppings = { "mozzarella", "cheddar", "beef", "chicken", "jalapeno", "onion" }, description = "BBQ beef and chicken with jalapeño heat." },
+	{ id = "galaxy_pizza", name = "Galaxy Pizza", kind = "pizza", level = 19, price = 30, xp = 45, icon = "🌌",
+		sauce = "tomato_sauce", toppings = { "mozzarella", "cheddar", "tomato", "pepperoni", "mushroom", "ham", "onion", "green_pepper", "chicken", "olive", "beef", "jalapeno" },
+		description = "Every topping in the kitchen. Only for legends." },
 
 	-- ===== KEBABS =====
 	{ id = "chicken_doner", name = "Chicken Doner Kebab", kind = "kebab", level = 6, price = 9, xp = 14, icon = "🥙", requires = "kebab_station",
@@ -71,6 +85,19 @@ local list: { Recipe } = {
 		base = "food_box", fillings = { "chips", "cheddar", "chicken_doner", "garlic_sauce" }, description = "Chips, cheddar, chicken doner, garlic sauce." },
 	{ id = "planet_special", name = "Planet Special Box", kind = "kebab", level = 12, price = 19, xp = 30, icon = "🪐", requires = "fryer",
 		base = "food_box", fillings = { "chips", "chicken_doner", "lamb_doner", "cheddar", "lettuce", "red_cabbage", "garlic_sauce", "chilli_sauce" }, description = "The ultimate box. Everything on it." },
+	-- levels 13-20
+	{ id = "cheesy_chips", name = "Cheesy Chips", kind = "kebab", level = 13, price = 7, xp = 12, icon = "🧀", requires = "fryer",
+		base = "food_box", fillings = { "chips", "cheddar", "garlic_sauce" }, description = "Hot chips, melted cheddar, garlic sauce." },
+	{ id = "chilli_chicken_wrap", name = "Chilli Chicken Wrap", kind = "kebab", level = 14, price = 11, xp = 18, icon = "🌶️", requires = "kebab_station",
+		base = "wrap_bread", fillings = { "chicken_doner", "lettuce", "red_cabbage", "onion", "chilli_sauce" }, description = "Chicken doner with cabbage, onion and chilli." },
+	{ id = "lamb_salad_box", name = "Lamb Salad Box", kind = "kebab", level = 15, price = 12, xp = 19, icon = "🥗", requires = "kebab_station",
+		base = "food_box", fillings = { "lamb_doner", "lettuce", "tomato", "cucumber", "red_cabbage", "mayo" }, description = "Lamb doner on salad, no bread." },
+	{ id = "mixed_grill_pitta", name = "Mixed Grill Pitta", kind = "kebab", level = 18, price = 18, xp = 29, icon = "🥙", requires = "kebab_station",
+		base = "pitta", fillings = { "chicken_doner", "lamb_doner", "cheddar", "lettuce", "tomato", "onion", "cucumber", "garlic_sauce", "chilli_sauce", "mayo" },
+		description = "Both meats, cheese, full salad and all three sauces." },
+	{ id = "planet_mega_box", name = "Planet Mega Box", kind = "kebab", level = 20, price = 26, xp = 40, icon = "🚀", requires = "fryer",
+		base = "food_box", fillings = { "chips", "chicken_doner", "lamb_doner", "cheddar", "lettuce", "tomato", "cucumber", "red_cabbage", "onion", "garlic_sauce", "chilli_sauce", "mayo" },
+		description = "Everything from the kebab station. Bring a friend." },
 
 	-- ===== DRINKS =====
 	{ id = "cola", name = "Planet Cola", kind = "drink", level = 1, price = 2, xp = 3, icon = "🥤", syrup = "cola_syrup", description = "Ice-cold cola." },
