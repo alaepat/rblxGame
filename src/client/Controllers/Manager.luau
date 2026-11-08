@@ -14,6 +14,7 @@ local Net = require(Shared.Net)
 local Theme = require(script.Parent.Parent.UI.Theme)
 local Responsive = require(script.Parent.Parent.UI.Responsive)
 local MasteryBadge = require(script.Parent.Parent.UI.MasteryBadge)
+local Mastery = require(Shared.Mastery.Mastery)
 local State = require(script.Parent.State)
 local Interaction = require(script.Parent.Interaction)
 local Notify = require(script.Parent.Notifications)
@@ -39,6 +40,7 @@ local TABS = {
 	{ "Supplies", "🛒 Supplies" },
 	{ "Upgrades", "⚡ Upgrades" },
 	{ "Recipes", "📖 Recipes" },
+	{ "Mastery", "🏅 Mastery" },
 	{ "Decor", "🎨 Decor" },
 	{ "Stats", "📈 Business" },
 }
@@ -292,7 +294,7 @@ local function renderRecipes()
 		table.insert(previewCards, { card = c, recipe = r, locked = not ok, icon = icon })
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(60, 8), Size = UDim2.new(1, -200, 0, 20), Text = r.name, TextColor3 = Col.Ink, Font = Theme.FontBlack, TextSize = 16 })
 		local req = r.requires and Upgrades.get(r.requires)
-		Theme.text({ Parent = c, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(200, 20), Text = ok and (Theme.money(r.price) .. " · " .. r.xp .. " XP") or ("🔒 Level " .. r.level .. (req and (" + " .. req.name) or "")), TextColor3 = ok and Col.Green or Col.InkSoft, Font = Theme.FontBlack, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Right })
+		Theme.text({ Parent = c, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(200, 20), Text = ok and (Theme.money(Mastery.priceFor(r, (snap.mastery or {})[r.id])) .. " · " .. r.xp .. " XP") or ("🔒 Level " .. r.level .. (req and (" + " .. req.name) or "")), TextColor3 = ok and Col.Green or Col.InkSoft, Font = Theme.FontBlack, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Right })
 		local steps: string
 		if r.kind == "pizza" then
 			local tops = {}
@@ -330,6 +332,51 @@ local function stat(parent: Instance, order: number, label: string, value: strin
 	local c = card(parent, order, false)
 	Theme.text({ Parent = c, Position = UDim2.fromOffset(14, 12), Size = UDim2.new(1, -28, 0, 16), Text = label, TextColor3 = Col.InkSoft, TextSize = 13 })
 	Theme.text({ Parent = c, Position = UDim2.fromOffset(14, 34), Size = UDim2.new(1, -28, 0, 36), Text = value, TextColor3 = color or Col.Ink, Font = Theme.FontBlack, TextSize = 28 })
+end
+
+-- Every unlocked recipe's mastery at a glance, best first.
+local function renderMastery()
+	local snap = State.data
+	local counts = snap.mastery or {}
+	local list = {}
+	for _, id in snap.unlockedRecipes or {} do
+		local r = Recipes.get(id)
+		if r then
+			table.insert(list, { r = r, v = Mastery.view(r, counts[id]) })
+		end
+	end
+	table.sort(list, function(a, b)
+		if a.v.tier ~= b.v.tier then
+			return a.v.tier > b.v.tier
+		end
+		if a.v.progress ~= b.v.progress then
+			return a.v.progress > b.v.progress
+		end
+		return a.r.level < b.r.level
+	end)
+	T("UIGridLayout", { Parent = content, CellSize = UDim2.fromOffset(268, 96), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder })
+	local gold = Mastery.Config.Tiers[Mastery.MaxTier]
+	for i, e in list do
+		local r, v = e.r, e.v
+		local c = card(content, i, false)
+		c.Name = "Mastery_" .. r.id
+		if v.tier >= Mastery.MaxTier then
+			Theme.stroke(Color3.fromRGB(245, 180, 0), 2).Parent = c
+		end
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(10, 8), Size = UDim2.fromOffset(36, 36), Text = r.icon, TextSize = 28, TextXAlignment = Enum.TextXAlignment.Center })
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(52, 8), Size = UDim2.new(1, -60, 0, 18), Text = r.name, TextColor3 = Col.Ink, Font = Theme.FontBlack, TextSize = 14, TextTruncate = Enum.TextTruncate.AtEnd })
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(52, 28), Size = UDim2.new(1, -60, 0, 18), Text = Mastery.stars(v.tier), RichText = true, TextSize = 16 })
+		local barBg = T("Frame", { Parent = c, Position = UDim2.fromOffset(52, 52), Size = UDim2.new(1, -64, 0, 8), BackgroundColor3 = Col.Line }, { Theme.corner(4) })
+		T("Frame", { Parent = barBg, Size = UDim2.fromScale(v.progress, 1), BackgroundColor3 = if v.nextAt then Col.Yellow else Color3.fromRGB(245, 180, 0) }, { Theme.corner(4) })
+		local line = MasteryBadge.caption(r, v.count)
+		if not v.nextAt then
+			line = ("%s Gold: %s each (+%d%%)"):format(gold.icon, Theme.money(Mastery.priceFor(r, v.count)), math.floor(Mastery.priceBonus(v.tier) * 100 + 0.5))
+		end
+		Theme.text({ Parent = c, Position = UDim2.fromOffset(52, 66), Size = UDim2.new(1, -60, 0, 18), Text = line, TextColor3 = Col.InkSoft, TextSize = 12, TextTruncate = Enum.TextTruncate.AtEnd })
+	end
+	footerText.Text = ("★ %d / %d mastery stars. %s Gold recipes sell for +%d%% and give +%d%% XP per serve."):format(
+		snap.masteryStars or 0, snap.masteryMax or 0, gold.icon,
+		math.floor((gold :: any).priceBonus * 100 + 0.5), math.floor(gold.serveXPBonus * 100 + 0.5))
 end
 
 local function renderStats()
@@ -381,6 +428,8 @@ render = function()
 		renderUpgrades()
 	elseif tab == "Decor" then
 		renderDecor()
+	elseif tab == "Mastery" then
+		renderMastery()
 	elseif tab == "Recipes" then
 		renderRecipes()
 		task.defer(refreshPreviews) -- after the list layout has positioned the cards

@@ -7,6 +7,7 @@
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
+local Mastery = require(Shared.Mastery.Mastery)
 local GameConfig = require(Shared.Config.GameConfig)
 local DayCycleConfig = require(Shared.Config.DayCycle)
 local FoodLogic = require(Shared.Food.FoodLogic)
@@ -658,9 +659,10 @@ function CustomerService.submitOrder(player: Player, recipeIds: any): (boolean, 
 	local number = ((profile.orderCounter - 1) % 99) + 1
 	local price = 0
 	local items = {}
+	local served = profile.mastery or {}
 	for _, id in clean do
 		local r = Recipes.get(id) :: any
-		price += r.price
+		price += Mastery.priceFor(r, served[id]) -- gold-mastered recipes sell for more
 		table.insert(items, { recipe = id, done = false })
 	end
 	local order = {

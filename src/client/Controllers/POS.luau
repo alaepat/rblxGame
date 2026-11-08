@@ -5,12 +5,14 @@
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
+local Mastery = require(Shared.Mastery.Mastery)
 local Net = require(Shared.Net)
 
 local Theme = require(script.Parent.Parent.UI.Theme)
 local Responsive = require(script.Parent.Parent.UI.Responsive)
 local Interaction = require(script.Parent.Interaction)
 local DayClock = require(script.Parent.DayClock)
+local State = require(script.Parent.State)
 local Notify = require(script.Parent.Notifications)
 local T = Theme.make
 local Col = Theme.Colors
@@ -42,6 +44,11 @@ local function close(cancel: boolean)
 	end
 end
 
+-- Price after menu mastery (gold recipes sell for more; the server prices the order).
+local function priceOf(r: any): number
+	return Mastery.priceFor(r, (State.get("mastery") or {})[r.id])
+end
+
 local function refreshCart()
 	for _, ch in cartList:GetChildren() do
 		if ch:IsA("Frame") then
@@ -57,7 +64,7 @@ local function refreshCart()
 		end
 		counts[id] = (counts[id] or 0) + 1
 		local r = Recipes.get(id)
-		total += r and r.price or 0
+		total += r and priceOf(r) or 0
 	end
 	for i, id in order do
 		local r = Recipes.get(id) :: any
@@ -96,7 +103,7 @@ local function refreshMenu()
 			end)
 			Theme.text({ Parent = b, Position = UDim2.fromOffset(0, 8), Size = UDim2.new(1, 0, 0, 34), Text = r.icon, TextSize = 30, TextXAlignment = Enum.TextXAlignment.Center })
 			Theme.text({ Parent = b, Position = UDim2.fromOffset(4, 44), Size = UDim2.new(1, -8, 0, 32), Text = r.name, TextWrapped = true, TextColor3 = Col.Ink, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center })
-			Theme.text({ Parent = b, Position = UDim2.fromOffset(0, 78), Size = UDim2.new(1, 0, 0, 18), Text = Theme.money(r.price), TextColor3 = Col.Green, Font = Theme.FontBlack, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Center })
+			Theme.text({ Parent = b, Position = UDim2.fromOffset(0, 78), Size = UDim2.new(1, 0, 0, 18), Text = Theme.money(priceOf(r)) .. (if priceOf(r) > r.price then " 🥇" else ""), TextColor3 = Col.Green, Font = Theme.FontBlack, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Center })
 			T("Frame", { Parent = b, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -6), Size = UDim2.new(0.7, 0, 0, 4), BackgroundColor3 = accent }, { Theme.corner(2) })
 		end
 	end

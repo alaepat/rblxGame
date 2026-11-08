@@ -145,6 +145,10 @@ local function eligible(t: Challenges.Template, level: number, upgrades: { [stri
 	if t.event == "serve_recipe" and #mains < 2 then
 		return false
 	end
+	-- "different recipes" goals need more recipes on the menu than the target
+	if t.event == "serve_variety" and #FoodLogic.unlockedRecipes(level, upgrades) <= DailyGoals.target(t, level) then
+		return false
+	end
 	return true
 end
 

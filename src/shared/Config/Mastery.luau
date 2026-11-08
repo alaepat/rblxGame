@@ -3,14 +3,15 @@
 --
 -- Every recipe you serve counts toward its mastery. Reaching a tier pays a
 -- one-off reward and gives a permanent bonus on that recipe's serve XP.
+-- priceBonus raises what customers pay for that recipe (gold = +10%).
 
 return {
 	-- Serves needed for each tier (index = tier). Drinks are quick and
 	-- frequent, so their thresholds are multiplied by KindMultiplier.drink.
 	Tiers = {
-		{ id = "bronze", name = "Bronze", icon = "🥉", serves = 10, rewardPrice = 3, rewardXP = 2, serveXPBonus = 0.1 },
-		{ id = "silver", name = "Silver", icon = "🥈", serves = 30, rewardPrice = 6, rewardXP = 4, serveXPBonus = 0.2 },
-		{ id = "gold", name = "Gold", icon = "🥇", serves = 75, rewardPrice = 12, rewardXP = 8, serveXPBonus = 0.3 },
+		{ id = "bronze", name = "Bronze", icon = "🥉", serves = 10, rewardPrice = 3, rewardXP = 2, serveXPBonus = 0.1, priceBonus = 0 },
+		{ id = "silver", name = "Silver", icon = "🥈", serves = 30, rewardPrice = 6, rewardXP = 4, serveXPBonus = 0.2, priceBonus = 0 },
+		{ id = "gold", name = "Gold", icon = "🥇", serves = 75, rewardPrice = 12, rewardXP = 8, serveXPBonus = 0.3, priceBonus = 0.1 },
 	},
 	-- Tier reward: cash = recipe.price * rewardPrice, XP = recipe.xp * rewardXP.
 	-- Serve bonus: every serve of a mastered recipe adds floor(recipe.xp * serveXPBonus) XP.

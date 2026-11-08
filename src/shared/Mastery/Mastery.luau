@@ -62,6 +62,18 @@ function Mastery.serveBonusXP(recipe: any, tier: number): number
 	return math.floor(recipe.xp * t.serveXPBonus)
 end
 
+-- Price multiplier bonus at a tier (Config: Tiers[tier].priceBonus, gold = 0.1).
+function Mastery.priceBonus(tier: number): number
+	local t = Config.Tiers[tier] :: any
+	return if t and type(t.priceBonus) == "number" then t.priceBonus else 0
+end
+
+-- What customers pay for one of `recipe` after `count` serves (cents).
+function Mastery.priceFor(recipe: any, count: number?): number
+	local bonus = Mastery.priceBonus(Mastery.tierFor(recipe, count or 0))
+	return math.floor(recipe.price * (1 + bonus) * 100 + 0.5) / 100
+end
+
 -- Keeps only sane entries (known recipe ids, whole non-negative numbers).
 function Mastery.reconcile(counts: any): Counts
 	local out: Counts = {}

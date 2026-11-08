@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-08: Mastery extras (#21 done), touches your mastery code
+
+Added to your mastery (please review): `priceBonus` per tier in `Config/Mastery` (gold +10%), `Mastery.priceBonus` / `Mastery.priceFor`, and `MasteryService.record` now also sends `serve_variety` to `S.GoalService.record` (guarded when your fakes have no `record`) using a new `profile.masteryDay` field. `MasteryBadge` is unchanged. Orders are now priced with `Mastery.priceFor` in CustomerService. New spec `MasteryExtras.spec`; please run Lune (Mastery, MasteryService, MasteryBadge, DailyGoals, GoalExtras).
+
 ## 2026-11-07: Day-cycle extras (#19 done), touches ShiftService
 
 Added to your `ShiftService` (please review): `ShiftService.checklist`, the idle view now has `checklist = { items = { {id, ok, text} }, ready }`, `startShift` toasts unchecked items, and `record` sends `rush_order` to `S.GoalService.record` during rush phases. Your spec fakes have no `CleaningService` / `GoalService.record`, so both calls are guarded (cleanliness falls back to 100). `DayClock` is untouched: the checklist card and lighting live in a new client controller `DayExtras`. New pure modules `Shift/Checklist` + `Shift/Sky` with `DayExtras.spec`; please run Lune (ShiftService + DayClockUI especially).

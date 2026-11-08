@@ -169,7 +169,9 @@ local function run(cmd: string, arg: any): any
 		return S.ShiftService.devJump(plot, hour)
 	elseif cmd == "event" then
 		-- feed a game event through GoalService (goals, day stats, rush goals)
-		S.GoalService.record(player, tostring(arg), 1)
+		-- "name" or "name:param", e.g. "serve_recipe:cheese_pizza"
+		local name, param = string.match(tostring(arg), "^([^:]+):?(.*)$")
+		S.GoalService.record(player, name, 1, if param ~= "" then param else nil)
 		return "recorded " .. tostring(arg)
 	elseif cmd == "theme" then
 		local ok, msg = S.ThemeService.choose(player, arg)

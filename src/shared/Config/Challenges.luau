@@ -27,6 +27,7 @@
 --   clean          rubbish picked up / counter wiped
 --   bake_perfect   pizza taken out of the oven while "cooked" (not raw, not burnt)
 --   rush_order     an order completed during a rush phase (ShiftService)
+--   serve_variety  first serve of a recipe today (MasteryService), param = recipe id
 
 export type Template = {
 	id: string,
@@ -65,6 +66,8 @@ local templates: { Template } = {
 		minLevel = 2, base = 2, perLevel = 0.2, step = 1, weight = 3, difficulty = 1.1 },
 	{ id = "rush", event = "rush_order", text = "Serve %s orders during a rush hour", icon = "🔥",
 		minLevel = 2, base = 3, perLevel = 0.35, step = 1, weight = 2, difficulty = 1.25 },
+	{ id = "variety", event = "serve_variety", text = "Serve %s different recipes (mastery practice)", icon = "🏅",
+		minLevel = 3, base = 3, perLevel = 0.15, step = 1, weight = 2, difficulty = 1.15 },
 	{ id = "kebabs", event = "serve_kind", param = "kebab", text = "Serve %s kebabs, wraps or boxes", icon = "🥙",
 		minLevel = 6, requires = "kebab_station", base = 3, perLevel = 0.3, step = 1, weight = 3, difficulty = 1.1 },
 }

@@ -6,10 +6,14 @@
 --  * Each tier also adds bonus XP to every later serve of that recipe.
 --  * Adds `mastery` (the counts) and the star totals to the State snapshot.
 --  * Rules live in Shared.Mastery.Mastery, numbers in Config/Mastery.
+--  * The first serve of each recipe in a goals day sends "serve_variety" to
+--    GoalService (daily goal "Serve N different recipes"). The recipes seen
+--    today are kept in profile.masteryDay = { day, seen = { [id] = true } }.
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Mastery = require(Shared.Mastery.Mastery)
 local Recipes = require(Shared.Config.Recipes)
+local DailyGoals = require(Shared.Goals.DailyGoals)
 
 local MasteryService = {}
 local S: any
@@ -63,10 +67,29 @@ function MasteryService.addServes(player: Player, recipeId: string, amount: numb
 	S.ProgressService.push(player)
 end
 
+-- First serve of a recipe today -> "serve_variety" goal event.
+local function noteVariety(player: Player, recipeId: string)
+	local profile = S.DataService.get(player)
+	if not profile or not Recipes.get(recipeId) or not (S.GoalService and S.GoalService.record) then
+		return
+	end
+	local today = DailyGoals.dayNumber(os.time())
+	local md = profile.masteryDay
+	if type(md) ~= "table" or md.day ~= today or type(md.seen) ~= "table" then
+		md = { day = today, seen = {} }
+		profile.masteryDay = md
+	end
+	if not md.seen[recipeId] then
+		md.seen[recipeId] = true
+		S.GoalService.record(player, "serve_variety", 1, recipeId)
+	end
+end
+
 -- Fed by GoalService.onEvent with every recorded game event.
 function MasteryService.record(player: Player, event: string, amount: number?, param: string?)
 	if event == "serve_recipe" and type(param) == "string" then
 		MasteryService.addServes(player, param, amount)
+		noteVariety(player, param)
 	end
 end
 
