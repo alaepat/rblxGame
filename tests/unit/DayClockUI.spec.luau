@@ -210,6 +210,18 @@ return {
 		T.ok(ctx.hasText(win, "full-day bonus"))
 		T.ok(ctx.hasText(win, "New best day for sales"))
 		T.ok(not ctx.hasText(win, "Staff wages"), "no wages row without staff")
+		T.ok(ctx.hasText(win, "6 · 3 · 5"), "items row")
+		T.ok(not ctx.hasText(win, "Desserts"), "no dessert column before any dessert is sold")
+	end,
+
+	["desserts get their own column once one is sold"] = function()
+		local ctx = setup()
+		local p = summaryPayload()
+		p.stats.desserts = 4
+		ctx.summary(p)
+		local win = ctx.find("DaySummary")
+		T.ok(ctx.hasText(win, "Desserts"))
+		T.ok(ctx.hasText(win, "6 · 3 · 5 · 4"))
 	end,
 
 	["wages row appears when staff were paid, and Continue closes the card"] = function()

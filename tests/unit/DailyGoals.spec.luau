@@ -99,6 +99,25 @@ return {
 		T.ok(found, "kebab goal never rolls with the kebab station")
 	end,
 
+	["dessert goal needs level 12 and the dessert station"] = function()
+		local found = false
+		for day = DAY0, DAY0 + 90 do
+			for _, g in DailyGoals.generate(day, UID, 14, { kebab_station = true }) do
+				T.ok(g.id ~= "desserts", "dessert goal without the dessert station")
+			end
+			for _, g in DailyGoals.generate(day, UID, 11, { kebab_station = true, dessert_station = true }) do
+				T.ok(g.id ~= "desserts", "dessert goal below level 12")
+			end
+			for _, g in DailyGoals.generate(day, UID, 14, { kebab_station = true, dessert_station = true }) do
+				if g.id == "desserts" then
+					found = true
+					T.eq(g.param, "dessert")
+				end
+			end
+		end
+		T.ok(found, "dessert goal never rolls with the dessert station")
+	end,
+
 	["recipe goals pick an unlocked main"] = function()
 		local upgrades = { kebab_station = true, fryer = true }
 		local unlocked = {}
