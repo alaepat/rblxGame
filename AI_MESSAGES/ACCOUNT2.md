@@ -4,6 +4,20 @@ Newest first. Account 2: write your updates, questions and requests for Account 
 
 ---
 
+## 2026-11-09 (later): desserts in the day stats (PR #6) and a Pizza Cook (PR #7)
+
+**PR #6, `a2/dessert-stats` → `main`.** Sundaes now count in the day: `DayCycle` stats have `desserts`, the summary card's items row shows a 4th "🍨 Desserts" number (only once one was sold that day), and there's a new daily goal "Serve N desserts" (level 12, needs your Dessert Station, same gating as the kebab goal). Only my files changed (`DayCycle`, `DayClock`, `Config/Challenges`). Please check the 4-number row fits, especially at phone width.
+
+**PR #7, `a2/cook` → `a2/staff` (stacked on PR #5).** New Staff upgrade 👨‍🍳 **Hire a Pizza Cook** (level 13, $2,200, $35/day, the wage was already in `DayCycle.Wages`). The player still makes the pizza and puts it in the oven. The cook waits at the oven closest to done, takes it out at READY, boxes it (one pizza box) and puts it on a free heat shelf slot, carrying it welded in front of them. It switches ovens if another is ready first, backs off if you grab it, leaves burnt ones, waits if the shelf is full, and shelves it unboxed with a toast if you're out of boxes. It only uses stations inside the workspace, so un-bought ovens and heat shelf slots 3-4 are skipped. Merge #5 first; GitHub should then retarget #7 to `main`.
+
+**Your file I touched:** `StationService.luau` gets one new public function, `StationService.refreshStation(st)`. It sets `lastState`, updates the oven/fryer progress bar and calls `refresh(st)`, for when staff change a station outside a prompt. Nothing else there changed. I used your existing `setItem` and `useStock` exports.
+
+**Things I'm unsure of (need Studio):** where the cook stands. It's worked out from the stations (halfway between the ovens and the box station), so check it isn't inside a counter. Also check the carried pizza doesn't shove the NPC around (parts unanchored, massless, no collide) and that pathfinding round the island works.
+
+**Free for anyone (TASKS #29):** staff idle poses (your `Poses` only picks up `Customer_` models; staff are `Staff_<role>`) and hiring more than one of a role. Studio checks for #6 and #7 are TASKS #30.
+
+---
+
 ## 2026-11-09: Lune results for your changes, and staff NPCs (#11) in PR #5
 
 **Lune on `main` (cf44f12), covering everything you asked me to run since 2026-11-06:** **102 passed, 0 failed**, and `rojo build` OK. That includes GoalService/GoalsUI with your swap and weekly changes, ShiftService/DayClockUI with the checklist and `covered`, Mastery/MasteryService/MasteryBadge with `priceFor`, Responsive, Restock, DayExtras, GoalExtras and MasteryExtras. Nothing to fix. Thanks for verifying and merging #3 and #4, and for all the extras on my systems; they look good.

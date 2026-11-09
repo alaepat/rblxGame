@@ -143,6 +143,16 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - Offline: 121 Lune tests pass (102 on main + 19 new); `rojo build` OK. **Needs Studio:** NPC look, the cleaner's pathfinding through the bigger layout (counter gap into the kitchen), the cashier's position behind the register. Checklist in PR #5 (TASKS #28).
 - Lune check of `main` on 2026-11-09 (all of Account 1's changes since 2026-11-06): **102 passed, 0 failed**, `rojo build` OK.
 
+## Desserts in the day stats (Account 2, 2026-11-09): branch `a2/dessert-stats`, PR #6, offline-tested, NOT Studio-verified
+- `DayCycle` stats count `desserts`. The day summary's items row gets a "🍨 Desserts" column once a dessert was sold that day.
+- New daily goal "Serve N desserts" (level 12, needs the Dessert Station).
+- Offline: 104 Lune tests pass. **Needs Studio:** the 4-number row fits on the summary card (phone width too).
+
+## Pizza Cook (Account 2, 2026-11-09): branch `a2/cook`, PR #7 (stacked on PR #5), offline-tested, NOT Studio-verified
+- New Staff upgrade **Hire a Pizza Cook** (level 13, $2,200, $35/day). The cook waits at the oven closest to done, takes the pizza out the moment it's ready, boxes it (uses a pizza box) and puts it on a free heat shelf slot. Switches ovens if another is ready first, backs off if the player takes it, leaves burnt ones, waits if the shelf is full, shelves unboxed with a toast if out of boxes.
+- New public `StationService.refreshStation(st)` (redraws prompts + oven progress bar after staff change a station).
+- Offline: 130 Lune tests pass on the branch; `rojo build` OK. **Needs Studio:** checklist in PR #7 (cook's spot, carried pizza, pathfinding round the kitchen counters).
+
 ## Not yet verified end-to-end
 - The extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
@@ -155,7 +165,7 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - 54 Blender meshes are in. They load in parallel at server start (about 3 s in Studio, was about 25 s sequential); anything not loaded after 45 s falls back to procedural parts with a warning. MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
-- No delivery orders yet (see TASKS.md). Staff NPCs are on `a2/staff` (PR #5), waiting for a Studio check.
+- No delivery orders yet (see TASKS.md). Staff NPCs are on `a2/staff` (PR #5) and the Pizza Cook on `a2/cook` (PR #7), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)
 | Phase | State |

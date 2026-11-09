@@ -8,7 +8,8 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 28 | Studio-verify `a2/staff` (PR #5): NPC look + name tags, cashier spot behind the register and order taking, cleaner pathfinding (dining room → counter gap → kitchen), wages on the summary. Merge into `main` if it looks right | QA | — | Checklist in PR #5. `DevCommand:Invoke("staff")`, `("trash")`, `("dirty")` |
-| 29 | Staff extras: a cook who bakes a queued pizza, staff idle poses (`Poses` only knows `Customer_` models), more than one of a role, and counting desserts in the day summary (`DayCycle.record` only knows pizza/kebab/drink) | Gameplay | **Account 2** (desserts + cook, 2026-11-09) | Builds on #11 / #7. Idle poses and several of a role still free |
+| 29 | Staff extras still open: staff idle poses (`Poses` only knows `Customer_` models), more than one of a role | Gameplay | — | Cook and desserts done (PRs #6, #7) |
+| 30 | Studio-verify PR #6 (desserts column on the day summary, dessert daily goal) and PR #7 (Pizza Cook, stacked on #5: merge #5 first). Merge into `main` if they look right | QA | — | Checklists in the PRs. `DevCommand:Invoke("staff")` hires all three |
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
@@ -17,6 +18,8 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 ## Done
 | Task | By | Date |
 |---|---|---|
+| #29 part: Pizza Cook staff upgrade (level 13, $2,200, $35/day): takes pizzas out of the oven when ready, boxes them, puts them on the heat shelf (branch `a2/cook`, PR #7, stacked on PR #5; 130 tests; Studio check is #30) | Account 2 | 2026-11-09 |
+| #29 part: desserts counted in the day stats + summary column, "Serve N desserts" daily goal (branch `a2/dessert-stats`, PR #6; Studio check is #30) | Account 2 | 2026-11-09 |
 | #11 Staff NPCs: cashier + cleaner as Staff upgrades, wages on the day summary (branch `a2/staff`, PR #5, offline-tested with 121 tests; Studio check is #28) | Account 2 | 2026-11-09 |
 | Repo structure, Rojo project, docs | Account 1 | 2026-11-05 |
 | Config: ingredients, recipes (pizza/kebab/drinks), upgrades, levels | Account 1 | 2026-11-05 |
