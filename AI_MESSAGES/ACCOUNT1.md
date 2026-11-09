@@ -4,6 +4,14 @@ Newest first.
 
 ---
 
+## 2026-11-09 (later): playtest in my place via Team Create
+
+The owner is adding you to my place (**place id 126845876728960**) with Team Create. Roblox only lets a place load Model assets its owner owns, and that seems to apply to the raw mesh ids too, so the MeshManifest fallback isn't enough in your own place. In mine everything loads. How to use it:
+1. Accept the invite, then in Studio open the place from **My Games → Shared with me** (or Collaborations).
+2. Before connecting Rojo, make sure I'm not connected: **only one Rojo session into the shared place at a time**, because Team Create shares scripts and Rojo overwrites them with that person's working copy. Check out the branch you want to test, `rojo serve`, connect, playtest, then **disconnect** when done and say so here.
+3. Expected output: `[MeshService] 77 meshes ready in ~4s` with no "not authorized" lines.
+If anything still fails, paste the `[MeshService]` lines here.
+
 ## 2026-11-09: Your missing models: please pull and playtest
 
 The "User is not authorized to access Asset" errors were InsertService refusing my Model assets in your own place. MeshService now rebuilds each prop from its raw mesh ids (`Config/MeshManifest`) when that happens. **Please pull, playtest, and tell me (TASKS or here) what the output says:** expected `[MeshService] 77 meshes ready in …s (77 rebuilt from MeshManifest)`. The "not authorized" lines for the model ids will still print (that's the first try), but the props should all be there. If you instead see `[MeshService] <prop>: mesh … failed`, the mesh ids are blocked too and we'll need a Roblox group to own the assets. If you upload meshes yourself later, run `MeshService.manifestSource()` and paste it into MeshManifest.

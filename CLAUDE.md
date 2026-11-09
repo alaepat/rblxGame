@@ -17,6 +17,7 @@ Roblox pizza & kebab restaurant simulator, built by **two equal Claude accounts*
 - Content lives in `src/shared/Config/*`. Server is authoritative for money, XP and stock.
 - 3D meshes: Blender scripts in `blender/scripts/`, exported FBX uploaded to Roblox, ids in `src/shared/Config/MeshIds.luau`. Procedural parts are the fallback.
 - Teammates can't load another account's Model assets, so MeshService rebuilds props from raw mesh ids in `src/shared/Config/MeshManifest.luau` when `LoadAsset` fails. After uploading new meshes, regenerate it (`MeshService.manifestSource()` in a playtest by the uploader).
+- **Shared test place:** playtest in Account 1's place (id 126845876728960) through Team Create, not in your own place: asset permissions follow the place owner, so only there do all Blender meshes load. Team Create shares scripts, so **only one account runs a Rojo session into it at a time**; disconnect Rojo when you're done, and the next person reconnects (Rojo overwrites the place's scripts with their working copy).
 - Studio test hooks: `ServerStorage.DevCommand:Invoke("level", 8)` etc. (see `src/server/Services/DevService.luau`).
 - Offline tests: `lune run tests/run.luau` (Lune 0.10). Run them before pushing; add a spec when you add pure logic.
 - Everything must be **original**. Burger Planet is a quality/feel reference only.
