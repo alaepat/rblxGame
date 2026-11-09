@@ -89,12 +89,7 @@ function CleaningService.spawnTrash(plot)
 		if player ~= plot.owner then
 			return
 		end
-		local i = table.find(plot.trash, m)
-		if i then
-			table.remove(plot.trash, i)
-			m:Destroy()
-			rewardClean(player)
-		end
+		CleaningService.removeTrash(plot, m, player)
 	end)
 	if plot.owner then
 		S.ProgressService.push(plot.owner)
@@ -113,19 +108,53 @@ function CleaningService.makeDirty(st)
 	mess:PivotTo(part.CFrame * CFrame.new(part.Size.X * 0.32, part.Size.Y / 2 + 0.02, part.Size.Z * 0.25) * CFrame.Angles(0, 0, math.rad(90)))
 	mess.Parent = part
 	local plot = st.plot
+	st.mess = mess
 	cleanPrompt(splat, "Wipe counter", function(player)
 		if player ~= plot.owner then
 			return
 		end
-		st.dirty = false
-		st.uses = 0
-		mess:Destroy()
-		rewardClean(player)
+		CleaningService.wipeCounter(st, player)
 	end)
 	if plot.owner then
 		S.ProgressService.notify(plot.owner, "A prep counter is getting messy. Wipe it down!", "info")
 		S.ProgressService.push(plot.owner)
 	end
+end
+
+-- Removes one piece of rubbish. `player` gets the XP and goal credit; pass
+-- nil when staff cleaned it (StaffService). Returns false if it was already gone.
+function CleaningService.removeTrash(plot, m: Model, player: Player?): boolean
+	local i = plot.trash and table.find(plot.trash, m)
+	if not i then
+		return false
+	end
+	table.remove(plot.trash, i)
+	m:Destroy()
+	if player then
+		rewardClean(player)
+	elseif plot.owner then
+		S.ProgressService.push(plot.owner)
+	end
+	return true
+end
+
+-- Wipes a messy prep counter. `player` as in removeTrash.
+function CleaningService.wipeCounter(st, player: Player?): boolean
+	if not st.dirty then
+		return false
+	end
+	st.dirty = false
+	st.uses = 0
+	if st.mess then
+		st.mess:Destroy()
+		st.mess = nil
+	end
+	if player then
+		rewardClean(player)
+	elseif st.plot and st.plot.owner then
+		S.ProgressService.push(st.plot.owner)
+	end
+	return true
 end
 
 function CleaningService.setupPlot(plot)
