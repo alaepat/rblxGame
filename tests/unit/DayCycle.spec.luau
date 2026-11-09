@@ -110,6 +110,7 @@ return {
 		DayCycle.record(s, "serve_kind", 1, "pizza", 0)
 		DayCycle.record(s, "serve_kind", 1, "kebab", 0)
 		DayCycle.record(s, "serve_kind", 2, "drink", 0)
+		DayCycle.record(s, "serve_kind", 1, "dessert", 0)
 		DayCycle.record(s, "serve_recipe", 1, "cheese_pizza", 0) -- not a day stat
 		DayCycle.record(s, "order", -1, nil, 0) -- ignored
 		DayCycle.record(s, "order", 0 / 0, nil, 0) -- NaN ignored
@@ -124,6 +125,7 @@ return {
 		T.eq(st.pizzas, 1)
 		T.eq(st.kebabs, 1)
 		T.eq(st.drinks, 2)
+		T.eq(st.desserts, 1)
 	end,
 
 	["grade comes from the share of happy customers"] = function()

@@ -21,6 +21,7 @@ export type Stats = {
 	pizzas: number,
 	kebabs: number,
 	drinks: number,
+	desserts: number,
 	cleaned: number,
 }
 
@@ -154,7 +155,7 @@ end
 ------------------------------------------------------------------ shift
 
 function DayCycle.newStats(): Stats
-	return { orders = 0, sales = 0, tips = 0, happy = 0, angry = 0, rushOrders = 0, pizzas = 0, kebabs = 0, drinks = 0, cleaned = 0 }
+	return { orders = 0, sales = 0, tips = 0, happy = 0, angry = 0, rushOrders = 0, pizzas = 0, kebabs = 0, drinks = 0, desserts = 0, cleaned = 0 }
 end
 
 function DayCycle.newShift(day: number, now: number, rating: number): Shift
@@ -202,6 +203,8 @@ function DayCycle.record(shift: Shift, event: string, amount: number?, param: st
 			s.kebabs += n
 		elseif param == "drink" then
 			s.drinks += n
+		elseif param == "dessert" then
+			s.desserts = (s.desserts or 0) + n
 		end
 	end
 end

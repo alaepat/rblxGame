@@ -70,6 +70,8 @@ local templates: { Template } = {
 		minLevel = 3, base = 3, perLevel = 0.15, step = 1, weight = 2, difficulty = 1.15 },
 	{ id = "kebabs", event = "serve_kind", param = "kebab", text = "Serve %s kebabs, wraps or boxes", icon = "🥙",
 		minLevel = 6, requires = "kebab_station", base = 3, perLevel = 0.3, step = 1, weight = 3, difficulty = 1.1 },
+	{ id = "desserts", event = "serve_kind", param = "dessert", text = "Serve %s desserts", icon = "🍨",
+		minLevel = 12, requires = "dessert_station", base = 2, perLevel = 0.15, step = 1, weight = 2, difficulty = 1 },
 }
 
 local byId: { [string]: Template } = {}

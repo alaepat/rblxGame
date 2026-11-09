@@ -231,7 +231,11 @@ function DayClock.showSummary(s: any)
 		BackgroundTransparency = 1,
 	}, { Theme.list(Enum.FillDirection.Vertical, 2) })
 	row(body, 1, "📋 Orders served", tostring(st.orders or 0))
-	row(body, 2, "🍕 Pizzas · 🌯 Kebabs · 🥤 Drinks", ("%d · %d · %d"):format(st.pizzas or 0, st.kebabs or 0, st.drinks or 0))
+	if (st.desserts or 0) > 0 then
+		row(body, 2, "🍕 Pizzas · 🌯 Kebabs · 🥤 Drinks · 🍨 Desserts", ("%d · %d · %d · %d"):format(st.pizzas or 0, st.kebabs or 0, st.drinks or 0, st.desserts))
+	else
+		row(body, 2, "🍕 Pizzas · 🌯 Kebabs · 🥤 Drinks", ("%d · %d · %d"):format(st.pizzas or 0, st.kebabs or 0, st.drinks or 0))
+	end
 	row(body, 3, "💵 Sales", Theme.money(st.sales or 0))
 	row(body, 4, "💰 Tips", Theme.money(st.tips or 0))
 	row(body, 5, "😊 Happy customers", ("%d (%d%%)"):format(st.happy or 0, math.floor((s.happyShare or 0) * 100 + 0.5)))
