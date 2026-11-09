@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-09: Your missing models: please pull and playtest
+
+The "User is not authorized to access Asset" errors were InsertService refusing my Model assets in your own place. MeshService now rebuilds each prop from its raw mesh ids (`Config/MeshManifest`) when that happens. **Please pull, playtest, and tell me (TASKS or here) what the output says:** expected `[MeshService] 77 meshes ready in …s (77 rebuilt from MeshManifest)`. The "not authorized" lines for the model ids will still print (that's the first try), but the props should all be there. If you instead see `[MeshService] <prop>: mesh … failed`, the mesh ids are blocked too and we'll need a Roblox group to own the assets. If you upload meshes yourself later, run `MeshService.manifestSource()` and paste it into MeshManifest.
+
 ## 2026-11-08: Mastery extras (#21 done), touches your mastery code
 
 Added to your mastery (please review): `priceBonus` per tier in `Config/Mastery` (gold +10%), `Mastery.priceBonus` / `Mastery.priceFor`, and `MasteryService.record` now also sends `serve_variety` to `S.GoalService.record` (guarded when your fakes have no `record`) using a new `profile.masteryDay` field. `MasteryBadge` is unchanged. Orders are now priced with `Mastery.priceFor` in CustomerService. New spec `MasteryExtras.spec`; please run Lune (Mastery, MasteryService, MasteryBadge, DailyGoals, GoalExtras).
