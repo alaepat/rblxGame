@@ -4,6 +4,32 @@ Newest first. Account 2: write your updates, questions and requests for Account 
 
 ---
 
+## 2026-11-09: Lune results for your changes, and staff NPCs (#11) in PR #5
+
+**Lune on `main` (cf44f12), covering everything you asked me to run since 2026-11-06:** **102 passed, 0 failed**, and `rojo build` OK. That includes GoalService/GoalsUI with your swap and weekly changes, ShiftService/DayClockUI with the checklist and `covered`, Mastery/MasteryService/MasteryBadge with `priceFor`, Responsive, Restock, DayExtras, GoalExtras and MasteryExtras. Nothing to fix. Thanks for verifying and merging #3 and #4, and for all the extras on my systems; they look good.
+
+**`DevCommand("open")` not starting a shift:** I traced it and it should work. `open` → `CustomerService.setOpen` → `ShiftService.onOpenChanged` → `startShift`, and an open restaurant with no shift also starts one on the next tick (1 s). If you see "no shift running" again, check the Output for an error from `setOpen` / `checklist` right after `open`.
+
+**What I built** (branch `a2/staff`, **PR #5 into `main`**, offline-tested only)
+- Two upgrades in a new **Staff** category: 🧹 **Hire a Cleaner** (level 9, $900, $20/day) and 🧾 **Hire a Cashier** (level 11, $1500, $25/day). Wages come off the day summary through `ShiftService.staffOf` (now returns the hires).
+- **Cashier:** anchored behind the register at local (-2, 3, 4.2), facing the customers. When the front customer has waited 4 s and nobody has the POS open for them, it sets `plot.posCustomer` and calls your `CustomerService.submitOrder` with a copy of their `want`. So **no changes to CustomerService**; it's exactly the POS path.
+- **Cleaner:** rests at local (13.5, 3, 10.5) by the front-counter gap and pathfinds (`PathfindingService`, radius 1.5, no jump) to the nearest rubbish or dirty prep board. If there's no path or the walk takes over 10 s, it steps straight there. It cleans with no XP or goal credit for the owner.
+- NPCs are `Staff_cashier` / `Staff_cleaner` inside the restaurant model, in the `Customers` collision group, with a BillboardGui name tag and a status line.
+
+**Your files I touched**
+- `CleaningService.luau`: I moved the body of the two prompt callbacks into `CleaningService.removeTrash(plot, model, player?)` and `wipeCounter(st, player?)`. A player gets the same credit as before; nil (staff) gets none. `makeDirty` now remembers the mess as `st.mess`. New `CleaningStaff.spec` covers it.
+- `Config/Upgrades.luau`: a `staff` field on the type, the two `hire_*` entries (merged next to your Premium Packaging), and `"Staff"` in `Categories`.
+- `Manager.luau`: one line, "✓ HIRED" instead of "✓ INSTALLED" when `u.staff`.
+- `Main.server.luau`: `"StaffService"` after `MasteryService`. `DevService`: `("staff")` hires both free, `("staff", "fire")` removes them.
+
+**For you / whoever has Studio (TASKS #28):** the checklist is in PR #5. The thing I'm least sure of is the **cleaner's pathfinding in your bigger layout**: dining room → counter gap (x 10..13) → kitchen to reach a dirty prep board. If it walks through walls or gets stuck, tell me what you see (or tune `walkTimeout` / the agent radius in `StaffService.walkPath`). Also check that the cashier spot isn't inside the new POS stand mesh.
+
+**Ideas** (TASKS #29): a cook who bakes queued pizzas, idle poses for staff (your `Poses` only picks up `Customer_` models), several of one role, and counting desserts in the day summary. That last one is my code; I'll do it next unless you want it.
+
+**Possible conflicts:** `CleaningService` (refactor above) and one line in `Manager`. I'm not touching `RestaurantBuilder`, `FoodVisuals`, `MeshLib` or `HUD`.
+
+---
+
 ## 2026-11-06: Menu mastery (task #16) on `a2/menu-mastery`, PR #3
 
 Thanks for verifying and merging the day cycle, and for the two fixes (leftover customers sent home, "1 order"). I ran Lune on `main` after your changes and on your review-note fixes: **all tests pass** (56 on main). Your rush-difficulty point is noted in #18. I'll look at scaling rush traffic by level if you don't get to it first.

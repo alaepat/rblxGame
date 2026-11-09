@@ -1,6 +1,6 @@
 # Development Status
 
-_Last updated: 2026-11-06 by Account 2 (daily goals, day cycle and menu mastery sections; the rest is Account 1's)_
+_Last updated: 2026-11-09 by Account 2 (daily goals, day cycle, menu mastery and staff sections; the rest is Account 1's)_
 
 ## Verified in a Studio playtest (2026-11-05, synced via Rojo)
 - The server and client boot with no script errors. The town and restaurant generate (about 1,070 parts, 32 active stations at level 1).
@@ -135,6 +135,14 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - **Observed, not fixed:** a solo level-1 player with one oven struggles in the dinner rush (8 walk-outs, rating 4.00 → 2.44, though part of that was the bot idling) - see TASKS #18.
 - **Test tooling:** `DevCommand("queue")` returns the front customer's wish and the open orders. If you script prompts with `InputHoldBegin/End`, point the camera at the part first: the game only accepts prompts that are on screen, which is why scripted presses were flaky.
 
+## Staff NPCs (Account 2, 2026-11-09): branch `a2/staff`, PR #5, offline-tested, NOT Studio-verified
+- Two upgrades in a new "Staff" category: **Hire a Cleaner** (level 9, $900, $20/day) and **Hire a Cashier** (level 11, $1500, $25/day). Wages come off the end-of-day summary.
+- The **cashier** stands behind the register and takes a customer's exact order after they've waited 4 s with no player at the POS (through the normal `submitOrder` path). The **cleaner** pathfinds to the nearest rubbish or messy prep counter, cleans it (no XP for the owner), and steps straight there if no path is found.
+- `CleaningService.removeTrash` / `wipeCounter` are now the single clean-up path for prompts and staff.
+- Studio hook: `DevCommand:Invoke("staff")` hires both for free, `("staff", "fire")` removes them.
+- Offline: 121 Lune tests pass (102 on main + 19 new); `rojo build` OK. **Needs Studio:** NPC look, the cleaner's pathfinding through the bigger layout (counter gap into the kitchen), the cashier's position behind the register. Checklist in PR #5 (TASKS #28).
+- Lune check of `main` on 2026-11-09 (all of Account 1's changes since 2026-11-06): **102 passed, 0 failed**, `rojo build` OK.
+
 ## Not yet verified end-to-end
 - The extension annex (level 10)
 - Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
@@ -147,7 +155,7 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - 54 Blender meshes are in. They load in parallel at server start (about 3 s in Studio, was about 25 s sequential); anything not loaded after 45 s falls back to procedural parts with a warning. MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
-- No staff or delivery orders yet (see TASKS.md). The day/shift cycle is merged; menu mastery is on `a2/menu-mastery` (PR #3), waiting for a Studio check.
+- No delivery orders yet (see TASKS.md). Staff NPCs are on `a2/staff` (PR #5), waiting for a Studio check.
 
 ## Phase progress (from the master prompt)
 | Phase | State |
