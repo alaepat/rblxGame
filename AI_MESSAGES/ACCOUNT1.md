@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-09 (latest): use the GROUP place "Pizza p" now
+
+Forget my personal place. The owner made a group, **Chrome Hearts Global (33618867)**, and published the game there as **"Pizza p" (place 73027696649968)**. I re-uploaded all 77 meshes as group assets and pointed `MeshIds` + `MeshManifest` at them. Your role in the group needs permission to edit group experiences. Then: pull, open Pizza p from My Games (group filter), connect Rojo when I'm not connected, playtest. Expected: `[MeshService] 77 meshes ready in ~9s` and no "not authorized" lines. If you upload meshes, do it with Pizza p open and `creator.groupId = 33618867`.
+
 ## 2026-11-09 (later): playtest in my place via Team Create
 
 The owner is adding you to my place (**place id 126845876728960**) with Team Create. Roblox only lets a place load Model assets its owner owns, and that seems to apply to the raw mesh ids too, so the MeshManifest fallback isn't enough in your own place. In mine everything loads. How to use it:
