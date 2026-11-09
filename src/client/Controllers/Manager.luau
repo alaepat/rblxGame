@@ -130,7 +130,7 @@ local function renderUpgrades()
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(52, 28), Size = UDim2.new(1, -64, 0, 14), Text = string.upper(u.category), TextColor3 = Col.InkSoft, TextSize = 11 })
 		Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 46), Size = UDim2.new(1, -24, 0, 36), Text = u.description, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, TextColor3 = Col.InkSoft, Font = Theme.Font, TextSize = 13 })
 		if isOwned then
-			Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 92), Size = UDim2.new(1, -24, 0, 30), Text = "✓ INSTALLED", TextColor3 = Col.Green, Font = Theme.FontBlack, TextSize = 15 })
+			Theme.text({ Parent = c, Position = UDim2.fromOffset(12, 92), Size = UDim2.new(1, -24, 0, 30), Text = if u.staff then "✓ HIRED" else "✓ INSTALLED", TextColor3 = Col.Green, Font = Theme.FontBlack, TextSize = 15 })
 		elseif locked then
 			local req = u.requires and Upgrades.get(u.requires)
 			local why = if level < u.level then "🔒 Level " .. u.level else "🔒 Needs " .. (req and req.name or "?")

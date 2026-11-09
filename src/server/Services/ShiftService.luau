@@ -18,6 +18,7 @@
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local DayCycle = require(Shared.Shift.DayCycle)
+local StaffRules = require(Shared.Staff.StaffRules)
 local Checklist = require(Shared.Shift.Checklist)
 local Net = require(Shared.Net)
 
@@ -52,10 +53,11 @@ local function recordsOf(player: Player): DayCycle.Records?
 	return profile.shift
 end
 
--- Staff on the payroll: { [role] = count }. No staff exist yet (TASKS #11);
--- when they do, return them here and DayCycle.wages charges Config.Wages.
-function ShiftService.staffOf(_player: Player): { [string]: number }
-	return {}
+-- Staff on the payroll: { [role] = count }, from the hire upgrades the
+-- player owns (StaffRules.hired). DayCycle.wages charges Config.Wages for them.
+function ShiftService.staffOf(player: Player): { [string]: number }
+	local profile = S.DataService.get(player)
+	return StaffRules.hired(profile and profile.upgrades)
 end
 
 local function pushOwner(plot)

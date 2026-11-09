@@ -16,6 +16,7 @@ export type Upgrade = {
 	requires: string?,
 	icon: string,
 	effects: { [string]: number }?,
+	staff: string?, -- hires a member of staff with this role (Config/Staff, StaffService)
 }
 
 local list: { Upgrade } = {
@@ -63,6 +64,11 @@ local list: { Upgrade } = {
 		description = "Warm pendant lights over the tables.", effects = { tip = 0.04 } },
 	{ id = "premium_packaging", name = "Premium Packaging", category = "Decor", level = 13, cost = 600, icon = "🎁",
 		description = "Branded boxes and napkins. Customers tip more.", effects = { tip = 0.05 } },
+	-- Staff (wages per day are in Config/DayCycle.Wages)
+	{ id = "hire_cleaner", name = "Hire a Cleaner", category = "Staff", level = 9, cost = 900, icon = "🧹", staff = "cleaner",
+		description = "Picks up rubbish and wipes messy counters for you. Wage $20 a day." },
+	{ id = "hire_cashier", name = "Hire a Cashier", category = "Staff", level = 11, cost = 1500, icon = "🧾", staff = "cashier",
+		description = "Takes orders at the register while you cook. Wage $25 a day." },
 }
 
 local byId: { [string]: Upgrade } = {}
@@ -73,7 +79,7 @@ end
 return {
 	List = list,
 	ById = byId,
-	Categories = { "Kitchen", "Storage", "Dining", "Decor" },
+	Categories = { "Kitchen", "Storage", "Dining", "Decor", "Staff" },
 	get = function(id: string): Upgrade?
 		return byId[id]
 	end,

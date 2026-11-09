@@ -20,6 +20,7 @@
 --   ServerStorage.DevCommand:Invoke("event", "order")   -- record one game event (as if an order finished)
 --   ServerStorage.DevCommand:Invoke("mastery", "cheese_pizza") -- jump a recipe to its next mastery tier
 --   ServerStorage.DevCommand:Invoke("mastery")          -- list mastery serve counts
+--   ServerStorage.DevCommand:Invoke("staff")            -- hire the cleaner + cashier for free ("staff", "fire" removes them)
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -134,6 +135,16 @@ local function run(cmd: string, arg: any): any
 		end
 		S.ProgressService.push(player)
 		return "goals finished: " .. #profile.daily.goals
+	elseif cmd == "staff" then
+		for _, role in { "cleaner", "cashier" } do
+			local u = require(Shared.Staff.StaffRules).upgradeFor(role)
+			if u then
+				profile.upgrades[u.id] = if arg == "fire" then nil else true
+			end
+		end
+		S.UpgradeService.applyPlot(plot)
+		S.ProgressService.push(player)
+		return if arg == "fire" then "staff fired" else "staff hired (cleaner + cashier)"
 	elseif cmd == "mastery" then
 		local Mastery = require(Shared.Mastery.Mastery)
 		local counts = S.MasteryService.stateFor(player).mastery or {}
