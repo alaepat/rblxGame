@@ -61,6 +61,15 @@ return {
 		T.eq(memo.customer, nil)
 	end,
 
+	["ovenTarget picks the pizza closest to done, skipping empty and burnt ones"] = function()
+		T.eq(StaffRules.ovenTarget({}, 1.6), nil)
+		local raw, half, ready, burnt = { cook = 0 }, { cook = 0.5 }, { cook = 1.2 }, { cook = 1.6 }
+		T.eq(StaffRules.ovenTarget({ raw, burnt }, 1.6), nil, "nothing to take out")
+		T.ok(StaffRules.ovenTarget({ raw, half }, 1.6) == half)
+		T.ok(StaffRules.ovenTarget({ half, burnt, ready }, 1.6) == ready, "ready one first")
+		T.ok(StaffRules.ovenTarget({ { cook = nil } :: any, half }, 1.6) == half)
+	end,
+
 	["nearest picks the closest job"] = function()
 		local jobs = {
 			{ id = 1, position = Vector3.new(10, 0, 0) },

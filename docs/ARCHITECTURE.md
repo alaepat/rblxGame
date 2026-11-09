@@ -10,7 +10,7 @@
 | `src/shared/Goals/DailyGoals` | `ReplicatedStorage.Shared.Goals` | Pure daily-goal rules: generation, progress, claiming, streaks, rollover (no services, so it is unit-tested in Lune) |
 | `src/shared/Shift/DayCycle` | `ReplicatedStorage.Shared.Shift` | Pure day/shift rules: game clock, phases + rush traffic, day stats, grade, end-of-day bonus, wages, records (unit-tested in Lune) |
 | `src/shared/Mastery/Mastery` | `ReplicatedStorage.Shared.Mastery` | Pure menu-mastery rules: tier thresholds, rewards, serve XP bonus, progress views, star totals (unit-tested in Lune) |
-| `src/shared/Staff/StaffRules` | `ReplicatedStorage.Shared.Staff` | Pure staff rules: who is hired (from upgrades), the cashier's wait-then-take rule, nearest mess (unit-tested in Lune) |
+| `src/shared/Staff/StaffRules` | `ReplicatedStorage.Shared.Staff` | Pure staff rules: who is hired (from upgrades), the cashier's wait-then-take rule, nearest mess, which oven the cook watches (unit-tested in Lune) |
 | `src/shared/Net` | `ReplicatedStorage.Shared.Net` | Creates/locates every RemoteEvent/RemoteFunction |
 | `src/server/Main.server` | `ServerScriptService.Server.Main` | Bootstraps services in order (`init` for all, then `start`; DataService starts last) |
 | `src/server/Services/*` | `ServerScriptService.Server.Services` | Game systems (below) |
@@ -29,7 +29,7 @@ Each service is a module with `init(services)` (receives the registry) and `star
 | **GoalService** | Daily goals + streaks. Other services call `GoalService.record(player, event, amount, param)`; it rolls goals at the UTC reset (auto-paying finished-but-unclaimed rewards), validates `ClaimGoal`, pays through ProgressService, and adds `goals` to the State snapshot. Saved in `profile.daily`. |
 | **ShiftService** | Day / shift cycle per restaurant. Opening the sign starts "Day N" at 10:00; rush phases multiply customer traffic (`CustomerService.spawnInterval` divides by `ShiftService.traffic(plot)`); at 22:00 it closes the sign, and once the last customers leave (or `ClosingGrace` runs out) it sends the `DaySummary` remote, pays the shift bonus and wages, and saves records in `profile.shift`. Day stats come from `GoalService.onEvent`. Adds `shift` to the State snapshot. |
 | **MasteryService** | Menu mastery. Counts each served recipe (`serve_recipe` via `GoalService.onEvent`) in `profile.mastery = { [recipeId] = n }`; reaching 🥉/🥈/🥇 pays a one-off cash + XP reward, and each tier adds bonus XP to later serves of that recipe. Adds `mastery`, `masteryStars`, `masteryMax` to the State snapshot. |
-| **StaffService** | Hired staff NPCs. Hiring is an upgrade with a `staff` field (`hire_cleaner`, `hire_cashier`). The **cashier** stands behind the register and, after a customer has waited `orderDelay` s with no player at the POS, takes exactly their order via `CustomerService.submitOrder`. The **cleaner** pathfinds to the nearest rubbish / messy counter and cleans it via `CleaningService.removeTrash` / `wipeCounter` with no player credit. `ShiftService.staffOf` reads the same hires for wages. |
+| **StaffService** | Hired staff NPCs. Hiring is an upgrade with a `staff` field (`hire_cleaner`, `hire_cashier`, `hire_cook`). The **cashier** stands behind the register and, after a customer has waited `orderDelay` s with no player at the POS, takes exactly their order via `CustomerService.submitOrder`. The **cleaner** pathfinds to the nearest rubbish / messy counter and cleans it via `CleaningService.removeTrash` / `wipeCounter` with no player credit. The **pizza cook** waits at the oven whose pizza is closest to done, takes it out the moment it's ready, boxes it (`StationService.useStock` pizza_box) and puts it on a free heat shelf via `StationService.setItem` / `refreshStation`. `ShiftService.staffOf` reads the same hires for wages. |
 | **HeldService** | The one item each player carries (server table + a welded visual). |
 | **StationService** | Turns every part tagged `Station=<kind>` into prompts and runs its rules: Bin, PizzaBoard, KebabBoard, Topping, Oven, Fryer, BoxStation, HeatShelf, Trash, Fountain, Register, Pickup, Storage, OfficePC, OpenSign. Runs the cooking loop. |
 | **CleaningService** | Rubbish after customers, messy counters after N uses, the cleanliness score. |
@@ -99,12 +99,13 @@ Numbers: `Config/Mastery.luau` (tiers with serves, reward multipliers of the rec
 
 ## Staff
 
-Numbers: `Config/Staff.luau` (cashier `orderDelay`, cleaner `cleanTime` / `walkSpeed` / `walkTimeout`, uniform colours). Hiring: `Config/Upgrades.luau` entries with `staff = "<role>"` (category "Staff"). Wages: `Config/DayCycle.Wages`, charged on the end-of-day summary. Rules: `Shared/Staff/StaffRules.luau`. Server: `StaffService`.
+Numbers: `Config/Staff.luau` (cashier `orderDelay`, cleaner `cleanTime` / `walkSpeed` / `walkTimeout`, cook `boxTime` / `ovenWait`, uniform colours). Hiring: `Config/Upgrades.luau` entries with `staff = "<role>"` (category "Staff"). Wages: `Config/DayCycle.Wages`, charged on the end-of-day summary. Rules: `Shared/Staff/StaffRules.luau`. Server: `StaffService`.
 
-- NPCs are named `Staff_<role>`, live inside the restaurant model and use the `Customers` collision group. The cashier is anchored at local (-2, 3, 4.2), behind the register; the cleaner rests at local (13.5, 3, 10.5), by the gap in the front counter.
+- NPCs are named `Staff_<role>`, live inside the restaurant model and use the `Customers` collision group. The cashier is anchored at local (-2, 3, 4.2), behind the register; the cleaner rests at local (13.5, 3, 10.5), by the gap in the front counter. The cook's spot is worked out from the stations: halfway between the ovens' average position and the box station, at floor height.
+- The cook only uses stations inside the workspace (`IsDescendantOf(workspace)`), so heat shelf slots / ovens that aren't bought yet are skipped. It leaves burnt pizzas for the player, backs off if the player takes the pizza first, switches ovens if another pizza is ready first, and holds the pizza (it can't burn out of the oven) until a heat shelf slot is free. Out of boxes: it shelves the pizza unboxed and toasts the owner.
 - The cleaner uses `PathfindingService` (agent radius 1.5, no jumping). If no path is found, or a walk takes longer than `walkTimeout`, it steps straight to the spot. If the layout changes, check the cleaner can still get from the dining room into the kitchen through the counter gap.
 - `CleaningService.removeTrash(plot, model, player?)` and `wipeCounter(st, player?)` are the one clean-up path for prompts and staff: pass the player for XP/goal credit, nil for staff.
-- Studio hook: `DevCommand:Invoke("staff")` hires both for free; `("staff", "fire")` removes them.
+- Studio hook: `DevCommand:Invoke("staff")` hires all three for free; `("staff", "fire")` removes them.
 
 ## Offline tests
 

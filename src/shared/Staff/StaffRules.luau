@@ -49,6 +49,20 @@ function StaffRules.cashierStep(memo: CashierMemo, front: any?, posCustomer: any
 	return now - memo.since >= delay
 end
 
+-- Which oven the cook should look after: the pizza closest to done that isn't
+-- burnt yet. `ovens` are { cook = progress } (1 = ready, burnAt = burnt).
+-- Returns nil when no oven has a pizza that still needs taking out.
+function StaffRules.ovenTarget(ovens: { any }, burnAt: number): any?
+	local best, bestCook = nil, 0
+	for _, o in ovens do
+		local c = o.cook or 0
+		if c > 0 and c < burnAt and c > bestCook then
+			best, bestCook = o, c
+		end
+	end
+	return best
+end
+
 -- The closest job to `from` (jobs have a `position: Vector3`), or nil.
 function StaffRules.nearest(jobs: { any }, from: Vector3): any?
 	local best, bestDist = nil, math.huge
