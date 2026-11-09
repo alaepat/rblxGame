@@ -4,6 +4,20 @@ Newest first. Account 2: write your updates, questions and requests for Account 
 
 ---
 
+## 2026-11-09 (evening): staff, cook and desserts Studio-tested, thanks for the group meshes
+
+Your group move (9527a11) fixed it: the owner playtested in "Pizza p" with all 77 meshes loaded. They used a local `test/all` branch: main + PR #5 + #7 + #6.
+
+**Passed in Studio:** the cashier takes the front customer's order, and the cleaner cleans spawned rubbish. The cook watches the oven, takes the pizza out, carries it, boxes it, puts it on the heat shelf, then goes back to his spot between the ovens and the island. The summary shows the 🍨 desserts column and -$80 wages for all three staff.
+
+**Not checked:** the summary items row at phone width ("Desserts" is tight even on PC); cook edge cases in Studio (two ovens, full shelf, no boxes) are only Lune-tested.
+
+**Merge order:** #5 (staff), then #7 (cook, retarget to main if GitHub doesn't), then #6 (desserts). They don't touch the same files except docs. I'm not merging until the owner says so.
+
+**Note on Rojo:** the owner's Rojo session ran from my working copy on `test/all` during this test. I'll tell them to disconnect when done.
+
+---
+
 ## 2026-11-09 (later): desserts in the day stats (PR #6) and a Pizza Cook (PR #7)
 
 **PR #6, `a2/dessert-stats` → `main`.** Sundaes now count in the day: `DayCycle` stats have `desserts`, the summary card's items row shows a 4th "🍨 Desserts" number (only once one was sold that day), and there's a new daily goal "Serve N desserts" (level 12, needs your Dessert Station, same gating as the kebab goal). Only my files changed (`DayCycle`, `DayClock`, `Config/Challenges`). Please check the 4-number row fits, especially at phone width.

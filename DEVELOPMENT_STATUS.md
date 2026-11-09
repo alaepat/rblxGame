@@ -137,7 +137,7 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - **Observed, not fixed:** a solo level-1 player with one oven struggles in the dinner rush (8 walk-outs, rating 4.00 → 2.44, though part of that was the bot idling) - see TASKS #18.
 - **Test tooling:** `DevCommand("queue")` returns the front customer's wish and the open orders. If you script prompts with `InputHoldBegin/End`, point the camera at the part first: the game only accepts prompts that are on screen, which is why scripted presses were flaky.
 
-## Staff NPCs (Account 2, 2026-11-09): branch `a2/staff`, PR #5, offline-tested, NOT Studio-verified
+## Staff NPCs (Account 2, 2026-11-09): branch `a2/staff`, PR #5, Studio-verified 2026-11-09 by the owner, ready to merge
 - Two upgrades in a new "Staff" category: **Hire a Cleaner** (level 9, $900, $20/day) and **Hire a Cashier** (level 11, $1500, $25/day). Wages come off the end-of-day summary.
 - The **cashier** stands behind the register and takes a customer's exact order after they've waited 4 s with no player at the POS (through the normal `submitOrder` path). The **cleaner** pathfinds to the nearest rubbish or messy prep counter, cleans it (no XP for the owner), and steps straight there if no path is found.
 - `CleaningService.removeTrash` / `wipeCounter` are now the single clean-up path for prompts and staff.
@@ -145,12 +145,12 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - Offline: 121 Lune tests pass (102 on main + 19 new); `rojo build` OK. **Needs Studio:** NPC look, the cleaner's pathfinding through the bigger layout (counter gap into the kitchen), the cashier's position behind the register. Checklist in PR #5 (TASKS #28).
 - Lune check of `main` on 2026-11-09 (all of Account 1's changes since 2026-11-06): **102 passed, 0 failed**, `rojo build` OK.
 
-## Desserts in the day stats (Account 2, 2026-11-09): branch `a2/dessert-stats`, PR #6, offline-tested, NOT Studio-verified
+## Desserts in the day stats (Account 2, 2026-11-09): branch `a2/dessert-stats`, PR #6, Studio-verified on PC 2026-11-09 by the owner, ready to merge
 - `DayCycle` stats count `desserts`. The day summary's items row gets a "🍨 Desserts" column once a dessert was sold that day.
 - New daily goal "Serve N desserts" (level 12, needs the Dessert Station).
 - Offline: 104 Lune tests pass. **Needs Studio:** the 4-number row fits on the summary card (phone width too).
 
-## Pizza Cook (Account 2, 2026-11-09): branch `a2/cook`, PR #7 (stacked on PR #5), offline-tested, NOT Studio-verified
+## Pizza Cook (Account 2, 2026-11-09): branch `a2/cook`, PR #7 (stacked on PR #5), Studio-verified 2026-11-09 by the owner, merge after #5
 - New Staff upgrade **Hire a Pizza Cook** (level 13, $2,200, $35/day). The cook waits at the oven closest to done, takes the pizza out the moment it's ready, boxes it (uses a pizza box) and puts it on a free heat shelf slot. Switches ovens if another is ready first, backs off if the player takes it, leaves burnt ones, waits if the shelf is full, shelves unboxed with a toast if out of boxes.
 - New public `StationService.refreshStation(st)` (redraws prompts + oven progress bar after staff change a station).
 - Offline: 130 Lune tests pass on the branch; `rojo build` OK. **Needs Studio:** checklist in PR #7 (cook's spot, carried pizza, pathfinding round the kitchen counters).

@@ -7,9 +7,8 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 28 | Studio-verify `a2/staff` (PR #5): NPC look + name tags, cashier spot behind the register and order taking, cleaner pathfinding (dining room → counter gap → kitchen), wages on the summary. Merge into `main` if it looks right | QA | — | Checklist in PR #5. `DevCommand:Invoke("staff")`, `("trash")`, `("dirty")` |
 | 29 | Staff extras still open: staff idle poses (`Poses` only knows `Customer_` models), more than one of a role | Gameplay | — | Cook and desserts done (PRs #6, #7) |
-| 30 | Studio-verify PR #6 (desserts column on the day summary, dessert daily goal) and PR #7 (Pizza Cook, stacked on #5: merge #5 first). Merge into `main` if they look right | QA | — | Checklists in the PRs. `DevCommand:Invoke("staff")` hires all three |
+| 30 | Merge PRs #5 → #7 → #6 (all Studio-tested 2026-11-09). Still unchecked: summary items row at phone width ("Desserts" is tight on PC), cook with two ovens / full shelf / no boxes in Studio (Lune-tested) | QA | — | Test results are comments on the PRs |
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
@@ -18,6 +17,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 ## Done
 | Task | By | Date |
 |---|---|---|
+| #28 + #30 Studio check of staff (PR #5), desserts (PR #6) and Pizza Cook (PR #7) in the group place "Pizza p": cashier takes orders, cleaner cleans, cook watches/boxes/shelves, dessert column + $80 wages on the summary | Owner (with Account 2) | 2026-11-09 |
 | #29 part: Pizza Cook staff upgrade (level 13, $2,200, $35/day): takes pizzas out of the oven when ready, boxes them, puts them on the heat shelf (branch `a2/cook`, PR #7, stacked on PR #5; 130 tests; Studio check is #30) | Account 2 | 2026-11-09 |
 | #29 part: desserts counted in the day stats + summary column, "Serve N desserts" daily goal (branch `a2/dessert-stats`, PR #6; Studio check is #30) | Account 2 | 2026-11-09 |
 | #11 Staff NPCs: cashier + cleaner as Staff upgrades, wages on the day summary (branch `a2/staff`, PR #5, offline-tested with 121 tests; Studio check is #28) | Account 2 | 2026-11-09 |
