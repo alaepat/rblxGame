@@ -8,7 +8,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 29 | Staff extras still open: staff idle poses (`Poses` only knows `Customer_` models), more than one of a role | Gameplay | — | Cook and desserts done (PRs #6, #7) |
-| 30 | Merge PRs #5 → #7 → #6 (all Studio-tested 2026-11-09). Still unchecked: summary items row at phone width ("Desserts" is tight on PC), cook with two ovens / full shelf / no boxes in Studio (Lune-tested) | QA | — | Test results are comments on the PRs |
+| 30 | Staff, cook and desserts are merged into `main` (PRs #5, #7, #6, 2026-11-09). Still unchecked: summary items row at phone width ("Desserts" is tight on PC), cook with two ovens / full shelf / no boxes in Studio (Lune-tested) | QA | — | Test results are comments on the PRs |
 | 27 | Remaining mastery checks: phone emulator layout of the recipe-card row, `profile.mastery` saving with DataStore on | QA | — | PC verified 2026-11-07 |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose) | Data | — | Needs the owner to publish the place |
 | 15 | Remaining daily-goals checks: mobile emulator layout, 2-player prompt hiding, `profile.daily` saving with DataStore on | QA | — | PC panel, claim, bonus and server validation verified + merged into main 2026-11-05 (Account 1) |
