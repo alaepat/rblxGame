@@ -108,10 +108,14 @@ local function buildFromManifest(prop: string, folder: Folder): boolean
 	return true
 end
 
+-- Set when a probe LoadAsset is refused: then every prop comes from the
+-- manifest without trying (and failing, with an Output error each) first.
+local manifestOnly = false
+
 local function loadOne(prop: string, info: MeshIds.MeshInfo, folder: Folder)
 	-- Studio test of the teammate path: set workspace attribute
 	-- PP_MeshManifestOnly = true (in edit mode) before pressing Play.
-	if workspace:GetAttribute("PP_MeshManifestOnly") == true then
+	if manifestOnly or workspace:GetAttribute("PP_MeshManifestOnly") == true then
 		if buildFromManifest(prop, folder) then
 			usedManifest += 1
 		end
@@ -188,6 +192,21 @@ function MeshService.start()
 	-- Every LoadAsset yields on a network fetch, so start them all at once and
 	-- wait for the last one instead of fetching ~60 assets one after another.
 	local t0 = os.clock()
+	-- Probe one model first: if this place may not load our Model assets
+	-- (a teammate's own place or playtest), use the manifest for everything
+	-- instead of logging one "not authorized" error per prop.
+	local probe = MeshIds.Tray
+	if probe and probe.assetId > 0 and workspace:GetAttribute("PP_MeshManifestOnly") ~= true then
+		local ok, res = pcall(function()
+			return InsertService:LoadAsset(probe.assetId)
+		end)
+		if ok and res then
+			res:Destroy()
+		elseif string.find(tostring(res), "not authorized", 1, true) then
+			manifestOnly = true
+			print("[MeshService] Model assets aren't loadable here (" .. tostring(res) .. "); rebuilding from MeshManifest")
+		end
+	end
 	local pending = 0
 	for prop, info in MeshIds do
 		if info.assetId and info.assetId > 0 and not folder:FindFirstChild(prop) then
