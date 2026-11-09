@@ -69,6 +69,8 @@ local list: { Upgrade } = {
 		description = "Picks up rubbish and wipes messy counters for you. Wage $20 a day." },
 	{ id = "hire_cashier", name = "Hire a Cashier", category = "Staff", level = 11, cost = 1500, icon = "🧾", staff = "cashier",
 		description = "Takes orders at the register while you cook. Wage $25 a day." },
+	{ id = "hire_cook", name = "Hire a Pizza Cook", category = "Staff", level = 13, cost = 2200, icon = "👨‍🍳", staff = "cook",
+		description = "Watches the ovens: takes pizzas out the moment they're ready, boxes them and puts them on the heat shelf. Wage $35 a day." },
 }
 
 local byId: { [string]: Upgrade } = {}

@@ -24,5 +24,15 @@ return {
 			walkTimeout = 10,
 			shirt = Color3.fromRGB(40, 130, 230),
 		},
+		cook = {
+			name = "Pizza Cook",
+			icon = "👨‍🍳",
+			walkSpeed = 12,
+			walkTimeout = 8,
+			boxTime = 1, -- seconds spent boxing a pizza
+			-- stop waiting at an oven after this long (e.g. the oven was turned off)
+			ovenWait = 60,
+			shirt = Color3.fromRGB(245, 245, 240),
+		},
 	},
 }

@@ -11,6 +11,10 @@
 --    pathfinding, stepping straight there if no path is found in time),
 --    cleans it through CleaningService.removeTrash / wipeCounter (no XP for
 --    the owner: staff did it), then goes back to their spot.
+--  * Pizza cook: waits at the oven whose pizza is closest to done, takes it
+--    out the moment it's ready (never burnt), boxes it if there are pizza
+--    boxes in stock, and puts it on a free heat shelf slot. Runs through
+--    StationService.setItem / refreshStation / useStock. No XP for the owner.
 --  * Wages: ShiftService.staffOf reads the same hires, and the end-of-day
 --    summary charges Config/DayCycle.Wages.
 --  * Per-plot state lives in plot.staff (PlotService.release clears it; the
@@ -34,6 +38,7 @@ local IDLE_ANIM = "rbxassetid://507766388"
 local CASHIER_SPOT = Vector3.new(-2, 3, 4.2)
 local CASHIER_FACE = Vector3.new(-2, 3, 12)
 local CLEANER_SPOT = Vector3.new(13.5, 3, 10.5)
+local CARRY_OFFSET = CFrame.new(0, 0.2, -1.4) -- where the cook holds a pizza
 
 function StaffService.init(services)
 	S = services
@@ -42,7 +47,7 @@ end
 -- Replaceable clock (tests move it).
 StaffService.clock = os.clock
 
-export type NPC = { role: string, model: Model, humanoid: Humanoid?, root: BasePart?, bubble: TextLabel? }
+export type NPC = { role: string, model: Model, humanoid: Humanoid?, root: BasePart?, bubble: TextLabel?, carried: Model? }
 
 ------------------------------------------------------------------ NPC model
 
@@ -213,9 +218,45 @@ local function world(plot, localPos: Vector3): Vector3
 	return (plot.origin :: CFrame):PointToWorldSpace(localPos)
 end
 
+-- Is this station part of the restaurant right now? (Upgrade stations that
+-- aren't bought yet are kept out of the workspace.)
+local function live(st): boolean
+	return st.part ~= nil and st.part:IsDescendantOf(workspace)
+end
+
+local function stationsOf(plot, kind: string): { any }
+	local out = {}
+	for _, st in plot.stations or {} do
+		if st.kind == kind and live(st) then
+			table.insert(out, st)
+		end
+	end
+	return out
+end
+
+-- The cook stands in the aisle between the ovens and the boxing island.
+local function cookSpot(plot): Vector3?
+	local ovens = stationsOf(plot, "Oven")
+	local box = stationsOf(plot, "BoxStation")[1]
+	if #ovens == 0 or not box then
+		return nil
+	end
+	local sum = Vector3.zero
+	for _, o in ovens do
+		sum += o.part.Position
+	end
+	local mid = (sum / #ovens + box.part.Position) / 2
+	return Vector3.new(mid.X, world(plot, Vector3.new(0, 3, 0)).Y, mid.Z)
+end
+
 local function homeCFrame(plot, role: string): CFrame
 	if role == "cashier" then
 		return CFrame.lookAt(world(plot, CASHIER_SPOT), world(plot, CASHIER_FACE))
+	elseif role == "cook" then
+		local spot = cookSpot(plot)
+		if spot then
+			return CFrame.new(spot)
+		end
 	end
 	return CFrame.new(world(plot, CLEANER_SPOT))
 end
@@ -228,7 +269,7 @@ end
 
 local function stateOf(plot)
 	if not plot.staff then
-		plot.staff = { npcs = {}, memo = { customer = nil, since = 0 }, busy = false }
+		plot.staff = { npcs = {}, memo = { customer = nil, since = 0 }, busy = false, cookBusy = false }
 	end
 	return plot.staff
 end
@@ -359,7 +400,7 @@ end
 
 -- Gets the NPC to one of `points`, stepping straight to the first if no path works.
 local function goTo(plot, staff, npc: NPC, points: { Vector3 })
-	local timeout = Config.Roles.cleaner.walkTimeout
+	local timeout = Config.Roles[npc.role].walkTimeout or 10
 	for _, p in points do
 		if StaffService.walkPath(plot, staff, npc, p, timeout) then
 			return
@@ -428,6 +469,160 @@ function StaffService.cleanerStep(plot)
 	end)
 end
 
+------------------------------------------------------------------ cook
+
+-- Shows (or clears) the food the cook is carrying. Replaceable in tests.
+function StaffService.carry(npc: NPC, item: any?)
+	if npc.carried then
+		npc.carried:Destroy()
+		npc.carried = nil
+	end
+	local root = npc.root
+	if not item or not root then
+		return
+	end
+	local FoodVisuals = require(Shared.Food.FoodVisuals) :: any
+	local m = FoodVisuals.build(item)
+	m.Name = "Carried"
+	m:PivotTo(root.CFrame * CARRY_OFFSET)
+	for _, d in m:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = false
+			d.CanCollide = false
+			d.CanQuery = false
+			d.Massless = true
+			local w = Instance.new("WeldConstraint")
+			w.Part0 = root
+			w.Part1 = d
+			w.Parent = d
+		end
+	end
+	m.Parent = npc.model
+	npc.carried = m
+end
+
+-- Ovens with a pizza in them: { cook = progress, st = station, item = pizza }.
+local function ovenJobs(plot): { any }
+	local out = {}
+	for _, st in stationsOf(plot, "Oven") do
+		local item = st.item
+		if item and item.kind == "pizza" then
+			table.insert(out, { cook = item.cook or 0, st = st, item = item })
+		end
+	end
+	return out
+end
+
+local function freeShelf(plot): any?
+	for _, st in stationsOf(plot, "HeatShelf") do
+		if st.item == nil then
+			return st
+		end
+	end
+	return nil
+end
+
+local function burnAt(): number
+	return (require(Shared.Config.GameConfig) :: any).BurnAt
+end
+
+-- Looks after one oven: wait, take the pizza out, box it, shelve it.
+-- Runs in its own thread. Returns quietly if the player gets there first.
+function StaffService.doCook(plot, staff, npc: NPC, job)
+	local oven, item = job.st, job.item
+	local role = Config.Roles.cook
+	say(npc, "Watching the oven")
+	goTo(plot, staff, npc, standPoints(plot, { kind = "counter", ref = oven }))
+	local started = StaffService.clock()
+	while current(plot, staff, npc) and oven.item == item and (item.cook or 0) < 1 do
+		if StaffService.clock() - started > role.ovenWait then
+			return
+		end
+		-- another oven is ready first: go there instead (cookStep re-picks)
+		local best = StaffRules.ovenTarget(ovenJobs(plot), burnAt())
+		if best and best.item ~= item and best.cook >= 1 then
+			return
+		end
+		task.wait(0.1)
+	end
+	-- the player took it, it's burnt, or the cook was let go
+	if not current(plot, staff, npc) or oven.item ~= item or (item.cook or 0) >= burnAt() then
+		say(npc, "")
+		return
+	end
+	S.StationService.setItem(oven, nil)
+	S.StationService.refreshStation(oven)
+	StaffService.carry(npc, item)
+	say(npc, "🍕 Ready!")
+
+	local owner = plot.owner
+	local box = stationsOf(plot, "BoxStation")[1]
+	if box and not item.boxed then
+		goTo(plot, staff, npc, standPoints(plot, { kind = "counter", ref = box }))
+		if not current(plot, staff, npc) then
+			return
+		end
+		if owner and S.StationService.useStock(owner, "pizza_box") then
+			say(npc, "📦 Boxing...")
+			task.wait(role.boxTime)
+			if not current(plot, staff, npc) then
+				return
+			end
+			item.boxed = true
+			StaffService.carry(npc, item)
+		elseif owner then
+			S.ProgressService.notify(owner, "👨‍🍳 Cook: out of pizza boxes! The pizza goes on the heat shelf unboxed.", "bad")
+		end
+	end
+
+	-- wait for a free heat shelf slot (the pizza can't burn out of the oven)
+	while current(plot, staff, npc) do
+		local slot = freeShelf(plot)
+		if slot then
+			goTo(plot, staff, npc, standPoints(plot, { kind = "counter", ref = slot }))
+			if not current(plot, staff, npc) then
+				return
+			end
+			if slot.item == nil then
+				S.StationService.setItem(slot, item)
+				S.StationService.refreshStation(slot)
+				StaffService.carry(npc, nil)
+				say(npc, "On the heat shelf!")
+				break
+			end
+		else
+			say(npc, "Heat shelf is full!")
+			task.wait(0.5)
+		end
+	end
+	if current(plot, staff, npc) and StaffRules.ovenTarget(ovenJobs(plot), burnAt()) == nil then
+		goTo(plot, staff, npc, { homeCFrame(plot, "cook").Position })
+		say(npc, "")
+	end
+end
+
+function StaffService.cookStep(plot)
+	local staff = plot.staff
+	local npc = staff and staff.npcs.cook
+	if not npc or staff.cookBusy then
+		return
+	end
+	local job = StaffRules.ovenTarget(ovenJobs(plot), burnAt())
+	if not job then
+		return
+	end
+	staff.cookBusy = true
+	task.spawn(function()
+		local ok, err = pcall(StaffService.doCook, plot, staff, npc, job)
+		if not ok then
+			warn("[StaffService] cook job failed: " .. tostring(err))
+		end
+		if plot.staff == staff then
+			staff.cookBusy = false
+		end
+	end)
+end
+
 ------------------------------------------------------------------ loop
 
 function StaffService.tick(plot)
@@ -437,6 +632,7 @@ function StaffService.tick(plot)
 	StaffService.sync(plot)
 	StaffService.cashierStep(plot)
 	StaffService.cleanerStep(plot)
+	StaffService.cookStep(plot)
 end
 
 function StaffService.start()

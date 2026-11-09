@@ -350,6 +350,16 @@ local function refresh(st: Station)
 	end
 end
 
+-- Redraws one station after something other than a prompt changed it
+-- (staff taking a pizza out of the oven, putting one on the heat shelf).
+function StationService.refreshStation(st: Station)
+	if st.kind == "Oven" or st.kind == "Fryer" then
+		st.lastState = FoodLogic.cookState(st.item and st.item.cook or 0)
+		updateCookGui(st)
+	end
+	refresh(st)
+end
+
 function StationService.refreshPlot(plot)
 	if not plot.stations then
 		return
