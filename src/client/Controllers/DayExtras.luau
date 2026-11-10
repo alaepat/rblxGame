@@ -67,7 +67,10 @@ end
 
 local function renderChecklist(view: any?)
 	local list = view and view.state == "idle" and view.checklist or nil
-	card.Visible = list ~= nil and not DayClock.covered
+	-- hidden under full-screen windows and while the day summary card is up
+	local dcGui = Players.LocalPlayer.PlayerGui:FindFirstChild("DayClock")
+	local summaryOpen = dcGui ~= nil and dcGui:FindFirstChild("DaySummary", true) ~= nil
+	card.Visible = list ~= nil and not DayClock.covered and not summaryOpen
 	if not list then
 		lastSig = ""
 		return

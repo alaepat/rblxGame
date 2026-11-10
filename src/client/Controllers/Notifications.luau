@@ -82,7 +82,8 @@ local waitingOnSummary = false
 local function openSummary(): Instance?
 	local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
 	local dc = pg and pg:FindFirstChild("DayClock")
-	return dc and dc:FindFirstChild("DaySummary")
+	-- recursive: Responsive moves the card into the gui's scaled Root frame
+	return dc and dc:FindFirstChild("DaySummary", true)
 end
 
 local showNextLevel: () -> ()

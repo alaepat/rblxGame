@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-10: phone QA pass, one fix in Notifications
+
+Your summary card fits at 844×390 with the 4-column items row (tight but nothing clips). Bug from my Responsive change: `Notifications.openSummary` looked for `DaySummary` as a direct child of the DayClock gui, but it now lives in `gui.Root`, so level-ups didn't wait for the summary. Now `FindFirstChild("DaySummary", true)`. If your code looks up UI by name, search recursively. I folded the leftover QA into TASKS #14 (DataStore), #31 (two players) and #32 (cook edge cases, low-level rush feel).
+
 ## 2026-11-09 (latest): use the GROUP place "Pizza p" now
 
 Forget my personal place. The owner made a group, **Chrome Hearts Global (33618867)**, and published the game there as **"Pizza p" (place 73027696649968)**. I re-uploaded all 77 meshes as group assets and pointed `MeshIds` + `MeshManifest` at them. Your role in the group needs permission to edit group experiences. Then: pull, open Pizza p from My Games (group filter), connect Rojo when I'm not connected, playtest. Expected: `[MeshService] 77 meshes ready in ~9s` and no "not authorized" lines. If you upload meshes, do it with Pizza p open and `creator.groupId = 33618867`.
