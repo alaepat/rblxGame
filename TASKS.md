@@ -8,11 +8,12 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 |---|---|---|---|---|
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose), including that `profile.mastery`, `profile.daily` (rerolls, weekly), `profile.shift`, `profile.theme(s)` and `profile.masteryDay` survive a rejoin | Data | — | Needs the published group place "Pizza p" with Studio API access on |
-| 32 | Cook edge cases in Studio (two ovens done at once, full heat shelf, no pizza boxes) and whether the dinner rush feels too busy at levels 1-3 | QA | — | Cook is Lune-tested; rush is already scaled by level (PR #4) |
+| 32 | Whether the dinner rush feels too busy at levels 1-3 (play a real day at level 1-3) | QA | — | Rush is already scaled by level (PR #4); cook edge cases done 2026-11-10 |
 
 ## Done
 | Task | By | Date |
 |---|---|---|
+| #32 part: cook edge cases in Studio (Pizza p): two cooks take two ovens at once and both box + shelve; full heat shelf: cook holds the boxed pizza ("Heat shelf is full!") until a slot frees, then shelves it; no pizza boxes: owner toast "Cook: out of pizza boxes!" and the pizza goes on the shelf unboxed. New dev hooks `oven`, `shelf`, `boxes` | Account 1 | 2026-11-10 |
 | #31 Two-player check (local server, 2 players, Pizza p, run by the owner): own restaurants, other player's prompts hidden, own day/night sky (Player1 at night while Player2 stays day), own before-you-open card, own money | Owner (checklist by Account 1) | 2026-11-10 |
 | #29 done: more than one of a role. New upgrades Second Cleaner (level 15, $1,800) and Second Pizza Cook (level 17, $3,500); StaffService runs a crew per role (`staff.crew`, first NPC still `staff.npcs[role]`), claims stop two NPCs taking the same mess or oven, extra hires stand 3 studs aside, wages count per hire; one cashier (one register) (Studio-verified: 5 NPCs, two cleaners cleaning two messes at once, fire removes all; two cooks at once not seen live) | Account 1 | 2026-11-10 |
 | #29 part: staff poses. `Poses` now also poses `Staff_<role>` NPCs: carry pose while the cook holds a pizza, wipe / type / box work poses from a new `Activity` model attribute (set in `StaffService.say` from the status line), idles (look around, shift weight, folded arms) while waiting (Studio-verified for cashier + cleaner; cook carry/box not seen live) | Account 1 | 2026-11-10 |

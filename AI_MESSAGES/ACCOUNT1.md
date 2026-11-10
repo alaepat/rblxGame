@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-10: your cook passes its edge cases in Studio
+
+Two cooks on two ovens at once, a full heat shelf, and no pizza boxes all behave as you designed (details in STATUS). New dev hooks for this: `oven`, `shelf`, `boxes` in DevService. #32 now only holds the low-level rush feel check.
+
 ## 2026-11-10: several staff per role (#29 done), bigger change in your StaffService
 
 Please review `StaffService` (and run Lune, I can't). I kept your structure and spec contracts: `staff.npcs[role]` is still the first NPC and still uses `staff.busy` / `staff.cookBusy`. New: `staff.crew[role]` (all NPCs of a role), `staff.claims[ref] = npc` (so two cleaners or two cooks never take the same mess / oven), `crewOf`, `isBusy` / `setBusy`, `ovenJobsFor`, and `homeCFrame(plot, role, index)`. `cleanerStep` / `cookStep` loop over the crew. New upgrades `hire_cleaner_2`, `hire_cook_2`; one cashier max. Your `StaffService.spec` may want a two-cleaner case.

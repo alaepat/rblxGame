@@ -21,6 +21,7 @@
 --   ServerStorage.DevCommand:Invoke("mastery", "cheese_pizza") -- jump a recipe to its next mastery tier
 --   ServerStorage.DevCommand:Invoke("mastery")          -- list mastery serve counts
 --   ServerStorage.DevCommand:Invoke("staff")            -- hire the cleaner, cashier and cook for free ("staff", "fire" removes them)
+--   ServerStorage.DevCommand:Invoke("oven", 2)          -- almost-baked pizza in 2 ovens; ("shelf", "fill"/"clear"); ("boxes", 0) sets pizza-box stock
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -59,6 +60,37 @@ local function run(cmd: string, arg: any): any
 	elseif cmd == "money" then
 		S.ProgressService.addMoney(player, tonumber(arg) or 1000)
 		return "money " .. profile.money
+	elseif cmd == "oven" then
+		-- put an almost-baked cheese pizza in the first N live ovens (cook staff tests)
+		local n, placed = tonumber(arg) or 1, 0
+		for _, st in plot.stations or {} do
+			if placed < n and st.kind == "Oven" and not st.item and st.part:IsDescendantOf(workspace) then
+				S.StationService.setItem(st, { kind = "pizza", sauce = "tomato_sauce", toppings = { "mozzarella" }, cook = 0.85 })
+				S.StationService.refreshStation(st)
+				placed += 1
+			end
+		end
+		return "pizzas in ovens: " .. placed
+	elseif cmd == "shelf" then
+		-- "fill": a boxed pizza on every free heat shelf slot; "clear": empty them
+		local changed = 0
+		for _, st in plot.stations or {} do
+			if st.kind == "HeatShelf" and st.part:IsDescendantOf(workspace) then
+				if arg == "clear" and st.item then
+					S.StationService.setItem(st, nil)
+					changed += 1
+				elseif arg ~= "clear" and not st.item then
+					S.StationService.setItem(st, { kind = "pizza", sauce = "tomato_sauce", toppings = { "mozzarella" }, cook = 1, boxed = true })
+					changed += 1
+				end
+				S.StationService.refreshStation(st)
+			end
+		end
+		return "heat shelf slots changed: " .. changed
+	elseif cmd == "boxes" then
+		profile.stock.pizza_box = tonumber(arg) or 0
+		S.ProgressService.push(player)
+		return "pizza boxes: " .. profile.stock.pizza_box
 	elseif cmd == "stock" then
 		for _, ing in Ingredients.List do
 			profile.stock[ing.id] = S.ProgressService.capacity(player, ing.id)
