@@ -136,9 +136,9 @@ local function run(cmd: string, arg: any): any
 		S.ProgressService.push(player)
 		return "goals finished: " .. #profile.daily.goals
 	elseif cmd == "staff" then
-		for _, role in { "cleaner", "cashier", "cook" } do
-			local u = require(Shared.Staff.StaffRules).upgradeFor(role)
-			if u then
+		-- every staff upgrade, including second hires
+		for _, u in require(Shared.Config.Upgrades).List do
+			if u.staff then
 				profile.upgrades[u.id] = if arg == "fire" then nil else true
 			end
 		end

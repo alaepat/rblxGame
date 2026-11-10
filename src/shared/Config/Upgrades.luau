@@ -71,6 +71,11 @@ local list: { Upgrade } = {
 		description = "Takes orders at the register while you cook. Wage $25 a day." },
 	{ id = "hire_cook", name = "Hire a Pizza Cook", category = "Staff", level = 13, cost = 2200, icon = "👨‍🍳", staff = "cook",
 		description = "Watches the ovens: takes pizzas out the moment they're ready, boxes them and puts them on the heat shelf. Wage $35 a day." },
+	-- second hires of a role (StaffService runs several NPCs per role; one cashier per register)
+	{ id = "hire_cleaner_2", name = "Second Cleaner", category = "Staff", level = 15, cost = 1800, icon = "🧹", staff = "cleaner", requires = "hire_cleaner",
+		description = "Another cleaner for the dinner rush. Two never go for the same mess. Wage $20 a day." },
+	{ id = "hire_cook_2", name = "Second Pizza Cook", category = "Staff", level = 17, cost = 3500, icon = "👨‍🍳", staff = "cook", requires = "hire_cook",
+		description = "A second cook watches a different oven, so two pizzas can come out at once. Wage $35 a day." },
 }
 
 local byId: { [string]: Upgrade } = {}

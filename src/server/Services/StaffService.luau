@@ -19,6 +19,10 @@
 --    summary charges Config/DayCycle.Wages.
 --  * Per-plot state lives in plot.staff (PlotService.release clears it; the
 --    NPCs are inside plot.model, so they go when the restaurant does).
+--  * More than one of a role (hire_cleaner_2, hire_cook_2): every NPC of a
+--    role is in staff.crew[role]; staff.npcs[role] is the first one. The
+--    first uses staff.busy / staff.cookBusy, the others their own npc.busy.
+--    staff.claims[ref] = npc stops two of them taking the same mess or oven.
 
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -47,7 +51,7 @@ end
 -- Replaceable clock (tests move it).
 StaffService.clock = os.clock
 
-export type NPC = { role: string, model: Model, humanoid: Humanoid?, root: BasePart?, bubble: TextLabel?, carried: Model? }
+export type NPC = { role: string, model: Model, humanoid: Humanoid?, root: BasePart?, bubble: TextLabel?, carried: Model?, index: number?, busy: boolean? }
 
 ------------------------------------------------------------------ NPC model
 
@@ -249,16 +253,20 @@ local function cookSpot(plot): Vector3?
 	return Vector3.new(mid.X, world(plot, Vector3.new(0, 3, 0)).Y, mid.Z)
 end
 
-local function homeCFrame(plot, role: string): CFrame
+-- Extra hires of a role stand a little to the side of the first one.
+local EXTRA_SPOT_STEP = Vector3.new(-3, 0, 0)
+
+local function homeCFrame(plot, role: string, index: number?): CFrame
+	local step = EXTRA_SPOT_STEP * ((index or 1) - 1)
 	if role == "cashier" then
 		return CFrame.lookAt(world(plot, CASHIER_SPOT), world(plot, CASHIER_FACE))
 	elseif role == "cook" then
 		local spot = cookSpot(plot)
 		if spot then
-			return CFrame.new(spot)
+			return CFrame.new(spot + (plot.origin :: CFrame):VectorToWorldSpace(step))
 		end
 	end
-	return CFrame.new(world(plot, CLEANER_SPOT))
+	return CFrame.new(world(plot, CLEANER_SPOT + step))
 end
 
 -- Work poses on the client (Controllers/Poses) follow the "Activity" model
@@ -276,7 +284,7 @@ end
 
 local function stateOf(plot)
 	if not plot.staff then
-		plot.staff = { npcs = {}, memo = { customer = nil, since = 0 }, busy = false, cookBusy = false }
+		plot.staff = { npcs = {}, crew = {}, claims = {}, memo = { customer = nil, since = 0 }, busy = false, cookBusy = false }
 	end
 	return plot.staff
 end
@@ -285,9 +293,49 @@ local function flat(a: Vector3, b: Vector3): number
 	return Vector3.new(a.X - b.X, 0, a.Z - b.Z).Magnitude
 end
 
--- Is this NPC still the one working in this plot?
+-- Every NPC of a role (the first one is also staff.npcs[role]).
+local function crewOf(staff, role: string): { NPC }
+	local list = staff.crew and staff.crew[role]
+	if list and #list > 0 then
+		return list
+	end
+	local first = staff.npcs[role]
+	return if first then { first } else {}
+end
+
+-- Is this NPC still working in this plot?
 local function current(plot, staff, npc: NPC): boolean
-	return plot.staff == staff and staff.npcs[npc.role] == npc and npc.model.Parent ~= nil
+	if plot.staff ~= staff or npc.model.Parent == nil then
+		return false
+	end
+	return staff.npcs[npc.role] == npc or table.find(crewOf(staff, npc.role), npc) ~= nil
+end
+
+-- The first NPC of a role keeps the plot-wide flag (staff.busy / cookBusy).
+local function isBusy(staff, npc: NPC, flag: string): boolean
+	if staff.npcs[npc.role] == npc then
+		return staff[flag] == true
+	end
+	return npc.busy == true
+end
+
+local function setBusy(staff, npc: NPC, flag: string, value: boolean)
+	if staff.npcs[npc.role] == npc then
+		staff[flag] = value
+	else
+		npc.busy = value
+	end
+end
+
+-- Jobs / ovens another NPC is already on.
+local function claimedByOther(staff, ref: any, npc: NPC): boolean
+	local by = staff.claims and staff.claims[ref]
+	return by ~= nil and by ~= npc
+end
+
+local function claim(staff, ref: any, npc: NPC?)
+	staff.claims = staff.claims or {}
+	staff.claims[ref] = npc
 end
 
 ------------------------------------------------------------------ hiring
@@ -300,15 +348,29 @@ function StaffService.sync(plot)
 		return
 	end
 	local staff = stateOf(plot)
+	staff.crew = staff.crew or {}
 	local hired = StaffRules.hired(profile.upgrades)
 	for role in Config.Roles do
-		local npc = staff.npcs[role]
-		if (hired[role] or 0) > 0 and not npc then
-			staff.npcs[role] = StaffService.makeNPC(role, plot.model, homeCFrame(plot, role))
-		elseif (hired[role] or 0) == 0 and npc then
-			npc.model:Destroy()
-			staff.npcs[role] = nil
+		local want = if role == "cashier" then math.min(hired[role] or 0, 1) else hired[role] or 0 -- one register
+		local list = staff.crew[role] or {}
+		staff.crew[role] = list
+		if staff.npcs[role] and list[1] ~= staff.npcs[role] then
+			table.insert(list, 1, staff.npcs[role])
 		end
+		while #list < want do
+			local i = #list + 1
+			local npc = StaffService.makeNPC(role, plot.model, homeCFrame(plot, role, i))
+			npc.index = i
+			if i > 1 and npc.model then
+				npc.model.Name = "Staff_" .. role .. "_" .. i
+			end
+			table.insert(list, npc)
+		end
+		while #list > want do
+			local npc = table.remove(list) :: NPC
+			npc.model:Destroy()
+		end
+		staff.npcs[role] = list[1]
 	end
 end
 
@@ -449,31 +511,41 @@ function StaffService.doJob(plot, staff, npc: NPC, job)
 	say(npc, "")
 	-- nothing else to do: head back to the spot by the counter
 	if #StaffService.jobs(plot) == 0 then
-		goTo(plot, staff, npc, { homeCFrame(plot, "cleaner").Position })
+		goTo(plot, staff, npc, { homeCFrame(plot, "cleaner", npc.index).Position })
 	end
-	staff.busy = false
+	setBusy(staff, npc, "busy", false)
 end
 
 function StaffService.cleanerStep(plot)
 	local staff = plot.staff
-	local npc = staff and staff.npcs.cleaner
-	if not npc or staff.busy or not npc.root then
+	if not staff then
 		return
 	end
-	local job = StaffRules.nearest(StaffService.jobs(plot), npc.root.Position)
-	if not job then
-		return
+	for _, npc in crewOf(staff, "cleaner") do
+		if npc.root and not isBusy(staff, npc, "busy") then
+			local free = {}
+			for _, job in StaffService.jobs(plot) do
+				if not claimedByOther(staff, job.ref, npc) then
+					table.insert(free, job)
+				end
+			end
+			local job = StaffRules.nearest(free, npc.root.Position)
+			if job then
+				setBusy(staff, npc, "busy", true)
+				claim(staff, job.ref, npc)
+				task.spawn(function()
+					local ok, err = pcall(StaffService.doJob, plot, staff, npc, job)
+					if not ok then
+						warn("[StaffService] cleaner job failed: " .. tostring(err))
+					end
+					if plot.staff == staff then
+						claim(staff, job.ref, nil)
+						setBusy(staff, npc, "busy", false)
+					end
+				end)
+			end
+		end
 	end
-	staff.busy = true
-	task.spawn(function()
-		local ok, err = pcall(StaffService.doJob, plot, staff, npc, job)
-		if not ok then
-			warn("[StaffService] cleaner job failed: " .. tostring(err))
-		end
-		if plot.staff == staff then
-			staff.busy = false
-		end
-	end)
 end
 
 ------------------------------------------------------------------ cook
@@ -520,6 +592,17 @@ local function ovenJobs(plot): { any }
 	return out
 end
 
+-- Oven jobs this cook may take (not being watched by another cook).
+local function ovenJobsFor(plot, staff, npc: NPC): { any }
+	local out = {}
+	for _, j in ovenJobs(plot) do
+		if not claimedByOther(staff, j.st, npc) then
+			table.insert(out, j)
+		end
+	end
+	return out
+end
+
 local function freeShelf(plot): any?
 	for _, st in stationsOf(plot, "HeatShelf") do
 		if st.item == nil then
@@ -546,7 +629,7 @@ function StaffService.doCook(plot, staff, npc: NPC, job)
 			return
 		end
 		-- another oven is ready first: go there instead (cookStep re-picks)
-		local best = StaffRules.ovenTarget(ovenJobs(plot), burnAt())
+		local best = StaffRules.ovenTarget(ovenJobsFor(plot, staff, npc), burnAt())
 		if best and best.item ~= item and best.cook >= 1 then
 			return
 		end
@@ -602,32 +685,36 @@ function StaffService.doCook(plot, staff, npc: NPC, job)
 			task.wait(0.5)
 		end
 	end
-	if current(plot, staff, npc) and StaffRules.ovenTarget(ovenJobs(plot), burnAt()) == nil then
-		goTo(plot, staff, npc, { homeCFrame(plot, "cook").Position })
+	if current(plot, staff, npc) and StaffRules.ovenTarget(ovenJobsFor(plot, staff, npc), burnAt()) == nil then
+		goTo(plot, staff, npc, { homeCFrame(plot, "cook", npc.index).Position })
 		say(npc, "")
 	end
 end
 
 function StaffService.cookStep(plot)
 	local staff = plot.staff
-	local npc = staff and staff.npcs.cook
-	if not npc or staff.cookBusy then
+	if not staff then
 		return
 	end
-	local job = StaffRules.ovenTarget(ovenJobs(plot), burnAt())
-	if not job then
-		return
+	for _, npc in crewOf(staff, "cook") do
+		if not isBusy(staff, npc, "cookBusy") then
+			local job = StaffRules.ovenTarget(ovenJobsFor(plot, staff, npc), burnAt())
+			if job then
+				setBusy(staff, npc, "cookBusy", true)
+				claim(staff, job.st, npc)
+				task.spawn(function()
+					local ok, err = pcall(StaffService.doCook, plot, staff, npc, job)
+					if not ok then
+						warn("[StaffService] cook job failed: " .. tostring(err))
+					end
+					if plot.staff == staff then
+						claim(staff, job.st, nil)
+						setBusy(staff, npc, "cookBusy", false)
+					end
+				end)
+			end
+		end
 	end
-	staff.cookBusy = true
-	task.spawn(function()
-		local ok, err = pcall(StaffService.doCook, plot, staff, npc, job)
-		if not ok then
-			warn("[StaffService] cook job failed: " .. tostring(err))
-		end
-		if plot.staff == staff then
-			staff.cookBusy = false
-		end
-	end)
 end
 
 ------------------------------------------------------------------ loop

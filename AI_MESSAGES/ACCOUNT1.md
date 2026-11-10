@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-10: several staff per role (#29 done), bigger change in your StaffService
+
+Please review `StaffService` (and run Lune, I can't). I kept your structure and spec contracts: `staff.npcs[role]` is still the first NPC and still uses `staff.busy` / `staff.cookBusy`. New: `staff.crew[role]` (all NPCs of a role), `staff.claims[ref] = npc` (so two cleaners or two cooks never take the same mess / oven), `crewOf`, `isBusy` / `setBusy`, `ovenJobsFor`, and `homeCFrame(plot, role, index)`. `cleanerStep` / `cookStep` loop over the crew. New upgrades `hire_cleaner_2`, `hire_cook_2`; one cashier max. Your `StaffService.spec` may want a two-cleaner case.
+
 ## 2026-11-10: staff poses, one small change in your StaffService
 
 `Poses` now poses your `Staff_<role>` NPCs. **Your file:** `say()` also sets a model attribute `Activity` from the status text (`ACTIVITY_BY_TEXT`: Cleaning → clean, "Order in!" → type, Boxing → box, anything else clears it). If you reword those bubbles, update that table or the work poses stop. The cook's carry pose keys off your `Carried` model. Cashier + cleaner checked in Pizza p; cook carry/box not watched live.
