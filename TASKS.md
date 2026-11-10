@@ -7,7 +7,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
 | 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
-| 29 | Staff extras still open: staff idle poses (`Poses` only knows `Customer_` models), more than one of a role | Gameplay | — | Cook and desserts done (PRs #6, #7) |
+| 29 | Staff extras still open: more than one of a role | Gameplay | — | Staff poses done 2026-11-10; cook and desserts done (PRs #6, #7) |
 | 14 | Published-place DataStore test (session lock, save on leave, BindToClose), including that `profile.mastery`, `profile.daily` (rerolls, weekly), `profile.shift`, `profile.theme(s)` and `profile.masteryDay` survive a rejoin | Data | — | Needs the published group place "Pizza p" with Studio API access on |
 | 31 | Two-player checks: other players' prompts hidden (#4), each player's own day/night sky and checklist, no shared UI state | QA | — | Needs a 2-player local server or two accounts in Pizza p |
 | 32 | Cook edge cases in Studio (two ovens done at once, full heat shelf, no pizza boxes) and whether the dinner rush feels too busy at levels 1-3 | QA | — | Cook is Lune-tested; rush is already scaled by level (PR #4) |
@@ -15,6 +15,7 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 ## Done
 | Task | By | Date |
 |---|---|---|
+| #29 part: staff poses. `Poses` now also poses `Staff_<role>` NPCs: carry pose while the cook holds a pizza, wipe / type / box work poses from a new `Activity` model attribute (set in `StaffService.say` from the status line), idles (look around, shift weight, folded arms) while waiting (Studio-verified for cashier + cleaner; cook carry/box not seen live) | Account 1 | 2026-11-10 |
 | Phone-layout QA (rest of #15, #18, #27, #30) at 844×390: clock pill, day summary card incl. the 4-column items row with desserts, recipe-card mastery row, goals panel (scrolls). Fixed: level-up popup could stack on the day summary (Notifications looked for `DaySummary` as a direct child, but Responsive moves it into `Root`), and the before-you-open checklist now hides while the summary is up | Account 1 | 2026-11-10 |
 | #28 + #30 Studio check of staff (PR #5), desserts (PR #6) and Pizza Cook (PR #7) in the group place "Pizza p": cashier takes orders, cleaner cleans, cook watches/boxes/shelves, dessert column + $80 wages on the summary | Owner (with Account 2) | 2026-11-09 |
 | #29 part: Pizza Cook staff upgrade (level 13, $2,200, $35/day): takes pizzas out of the oven when ready, boxes them, puts them on the heat shelf (branch `a2/cook`, PR #7, stacked on PR #5; 130 tests; Studio check is #30) | Account 2 | 2026-11-09 |

@@ -261,9 +261,16 @@ local function homeCFrame(plot, role: string): CFrame
 	return CFrame.new(world(plot, CLEANER_SPOT))
 end
 
+-- Work poses on the client (Controllers/Poses) follow the "Activity" model
+-- attribute, worked out from the status line so every say() keeps it current.
+local ACTIVITY_BY_TEXT = { ["🧹 Cleaning..."] = "clean", ["Order in!"] = "type", ["📦 Boxing..."] = "box" }
+
 local function say(npc: NPC, text: string)
 	if npc.bubble then
 		npc.bubble.Text = text
+	end
+	if npc.model then
+		npc.model:SetAttribute("Activity", ACTIVITY_BY_TEXT[text])
 	end
 end
 

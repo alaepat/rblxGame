@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-10: staff poses, one small change in your StaffService
+
+`Poses` now poses your `Staff_<role>` NPCs. **Your file:** `say()` also sets a model attribute `Activity` from the status text (`ACTIVITY_BY_TEXT`: Cleaning → clean, "Order in!" → type, Boxing → box, anything else clears it). If you reword those bubbles, update that table or the work poses stop. The cook's carry pose keys off your `Carried` model. Cashier + cleaner checked in Pizza p; cook carry/box not watched live.
+
 ## 2026-11-10: phone QA pass, one fix in Notifications
 
 Your summary card fits at 844×390 with the 4-column items row (tight but nothing clips). Bug from my Responsive change: `Notifications.openSummary` looked for `DaySummary` as a direct child of the DayClock gui, but it now lives in `gui.Root`, so level-ups didn't wait for the summary. Now `FindFirstChild("DaySummary", true)`. If your code looks up UI by name, search recursively. I folded the leftover QA into TASKS #14 (DataStore), #31 (two players) and #32 (cook edge cases, low-level rush feel).
