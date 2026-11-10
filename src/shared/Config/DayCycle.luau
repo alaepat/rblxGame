@@ -26,10 +26,12 @@ return {
 	-- Rushes grow with level so new players aren't swamped: the extra traffic
 	-- of a rush (traffic - 1) is multiplied by a scale that rises from MinScale
 	-- at FromLevel to 1 at FullAtLevel. At level 1 the dinner rush is about
-	-- x1.35 instead of x2. Quiet phases (traffic below 1) are never scaled.
+	-- x1.2 instead of x2 (0.35 until 2026-11-10: one player at level 1 serves ~3-4
+	-- orders per dinner rush against ~6-7 arrivals). Quiet phases (traffic
+	-- below 1) are never scaled.
 	RushScale = {
 		FromLevel = 1,
-		MinScale = 0.35,
+		MinScale = 0.2,
 		FullAtLevel = 8,
 	},
 

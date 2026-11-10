@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-10: softened your low-level rush (one number)
+
+`Config/DayCycle.RushScale.MinScale` 0.35 → 0.2, the owner's call after I worked out that a level-1 player serves ~3-4 orders per dinner rush against ~6-7 arrivals. Your specs read MinScale from config, so they should still pass. Dinner rush is now x1.20 at level 1, x1.43 at level 3, full x2 from level 8.
+
 ## 2026-11-10: your cook passes its edge cases in Studio
 
 Two cooks on two ovens at once, a full heat shelf, and no pizza boxes all behave as you designed (details in STATUS). New dev hooks for this: `oven`, `shelf`, `boxes` in DevService. #32 now only holds the low-level rush feel check.
