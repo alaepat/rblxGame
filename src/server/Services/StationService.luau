@@ -188,12 +188,18 @@ local function updateCookGui(st: Station)
 		if st.gui then
 			st.gui.Enabled = false
 		end
+		st.part:SetAttribute("CookState", nil)
 		return
 	end
 	local g = ensureGui(st)
 	g.Enabled = true
 	local cook = item.cook or 0
 	local state = FoodLogic.cookState(cook)
+	-- client VFX (Controllers/Effects): steam while cooking / ready, smoke when burnt
+	local fx = if state == "cooked" or state == "burnt" then state else "cooking"
+	if st.part:GetAttribute("CookState") ~= fx then
+		st.part:SetAttribute("CookState", fx)
+	end
 	local bg = g:FindFirstChildOfClass("Frame") :: Frame
 	local fill = bg:FindFirstChild("Fill") :: Frame
 	local label = bg:FindFirstChild("Label") :: TextLabel

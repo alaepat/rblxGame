@@ -731,6 +731,10 @@ local function completeOrder(player: Player, plot, order)
 	end
 	S.ProgressService.notify(player, ("Order #%d complete! +$%.2f%s"):format(order.number, order.price + tip, tip > 0 and (" (tip $%.2f)"):format(tip) or ""), "good")
 	S.ProgressService.sound(player, "Cash")
+	if c.model then
+		-- client VFX (Controllers/Effects): hearts for happy, a small sparkle otherwise
+		c.model:SetAttribute("Mood", if frac >= GameConfig.HappyPatience then "happy" else "ok")
+	end
 	-- walk to the counter, grab the bag, then leave
 	c.state = "collecting"
 	updateGui(c)
@@ -873,6 +877,9 @@ function CustomerService.setupPlot(plot)
 							S.GoalService.record(owner, "angry", 1)
 							S.ProgressService.notify(owner, c.name .. " got fed up and left! ⭐ rating dropped.", "bad")
 							S.ProgressService.sound(owner, "Angry")
+						end
+						if c.model then
+							c.model:SetAttribute("Mood", "angry") -- client VFX: red steam puff
 						end
 						leave(c)
 						changed = true

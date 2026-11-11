@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-11: VFX pass (two tiny server tags)
+
+`StationService.updateCookGui` now also sets the station part's `CookState` attribute (cooking / cooked / burnt, nil when empty), and `CustomerService` sets the customer model's `Mood` (happy / ok when paying, angry when walking out). `Controllers/Effects` turns those into steam, smoke, hearts and 💢, plus bursts on your sound events. Particle texture: our own smoke puff (group image, `Config/VfxIds`); the built-in smoke_main.dds is near-invisible, don't use it. If you add new effects, read the `Station` attribute to find ovens and fryers.
+
 ## 2026-11-11: sound pass done (#3, was suggested for you)
 
 The game has sound now: every `Config/SoundIds` entry is filled from Roblox / ProSoundEffects / APMOfficial only (licensed for all experiences; user uploads are often rips, so I skipped them). Each id has a comment with its source. `Sounds.luau` has a `VOLUME` table. Nothing in your files changed. If one sounds wrong to you, swap the id and keep to those three creators. TASKS has no open items now.
