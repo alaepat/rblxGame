@@ -21,7 +21,8 @@
 --   ServerStorage.DevCommand:Invoke("mastery", "cheese_pizza") -- jump a recipe to its next mastery tier
 --   ServerStorage.DevCommand:Invoke("mastery")          -- list mastery serve counts
 --   ServerStorage.DevCommand:Invoke("staff")            -- hire the cleaner, cashier and cook for free ("staff", "fire" removes them)
---   ServerStorage.DevCommand:Invoke("oven", 2)          -- almost-baked pizza in 2 ovens; ("shelf", "fill"/"clear"); ("boxes", 0) sets pizza-box stock
+--   ServerStorage.DevCommand:Invoke("profile")          -- saved profile as JSON (+ temporary flag, unsavable fields); ("save") saves now
+--   ServerStorage.DevCommand:Invoke("oven", 2)         -- almost-baked pizza in 2 ovens; ("shelf", "fill"/"clear"); ("boxes", 0) sets pizza-box stock
 -- Never active in live servers.
 
 local RunService = game:GetService("RunService")
@@ -239,6 +240,16 @@ local function run(cmd: string, arg: any): any
 			orders = orders,
 			money = profile.money,
 		}
+	elseif cmd == "profile" then
+		-- the whole saved profile as JSON + whether it saves (DataStore test, TASKS #14)
+		local HttpService = game:GetService("HttpService")
+		return ("temporary=%s problems=[%s]\n%s"):format(
+			tostring(S.DataService.Temporary[player] == true),
+			table.concat(require(Shared.Data.Storable).problems(profile), "; "),
+			HttpService:JSONEncode(profile))
+	elseif cmd == "save" then
+		S.DataService.save(player, false)
+		return "saved"
 	elseif cmd == "info" then
 		local up = {}
 		for id in profile.upgrades do

@@ -831,7 +831,8 @@ function CustomerService.setupPlot(plot)
 		local timer = 4
 		while plot.customerToken == token do
 			task.wait(1)
-			if plot.open and plot.owner then
+			-- the owner may have left during the wait (PlotService.release clears the plot)
+			if plot.customerToken == token and plot.open and plot.owner then
 				timer -= 1
 				local waiting = 0
 				for _, c in plot.customers do
@@ -850,6 +851,9 @@ function CustomerService.setupPlot(plot)
 	task.spawn(function()
 		while plot.customerToken == token do
 			task.wait(0.5)
+			if plot.customerToken ~= token or not plot.customers then
+				break -- owner left during the wait: plot.customers is gone
+			end
 			local changed = false
 			for _, c in table.clone(plot.customers) do
 				if c.alive and (c.state == "queue" or c.state == "waiting") then

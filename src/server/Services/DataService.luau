@@ -14,8 +14,15 @@ local HttpService = game:GetService("HttpService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
+local Storable = require(Shared.Data.Storable)
 
-local LOCK_EXPIRY = 30 * 60
+-- A live server re-stamps its lock on every autosave (GameConfig.AutosaveInterval,
+-- 90 s), so a lock older than a few autosaves belongs to a server that died
+-- without BindToClose. Was 30 min: a crash locked the player onto a blank
+-- temporary profile for half an hour (found in the #14 DataStore test).
+-- A server that loses its lock this way can't clobber the new owner: save()
+-- only writes while it still holds the lock.
+local LOCK_EXPIRY = math.max(5 * 60, GameConfig.AutosaveInterval * 3)
 local JOB_ID = if game.JobId ~= "" then game.JobId else ("studio-" .. HttpService:GenerateGUID(false))
 
 export type Profile = {
@@ -40,6 +47,7 @@ DataService.Profiles = {} :: { [Player]: Profile }
 DataService.Temporary = {} :: { [Player]: boolean }
 
 local loadedCallbacks: { (Player, Profile) -> () } = {}
+local warned: { [Player]: string } = {} -- last unsavable-data warning per player
 
 local store: DataStore? = nil
 do
@@ -176,6 +184,15 @@ function DataService.save(player: Player, release: boolean?)
 	if not profile or DataService.Temporary[player] or not store then
 		return
 	end
+	-- DataStore throws on the whole save if one field can't be stored; say which.
+	local problems = Storable.problems(profile)
+	if #problems > 0 then
+		local sig = table.concat(problems, "; ")
+		if warned[player] ~= sig then
+			warned[player] = sig
+			warn("[DataService] profile of " .. player.UserId .. " has unsavable data: " .. sig)
+		end
+	end
 	retry("save " .. player.UserId, function()
 		(store :: DataStore):UpdateAsync(key(player), function(old: any)
 			if old and old.lock and old.lock.job ~= JOB_ID and os.time() - (old.lock.time or 0) < LOCK_EXPIRY then
@@ -200,6 +217,7 @@ function DataService.start()
 		DataService.save(p, true)
 		DataService.Profiles[p] = nil
 		DataService.Temporary[p] = nil
+		warned[p] = nil
 	end)
 	task.spawn(function()
 		while true do

@@ -1,6 +1,6 @@
 # Development Status
 
-_Last updated: 2026-11-09 by Account 2 (daily goals, day cycle, menu mastery and staff sections; the rest is Account 1's)_
+_Last updated: 2026-11-11 by Account 1 (DataStore section); 2026-11-09 by Account 2 (daily goals, day cycle, menu mastery and staff sections; the rest is Account 1's)_
 
 ## Verified in a Studio playtest (2026-11-05, synced via Rojo)
 - The server and client boot with no script errors. The town and restaurant generate (about 1,070 parts, 32 active stations at level 1).
@@ -161,9 +161,15 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - New public `StationService.refreshStation(st)` (redraws prompts + oven progress bar after staff change a station).
 - Offline: 130 Lune tests pass on the branch; `rojo build` OK. **Needs Studio:** checklist in PR #7 (cook's spot, carried pizza, pathfinding round the kitchen counters).
 
+## DataStore saving, verified in Pizza p (2026-11-11, Account 1, TASKS #14)
+- Studio API access is **on** for Pizza p, so Studio playtests there save to the real store (`PizzaPlanet_Player_v1`, key `player_<UserId>`). Your own profile carries over between playtests; use DevCommands to reset what you need.
+- Save on leave / BindToClose: lock released, every field (themes, mastery, daily + weekly goals, shift records, upgrades, stock) restored exactly on rejoin.
+- Session lock: a lock from another live server → load retries ~34 s, then a temporary profile that never writes the record. A lock older than 5 min (`LOCK_EXPIRY`, was 30) is treated as a dead server and taken over.
+- `DataService.save` warns with the exact path if a profile field can't be stored (`Shared/Data/Storable`). Dev hooks: `DevCommand:Invoke("profile")` (JSON + temporary flag), `("save")`.
+- Fixed: `CustomerService` spawn/patience loops errored when the owner left during an open shift.
+
 ## Not yet verified end-to-end
 - The extension annex (level 10)
-- Real DataStore saving (enable **Game Settings → Security → Enable Studio Access to API Services**, then rejoin)
 
 ## Known issues / gaps
 - Roblox only shows a prompt when its part is on screen, so players must look at what they interact with (that's intended).
@@ -185,5 +191,5 @@ A client-side test bot played a whole day through the real prompts in the new 81
 | 5 Progression | XP / levels / unlocks / money done; daily goals + streaks merged (PC Studio-verified); day/shift cycle merged (PC Studio-verified); menu mastery on `a2/menu-mastery` (PR #3, offline-tested) |
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
-| 8 Multiplayer & saving | Per-player plots + DataStore done; needs a published-place test |
+| 8 Multiplayer & saving | Per-player plots + DataStore done; save, rejoin and session lock verified in Pizza p (2026-11-11) |
 | 9 Polish | Not started (sound, animations, VFX, optimisation) |

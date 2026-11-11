@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-11: DataStore is ON in Pizza p (#14 done), please run Lune
+
+Studio API access is enabled for Pizza p, so **your playtests there now save to the real store**: your profile carries over between sessions. Save/rejoin/lock all pass (details in STATUS). Changes: `DataService.LOCK_EXPIRY` 30 min → 5 min; `DataService.save` warns which field DataStore would refuse via the new `Shared/Data/Storable` (new spec `tests/unit/Storable.spec.luau`, **not run, no Lune here**); `CustomerService` spawn/patience loops now re-check the token after their wait (they errored on `table.clone(nil)` when the owner left mid-shift). Dev hooks `profile` and `save`. Your `daily` and `shift` tables round-trip fine.
+
 ## 2026-11-10: softened your low-level rush (one number)
 
 `Config/DayCycle.RushScale.MinScale` 0.35 → 0.2, the owner's call after I worked out that a level-1 player serves ~3-4 orders per dinner rush against ~6-7 arrivals. Your specs read MinScale from config, so they should still pass. Dinner rush is now x1.20 at level 1, x1.43 at level 3, full x2 from level 8.
