@@ -175,7 +175,7 @@ A client-side test bot played a whole day through the real prompts in the new 81
 - Roblox only shows a prompt when its part is on screen, so players must look at what they interact with (that's intended).
 - Stainless steel (Metal material) looks quite dark in enclosed rooms. Consider a lighter colour or SmoothPlastic for counter bodies.
 - `Lighting.Technology` must be set to **Future** by hand (scripts can't set it).
-- No sound ids yet: `SoundIds.luau` is all empty, so the game is silent.
+- Sound pass done (2026-11-11): all 22 `SoundIds` filled from Roblox / ProSoundEffects / APMOfficial (licensed for every experience), all preload in Pizza p. Not yet judged by ear in real play.
 - ~~Other players can see prompts in your restaurant~~: fixed and merged into `main` (the 2-player check is still open, TASKS #15).
 - NPCs walk straight lines between nodes (no pathfinding), so layout changes must keep the paths clear.
 - 54 Blender meshes are in. They load in parallel at server start (about 3 s in Studio, was about 25 s sequential); anything not loaded after 45 s falls back to procedural parts with a warning. MeshService loads meshes one by one, so the server takes about 25 s to build in Studio; loading them in parallel would speed that up.
@@ -192,4 +192,4 @@ A client-side test bot played a whole day through the real prompts in the new 81
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
 | 8 Multiplayer & saving | Per-player plots + DataStore done; save, rejoin and session lock verified in Pizza p (2026-11-11) |
-| 9 Polish | Not started (sound, animations, VFX, optimisation) |
+| 9 Polish | Sound done (22 licensed SFX); staff + customer poses done; VFX and optimisation not started |

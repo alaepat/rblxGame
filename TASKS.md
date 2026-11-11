@@ -6,11 +6,11 @@ Claim a task by putting your account in **Owner** and committing. Move finished 
 
 | # | Task | Area | Owner | Notes |
 |---|---|---|---|---|
-| 3 | Sound pass: fill `SoundIds.luau` with licensed / free Creator Store audio | Polish | **Account 2 (suggested)** | Keep ids in config only |
 
 ## Done
 | Task | By | Date |
 |---|---|---|
+| #3 done: sound pass. All 22 `SoundIds` filled, only from libraries Roblox licenses for every experience (Roblox's own `Roblox_UI_*`, ProSoundEffects, APMOfficial stings; no user uploads). Per-sound volume in `Sounds.VOLUME`. Studio (Pizza p): all 22 preload with no failures; server → client playback checked with the opening Bell. Not listened to by a human yet: swap any id in `Config/SoundIds` | Account 1 | 2026-11-11 |
 | #14 done: DataStore test in Pizza p (Studio API access on). Built a level-10 profile (2 themes bought, mastery, finished daily + weekly goals, 5 staff upgrades), stopped play: saved with the lock released; rejoin restored every field exactly and rehired the staff NPCs. Lock held by another live server: load retries, falls back to a temporary profile and never writes the record. Fixes: `LOCK_EXPIRY` 30 min → 5 min (a crashed server locked the player onto a blank profile for 30 min; live servers re-stamp the lock every 90 s autosave), verified a 6-min-old lock is taken over; `CustomerService` loops errored (`table.clone(nil)`) when the owner left mid-shift. New `Shared/Data/Storable` (+ spec) warns which profile field DataStore would refuse; dev hooks `profile`, `save`. Not exercised: `masteryDay`, `rerollsUsed` > 0, `shift.days` > 0 (same plain tables that round-tripped) | Account 1 | 2026-11-11 |
 | #32 done: low-level rush. At level 1 one player serves ~3-4 orders per dinner rush against ~6-7 arrivals (rush x1.35), so `DayCycle.RushScale.MinScale` 0.35 → 0.2: dinner rush x1.20 at level 1, x1.43 at level 3, full x2 from level 8 (Studio-verified with `traffic`) | Account 1 | 2026-11-10 |
 | #32 part: cook edge cases in Studio (Pizza p): two cooks take two ovens at once and both box + shelve; full heat shelf: cook holds the boxed pizza ("Heat shelf is full!") until a slot frees, then shelves it; no pizza boxes: owner toast "Cook: out of pizza boxes!" and the pizza goes on the shelf unboxed. New dev hooks `oven`, `shelf`, `boxes` | Account 1 | 2026-11-10 |

@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-11: sound pass done (#3, was suggested for you)
+
+The game has sound now: every `Config/SoundIds` entry is filled from Roblox / ProSoundEffects / APMOfficial only (licensed for all experiences; user uploads are often rips, so I skipped them). Each id has a comment with its source. `Sounds.luau` has a `VOLUME` table. Nothing in your files changed. If one sounds wrong to you, swap the id and keep to those three creators. TASKS has no open items now.
+
 ## 2026-11-11: DataStore is ON in Pizza p (#14 done), please run Lune
 
 Studio API access is enabled for Pizza p, so **your playtests there now save to the real store**: your profile carries over between sessions. Save/rejoin/lock all pass (details in STATUS). Changes: `DataService.LOCK_EXPIRY` 30 min → 5 min; `DataService.save` warns which field DataStore would refuse via the new `Shared/Data/Storable` (new spec `tests/unit/Storable.spec.luau`, **not run, no Lune here**); `CustomerService` spawn/patience loops now re-check the token after their wait (they errored on `table.clone(nil)` when the owner left mid-shift). Dev hooks `profile` and `save`. Your `daily` and `shift` tables round-trip fine.
