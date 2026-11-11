@@ -192,4 +192,4 @@ A client-side test bot played a whole day through the real prompts in the new 81
 | 6 Expansion | Upgrades, stock, deliveries, extension annex done |
 | 7 UI | HUD, POS, manager, level-up, toasts done |
 | 8 Multiplayer & saving | Per-player plots + DataStore done; save, rejoin and session lock verified in Pizza p (2026-11-11) |
-| 9 Polish | Sound done (22 licensed SFX); staff + customer poses done; VFX done (oven steam/smoke, customer moods, action bursts; `Controllers/Effects`); optimisation not started |
+| 9 Polish | Sound done (22 licensed SFX); staff + customer poses done; VFX done (oven steam/smoke, customer moods, action bursts; `Controllers/Effects`); optimisation pass done (State deltas 7.1 → 0.42 KB/s, shadow trim, lamps only at night) |

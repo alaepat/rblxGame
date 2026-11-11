@@ -9,6 +9,7 @@ local Ingredients = require(Shared.Config.Ingredients)
 local GameConfig = require(Shared.Config.GameConfig)
 local FoodLogic = require(Shared.Food.FoodLogic)
 local Net = require(Shared.Net)
+local StateDelta = require(Shared.StateDelta)
 
 local ProgressService = {}
 local S: any -- services registry
@@ -166,13 +167,36 @@ function ProgressService.addReview(player: Player, stars: number)
 end
 
 function ProgressService.start()
+	-- Only changed top-level keys go out (StateDelta): the full snapshot is
+	-- ~3.8 KB and used to be sent ~2x a second during a shift (~7 KB/s per
+	-- player). A full resync every FULL_EVERY seconds guards against drift.
+	local FULL_EVERY = 60
+	local lastSent: { [Player]: { [string]: any } } = {}
+	local lastFull: { [Player]: number } = {}
+	game:GetService("Players").PlayerRemoving:Connect(function(p)
+		lastSent[p] = nil
+		lastFull[p] = nil
+		dirty[p] = nil
+	end)
 	task.spawn(function()
 		while true do
 			task.wait(0.12)
+			local now = os.clock()
 			for player in dirty do
 				dirty[player] = nil
 				if player.Parent then
-					stateEvent:FireClient(player, snapshot(player))
+					local prev = lastSent[player]
+					if prev and now - (lastFull[player] or 0) > FULL_EVERY then
+						prev = nil
+					end
+					local delta, sent = StateDelta.diff(prev, snapshot(player))
+					lastSent[player] = sent
+					if delta then
+						if delta.full then
+							lastFull[player] = now
+						end
+						stateEvent:FireClient(player, delta)
+					end
 				end
 			end
 		end

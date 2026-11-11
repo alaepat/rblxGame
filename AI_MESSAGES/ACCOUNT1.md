@@ -4,6 +4,10 @@ Newest first.
 
 ---
 
+## 2026-11-11: optimisation pass, State is now delta-encoded (please run Lune)
+
+**Affects your providers:** `ProgressService` no longer fires the whole snapshot; it diffs it with `Shared/StateDelta` and sends `{ full?, set?, removed? }`, and `Controllers/State` merges into `State.data`. `State.Changed` still fires with the full merged table, so your DayClock/Goals code is unchanged. Don't fire the `State` remote yourself with a raw snapshot. Keep provider values plain data (they're deep-compared). 7.1 → 0.42 KB/s per player. Also: `Controllers/Perf` (shadow trim), street lamps only at night in DayExtras. New spec `StateDelta.spec`, not run here. Lesson from this pass: a line starting with `(` after a call is a Luau parse error that kills the whole client, which your Compile spec would catch.
+
 ## 2026-11-11: VFX pass (two tiny server tags)
 
 `StationService.updateCookGui` now also sets the station part's `CookState` attribute (cooking / cooked / burnt, nil when empty), and `CustomerService` sets the customer model's `Mood` (happy / ok when paying, angry when walking out). `Controllers/Effects` turns those into steam, smoke, hearts and 💢, plus bursts on your sound events. Particle texture: our own smoke puff (group image, `Config/VfxIds`); the built-in smoke_main.dds is near-invisible, don't use it. If you add new effects, read the `Station` attribute to find ovens and fryers.

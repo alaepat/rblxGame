@@ -113,6 +113,34 @@ local function renderChecklist(view: any?)
 	})
 end
 
+-- PointLights inside the town's street lamps (WorldBuilder: "StreetLamp_Lamp").
+-- The town's meshes arrive over the first seconds, so lamps are collected as
+-- they appear and each new one takes the current on/off state.
+local lampsOn = false
+local lampList: { Light } = {}
+local function isLamp(d: Instance): boolean
+	return d:IsA("Light") and d.Parent ~= nil and string.find(d.Parent.Name, "StreetLamp", 1, true) ~= nil
+end
+local function addLamp(d: Instance)
+	if isLamp(d) then
+		local light = d :: Light
+		if not table.find(lampList, light) then
+			table.insert(lampList, light)
+			light.Enabled = lampsOn
+		end
+	end
+end
+local function watchLamps()
+	for _, d in workspace:GetDescendants() do
+		addLamp(d)
+	end
+	workspace.DescendantAdded:Connect(function(d)
+		if d:IsA("Light") then
+			task.defer(addLamp, d)
+		end
+	end)
+end
+
 local function applyLighting(view: any?, t: number)
 	local minute: number? = nil
 	if view and (view.state == "open" or view.state == "closing") and view.startedAt then
@@ -123,6 +151,14 @@ local function applyLighting(view: any?, t: number)
 	Lighting.Brightness = base.brightness + (NIGHT_BRIGHTNESS - base.brightness) * night
 	Lighting.OutdoorAmbient = base.outdoor:Lerp(NIGHT_OUTDOOR, night)
 	Lighting.ExposureCompensation = base.exposure + 0.25 * night
+	-- street lamps (54 PointLights in the town) only cost anything at night
+	local on = night > 0.2
+	if on ~= lampsOn then
+		lampsOn = on
+		for _, l in lampList do
+			l.Enabled = on
+		end
+	end
 end
 
 function DayExtras.start()
@@ -135,6 +171,7 @@ function DayExtras.start()
 	})
 	Responsive.apply(gui, Responsive.HUD)
 	buildCard(gui)
+	watchLamps()
 	State.Changed:Connect(function()
 		renderChecklist(State.get("shift"))
 	end)
